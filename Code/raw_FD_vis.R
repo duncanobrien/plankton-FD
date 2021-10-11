@@ -115,14 +115,13 @@ all.lakes.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12)%>%
          metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD")))
 
 ###########################################################################
-## Raw FD Prep ##
+## Plot FD and State Trends ##
 ###########################################################################
 
 pdf(file="Results/raw_visualisations/raw_smooth_vis.pdf",
     width=9, height = 9)
 ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_smooth(aes(fill = metric),method = "gam",alpha=0.3) +
-  #facet_grid(metric.type + metric~data.source,scales = "free_x")+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
                       space="free_x" ) +
@@ -135,17 +134,13 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
   scale_y_continuous(breaks= seq(-1,1,1))+
   #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
   scale_x_continuous(breaks = seq(1970,2015,10))+
-  theme(#axis.title.y=element_blank(),
-    #axis.text.y=element_blank(),
-    #axis.ticks.y=element_blank(),
-    panel.spacing = unit(0.2,"line"))
+  theme(panel.spacing = unit(0.2,"line"))
 dev.off()
 
 pdf(file="Results/raw_visualisations/raw_diff1_vis.pdf",
     width=9, height = 9)
 ggplot(all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_path() +
-  #facet_grid(metric.type + metric~data.source,scales = "free_x")+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
                       space="free_x") +
@@ -157,17 +152,13 @@ ggplot(all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFE
   scale_y_continuous(breaks= seq(-6,6,4))+
   #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
   scale_x_continuous(breaks = seq(1970,2015,10))+
-  theme(#axis.title.y=element_blank(),
-    #axis.text.y=element_blank(),
-    #axis.ticks.y=element_blank(),
-    panel.spacing = unit(0.2,"line"))
+  theme(panel.spacing = unit(0.2,"line"))
 dev.off()
 
 pdf(file="Results/raw_visualisations/raw_diff12_vis.pdf",
     width=9, height = 9)
 ggplot(all.lakes.diff12 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_path() +
-  #facet_grid(metric.type + metric~data.source,scales = "free_x")+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
                       space="free_x") +
@@ -179,8 +170,5 @@ ggplot(all.lakes.diff12 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooF
   scale_y_continuous(breaks= seq(-6,6,4))+
   #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
   scale_x_continuous(breaks = seq(1970,2015,10))+
-  theme(#axis.title.y=element_blank(),
-    #axis.text.y=element_blank(),
-    #axis.ticks.y=element_blank(),
-    panel.spacing = unit(0.2,"line"))
+  theme(panel.spacing = unit(0.2,"line"))
 dev.off()
