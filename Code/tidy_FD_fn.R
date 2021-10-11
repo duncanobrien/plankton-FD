@@ -22,7 +22,7 @@ tidyFD <- function(speciesdat, traitdat, trophic.lvl = c("phyto","zoo","fish"), 
   require(funrar)
   set.seed(1234)
   
-source("/Code/melodic_fn.R")
+source("Code/melodic_fn.R")
   
   #select trait data type. Fuzzy used in this work
   if(traittype == "ordinal"){
