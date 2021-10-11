@@ -1,3 +1,23 @@
+### Raw FD Visualisation ###
+
+## Preamble 
+require(tidyverse) # dplyr, ggplot etc.
+require(ggh4x) # facet_nested function
+
+###########################################################################
+## Read in Data ##
+###########################################################################
+phyto.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_phyto_mth_raw.csv")
+phyto.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_phyto_mth_raw.csv")
+phyto.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_phyto_mth_raw.csv")
+phyto.wind.fuzFDs.mth <- read.csv("Data/raw_FD/FD_wind_phyto_mth_raw.csv")
+
+zoo.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_zoo_mth_raw.csv")
+zoo.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_zoo_mth_raw.csv")
+zoo.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_zoo_mth_raw.csv")
+
+source("Data/all.system.states.RData")
+
 ###########################################################################
 ## Raw FD Visualisation ##
 ###########################################################################
@@ -114,7 +134,7 @@ ggplot(all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFE
   geom_path() +
   #facet_grid(metric.type + metric~data.source,scales = "free_x")+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
-                      labeller = label_value,strip = strip_nested(size="constant",bleed=T),
+                      labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
                       space="free_x") +
   scale_colour_manual(values = c("#7b3294","#c2a5cf","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   theme_bw() + xlab("Date")+ ylab("Scaled metric value")+
@@ -142,7 +162,7 @@ ggplot(all.lakes.diff12 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooF
   geom_path() +
   #facet_grid(metric.type + metric~data.source,scales = "free_x")+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
-                      labeller = label_value,strip = strip_nested(size="constant",bleed=T),
+                      labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
                       space="free_x") +
   scale_colour_manual(values = c("#7b3294","#c2a5cf","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   theme_bw() + xlab("Date")+ ylab("Scaled metric value")+
