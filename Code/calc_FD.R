@@ -1,9 +1,9 @@
 ### Calculate Planktonic FD ###
 
 #Preamble
-require(readxl) #read.xlsx function
-require(tidyverse) #dplyr, ggplot etc.
-require(janitor) #row_to_names function
+require(readxl) # read.xlsx function
+require(tidyverse) # dplyr, ggplot etc.
+require(janitor) # row_to_names function
 source("Code/tidy_FD_fn.R")
 
 ##########################################################################################
