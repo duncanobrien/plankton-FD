@@ -406,7 +406,7 @@ ggplot(raw.ccf.mth1,aes(x = state.metric, y =  abs.rmax, col = FD.metric,fill= F
   facet_grid(system~troph)+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF between differenced FD and system state")
+  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF between lag1 differenced FD and system state")
 dev.off()
 
 pdf(file="Results/FD_perm_lag1_diffmth_r0.pdf",
@@ -422,7 +422,7 @@ ggplot(raw.ccf.mth1,aes(x = state.metric, y =  r0, col = FD.metric,fill= FD.metr
   facet_grid(system~troph)+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF t0 between differenced FD and system state")
+  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF t0 between lag1 differenced FD and system state")
 dev.off()
 
 ###########################################################################
