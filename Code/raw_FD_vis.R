@@ -16,7 +16,7 @@ zoo.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_zoo_mth_raw.csv")
 zoo.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_zoo_mth_raw.csv")
 zoo.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_zoo_mth_raw.csv")
 
-source("Data/all.system.states.RData")
+load("Data/all.system.states.RData")
 
 ###########################################################################
 ## Raw FD Visualisation ##
@@ -150,7 +150,7 @@ ggplot(all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFE
     panel.spacing = unit(0.2,"line"))
 dev.off()
 
-all.lakes.diff1 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12)%>%
+all.lakes.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12)%>%
   pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
   mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
                               ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD","State Metric")),

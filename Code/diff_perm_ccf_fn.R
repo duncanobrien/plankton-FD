@@ -27,11 +27,13 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
                           perm.method = c("spatial","arima","red.noise","replacement"),
                           scale = F,normalise = F,identical.t = F){
   
-  require(fgpt) #spatial permutation
-  require(foreach)
-  require(dplyr)
-  require(forecast)
-  require(zoo)
+  require(fgpt) # spatial permutation
+  require(foreach) # parallelable 'for' function
+  require(doParallel) # helper functions for foreach
+  require(parallel) # makeCluster function
+  require(dplyr) # dplyr, ggplot etc.
+  require(forecast) # ARIMA function
+  require(zoo) # worker functions for timeseries 
   set.seed(123) 
   
   ## Necessary custom functions ##
@@ -51,7 +53,7 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
   
   
   ## Create and register cluster for parallelisation
-  cl <- parallel::makeCluster(3L)
+  cl <- parallel::makeCluster(parallel::detectCores()-1)
   doParallel::registerDoParallel(cl)
   
   perm.meth <- match.arg(perm.method)
@@ -126,7 +128,7 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
     perm.df <- fgpt::fgperm(xy,marks=ts, scale=span,  iter=iter, ratio=1, FUN=fgpt::fyshuffle, 
                             bootstrap = F, add.obs=F, as.matrix=F) #create semi-random order of indices
     
-    ##loop through each permutation to fit GAMM and extract derivatives
+    ##loop through each permutation to cross correlate and extract optimal lag
     tmp <- foreach::foreach(i = c(1:iter),.combine = "comb",.multicombine = T, .packages = c("mgcv","gratia","dplyr")) %dopar%{
       
       if(isTRUE(diff)){
@@ -197,6 +199,8 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
         mutate(!!sym(new_col_name) := sample(x = seq(from = lwr, to = upr,by = 0.0001),size = 1))%>%
         ungroup()
     }
+    
+    ##loop through each permutation to cross correlate and extract optimal lag
     tmp <- foreach::foreach(i = 1:iter,.combine = "comb",.multicombine = T, .packages = c("dplyr")) %dopar%{     
       if(isTRUE(monthly)){ # first difference (seasonal)
         ts.diff.perm <- as.numeric(base::diff(as.ts(perm.df[,paste("perm",i,sep = "_")]), lag = 12)) #as.ts required due to finicky tibble interactions with diff
@@ -258,7 +262,7 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
       perm.df[,r] <- red.noise.ts(ts,lag=d1.ar1,length=length(timedat)) #permuted autocorrelated surrogates
     }  
     
-    ##loop through each permutation to fit GAMM and extract derivatives
+    ##loop through each permutation to cross correlate and extract optimal lag
     tmp <- foreach::foreach(i = 1:iter,.combine = "comb",.multicombine = T, .packages = c("dplyr")) %dopar%{
       if(isTRUE(diff)){
         ts.diff.perm <- diff(perm.df[,i], lag = lag)
