@@ -19,25 +19,25 @@ zoo.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_zoo_mth_raw.csv")
 load("Data/all.system.states.RData")
 
 ###########################################################################
-## Raw FD Visualisation ##
+## Raw FD Prep ##
 ###########################################################################
 
 kin.tot <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-8])%>%
   mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
-  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>% # log density, mvi and zo.ration to linearise
   #mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
-  mutate(across(-c(date,data.source,res),~scale(.x)))
+  mutate(across(-c(date,data.source,res),~scale(.x))) # center and scale to unit variance for plotting
 
 kin.diff1 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-8])%>%
   mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
+  mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>% # first difference (xt = xt - xt-1)
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
 kin.diff12 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-8])%>%
   mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
+  mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>% # first difference for monthly data (xt = xt - xt-12)
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
 mad.tot <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-8])%>%
@@ -80,18 +80,21 @@ wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.stat
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   # mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))%>%
-  mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA)
+  mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA) # add dummy zooFD variable for missing data
 
 wind.diff1 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-8])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))%>%
-  mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA)
+  mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA) # add dummy zooFD variable for missing data
 
 wind.diff12 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-8])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
-  mutate(across(-c(date,data.source,res),~scale(.x)))
+  mutate(across(-c(date,data.source,res),~scale(.x)))%>%
+  mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA) # add dummy zooFD variable for missing data
+
+# Merge lakes #
 
 all.lakes.gam <- rbind(kin.tot,LZ.tot,mad.tot,wind.tot)%>%
   pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
@@ -99,8 +102,24 @@ all.lakes.gam <- rbind(kin.tot,LZ.tot,mad.tot,wind.tot)%>%
                               ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD","State Metric")),
          metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD")))
 
-png(file="Results/raw_visualisations/raw_smooth_vis.png",
-    width=3000, height = 3000 ,res=300)
+all.lakes.diff1 <- rbind(kin.diff1,LZ.diff1,mad.diff1,wind.diff1)%>%
+  pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
+  mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
+                              ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD","State Metric")),
+         metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD")))
+
+all.lakes.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12)%>%
+  pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
+  mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
+                              ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD","State Metric")),
+         metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD")))
+
+###########################################################################
+## Raw FD Prep ##
+###########################################################################
+
+pdf(file="Results/raw_visualisations/raw_smooth_vis.pdf",
+    width=9, height = 9)
 ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_smooth(aes(fill = metric),method = "gam",alpha=0.3) +
   #facet_grid(metric.type + metric~data.source,scales = "free_x")+
@@ -122,14 +141,8 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
     panel.spacing = unit(0.2,"line"))
 dev.off()
 
-all.lakes.diff1 <- rbind(kin.diff1,LZ.diff1,mad.diff1,wind.diff1)%>%
-  pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
-  mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
-                              ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD","State Metric")),
-         metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD")))
-
-png(file="Results/raw_visualisations/raw_diff1_vis.png",
-    width=3000, height = 3000 ,res=300)
+pdf(file="Results/raw_visualisations/raw_diff1_vis.pdf",
+    width=9, height = 9)
 ggplot(all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_path() +
   #facet_grid(metric.type + metric~data.source,scales = "free_x")+
@@ -150,14 +163,8 @@ ggplot(all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFE
     panel.spacing = unit(0.2,"line"))
 dev.off()
 
-all.lakes.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12)%>%
-  pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
-  mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
-                              ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD","State Metric")),
-         metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD")))
-
-png(file="Results/raw_visualisations/raw_diff12_vis.png",
-    width=3000, height = 3000 ,res=300)
+pdf(file="Results/raw_visualisations/raw_diff12_vis.pdf",
+    width=9, height = 9)
 ggplot(all.lakes.diff12 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_path() +
   #facet_grid(metric.type + metric~data.source,scales = "free_x")+
