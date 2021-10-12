@@ -173,7 +173,7 @@ gc.best.lag.df <- all.lakes.granger %>%
 
 count.df <- gc.best.lag.df %>%
   group_by(state.metric,causality.direc,FD.metric)%>%
-  mutate(N = n())
+  mutate(N = n()) # count per group
 
 pdf(file="Results/granger_causality_spread.pdf",
     width=10, height = 7)
