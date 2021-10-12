@@ -32,7 +32,7 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
   require(doParallel) # helper functions for foreach
   require(parallel) # makeCluster function
   require(dplyr) # dplyr, ggplot etc.
-  require(forecast) # ARIMA function
+  require(forecast) # auto.arima function
   require(zoo) # worker functions for timeseries 
   set.seed(123) 
   
@@ -202,7 +202,7 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
     
     ##loop through each permutation to cross correlate and extract optimal lag
     tmp <- foreach::foreach(i = 1:iter,.combine = "comb",.multicombine = T, .packages = c("dplyr")) %dopar%{     
-      if(isTRUE(monthly)){ # first difference (seasonal)
+      if(span>=12){ # first difference (seasonal)
         ts.diff.perm <- as.numeric(base::diff(as.ts(perm.df[,paste("perm",i,sep = "_")]), lag = 12)) #as.ts required due to finicky tibble interactions with diff
       }else{ #first difference (yearly)
         ts.diff.perm <- as.numeric(diff(as.ts(perm.df[,paste("perm",i,sep = "_")]), lag = 1))
