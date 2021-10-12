@@ -176,7 +176,7 @@ count.df <- gc.best.lag.df %>%
   mutate(N = n())
 
 pdf(file="Results/granger_causality_spread.pdf",
-    width=8, height = 7)
+    width=10, height = 7)
 ggplot(gc.best.lag.df,aes(x= state.metric,y= lag,fill= causality.direc)) + 
   geom_boxplot(alpha = 0.8,size = 0.5)+
   geom_point(aes(y=lag, group=causality.direc), alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
