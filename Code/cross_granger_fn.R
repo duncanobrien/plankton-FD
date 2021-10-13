@@ -30,9 +30,9 @@ cross.granger <- function(ts,comp.ts,span,method = c("var","raw"),covariates = N
         obsx <- vars::VAR(sub.dat[,c("ts","comp.ts")], p = kk, type = "both",season = 12) # fit VAR model forward
         obsy<-  vars::VAR(sub.dat[,c("comp.ts","ts")], p = kk, type = "both",season = 12) # fit VAR model reverse
         }else{
-          obsx <- vars::VAR(sub.dat[,c("ts","comp.ts")], p = kk, type = "both",season = 12,exogen = as.matrix(covariates)) # fit VAR model forward
-          obsy<-  vars::VAR(sub.dat[,c("comp.ts","ts")], p = kk, type = "both",season = 12,exogen = as.matrix(covariates)) # fit VAR model reverse
-        }
+          obsx <- suppressWarnings(vars::VAR(sub.dat[,c("ts","comp.ts")], p = kk, type = "both",season = 12,exogen = as.matrix(covariates))) # fit VAR model forward
+          obsy<-  suppressWarnings(vars::VAR(sub.dat[,c("comp.ts","ts")], p = kk, type = "both",season = 12,exogen = as.matrix(covariates))) # fit VAR model reverse
+        } #warnings supressed as covariates inputted without colnames kicks warning
       gc.obsx <- vars::causality(obsx,cause = "ts")$Granger # perform forward (null = x not Granger cause y)
       gc.obsy <- vars::causality(obsy,cause = "comp.ts")$Granger # perform in reverse
 
