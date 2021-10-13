@@ -244,3 +244,23 @@ ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve"
     theme_bw()+ ggtitle("Zooplankton"),
   nrow=2,common.legend=T)
 dev.off()
+
+
+gc.best.aic.df <- all.lakes.granger %>%
+  filter(!grepl("\\.sig$",statistic))%>% # drop AIC and sig rows
+  group_by(FD.metric,state.metric,system) %>%
+  pivot_longer(c(lag_1:lag_60),names_to = "lag",values_to = "value",names_prefix = "lag_") %>% # pivot lag columns in to single column
+  mutate(value = as.numeric(value),lag = as.numeric(lag))%>% # ensure values are numeric
+  pivot_wider(names_from = statistic,values_from = value)%>% # pivot F/P statistic rows in to columns for ease of summarising down the line
+  group_by(FD.metric,state.metric,system,lag)%>%
+  pivot_longer(c(x_y.F,y_x.F),names_to = "F.measure",values_to = "F.value")%>% # pivot back down in to separate columns 
+  pivot_longer(c(x_y.P,y_x.P),names_to = "P.measure",values_to = "P.value")%>%
+  pivot_longer(c(x_y.aic,y_x.aic),names_to = "AIC.measure",values_to = "AIC.value")%>%
+  filter(substr(F.measure,1,3) == substr(P.measure,1,3) & substr(F.measure,1,3) == substr(AIC.measure,1,3)) %>% # match forward & reverse measures
+  mutate(causality.direc = ifelse(grepl("^x_y",F.measure),"forward","reverse"))%>% # classify directions
+  #filter(P.value <= 0.05)%>% # only keep significant (5% level) causality
+  group_by(FD.metric,state.metric,system,causality.direc)%>%
+  mutate(best.value = min(AIC.value))%>% # find highest F value per group but keep the associated P value (was lost if not pivotted in to a separate column)
+  ungroup()%>%
+  filter(best.value == AIC.value) # filter data frame to lags with highest Granger causality
+
