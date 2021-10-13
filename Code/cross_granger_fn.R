@@ -19,7 +19,7 @@ cross.granger <- function(ts,comp.ts,span,method = c("var","raw")){
       
       obsx <- vars::VAR(sub.dat[,c("ts","comp.ts")], p = kk, type = "both",season = 12) # fit VAR model forward
       obsy<-  vars::VAR(sub.dat[,c("comp.ts","ts")], p = kk, type = "both",season = 12) # fit VAR model reverse
-      gc.obsx <- vars::causality(obsx,cause = "ts")$Granger # perform forward
+      gc.obsx <- vars::causality(obsx,cause = "ts")$Granger # perform forward (null = x not Granger cause y)
       gc.obsy <- vars::causality(obsy,cause = "comp.ts")$Granger # perform in reverse
 
       gc.out <- rbind(gc.obsx$statistic,gc.obsx$p.value,ifelse(gc.obsx$p.value <= 0.025,"*",""),AIC(obsx),
@@ -34,8 +34,8 @@ cross.granger <- function(ts,comp.ts,span,method = c("var","raw")){
     for(kk in c(1:span)){
       gc_col_name <- paste0("lag_", kk) # new column and colname for each lag
       
-      gc.obsx <- lmtest::grangertest(sub.dat[,"ts"],sub.dat[,"comp.ts"],order=kk) # perform forward
-      gc.obsy <- lmtest::grangertest(sub.dat[,"comp.ts"],sub.dat[,"ts"],order=kk) # perform in reverse
+      gc.obsx <- lmtest::grangertest(x=sub.dat[,"ts"],y=sub.dat[,"comp.ts"],order=kk) # perform forward (null = x not Granger cause y)
+      gc.obsy <- lmtest::grangertest(x=sub.dat[,"comp.ts"],y=sub.dat[,"ts"],order=kk) # perform in reverse
       gc.out <- rbind(gc.obsx$F[2],gc.obsx$`Pr(>F)`[2],ifelse(gc.obsx$`Pr(>F)`[2] <= 0.025,"*",""),
                       gc.obsy$F[2],gc.obsy$`Pr(>F)`[2],ifelse(gc.obsy$`Pr(>F)`[2] <= 0.025,"*","")) #return Wald test F stat and p-value
       gc.df <- gc.df %>% 
