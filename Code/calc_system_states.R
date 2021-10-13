@@ -187,4 +187,3 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                "env" = prcomp(scale(phyto_env.windyrdata[,c("TEMP","TOTP","NO3N")]))$x[,1])%>%
                             left_join(windFIyr.dat,by="date") %>% left_join(windyr.mvi,by=c("date","maxt")))
 save(all.system.states,file = "Data/all.system.states.RData")
-

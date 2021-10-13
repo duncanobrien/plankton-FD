@@ -28,7 +28,7 @@ source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Windermere/Data/windermere
 phyto.kin.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 3) %>%
   slice(-c(1)) %>% #drop redundant first col
   janitor::row_to_names(row_number = 1) %>%
-  select(-c(Species,Notes)) %>%
+  dplyr::select(-c(Species,Notes)) %>%
   slice(-3) %>% #drop 2-Aphanizomenon oval as no data
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>%
   mutate(across(c(mob,troph),as.factor))
@@ -36,7 +36,7 @@ phyto.kin.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet =
 zoo.kin.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
-  select(-c(Notes)) %>%
+  dplyr::select(-c(Notes)) %>%
   drop_na()%>% #drop no data species
   mutate(across(c(lgth_1:omniherb),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(rv_mech,f_mode),as.factor))
@@ -44,7 +44,7 @@ zoo.kin.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) 
 phyto.LZ.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 6) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
-  select(-c(Notes)) %>%
+  dplyr::select(-c(Notes)) %>%
   #slice(-c(4,19,22,23,24,45,52,53,60,63,70,71)) %>% #drop as no data
   drop_na()%>% #drop no data species
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
@@ -61,7 +61,7 @@ zoo.LZ.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %
 phyto.mad.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 5) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
-  select(-c(Notes)) %>%
+  dplyr::select(-c(Notes)) %>%
   #slice(-c(1,7,8,17,19,23,32)) %>% #drop as no data
   drop_na()%>% #drop no data species
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
@@ -70,7 +70,7 @@ phyto.mad.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet =
 zoo.mad.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
-  select(-c(Notes)) %>%
+  dplyr::select(-c(Notes)) %>%
   slice(-c(8,9,11)) %>% #drop as no data
   drop_na()%>% #drop no data species
   mutate(across(c(lgth_1:omniherb),as.numeric)) %>% #ensure numeric and not character
@@ -79,7 +79,7 @@ zoo.mad.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) 
 phyto.wind.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 4) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
-  select(-c(Notes)) %>%
+  dplyr::select(-c(Notes)) %>%
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
@@ -89,36 +89,36 @@ phyto.wind.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet 
 FD_metrics <- c("MNND","Rao","FRic","FDis","FDiv","FEve","SRic","SDiv","RARDis","RARScr")
 
 # Kinneret #
-phyto.kin.fuzFDs.mth <-tidyFD(plank.kin.combo.mth[,4:48], phyto.kin.traits.dat, trophic.lvl = "phyto",
+phyto.kin.fuzFDs.mth <-tidyFD(plank_env.data.mth[,4:48], phyto.kin.traits.dat, trophic.lvl = "phyto",
                               traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-phyto.kin.fuzFDs.mth <- cbind(date = as.numeric(plank.kin.combo.mth$Date),phyto.kin.fuzFDs.mth)
+phyto.kin.fuzFDs.mth <- cbind(date = as.numeric(plank_env.data.mth$Date),phyto.kin.fuzFDs.mth)
 write.csv(phyto.kin.fuzFDs.mth,"Data/raw_FD/FD_kin_phyto_mth_raw.csv",row.names = FALSE)
 
-phyto.kin.fuzFDs.yr <-tidyFD(plank.kin.combo.yr[,2:46], phyto.kin.traits.dat, trophic.lvl = "phyto",
+phyto.kin.fuzFDs.yr <-tidyFD(plank_env.data.yr[,2:46], phyto.kin.traits.dat, trophic.lvl = "phyto",
                              traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-phyto.kin.fuzFDs.yr <- cbind(date = as.numeric(plank.kin.combo.yr$Date),phyto.kin.fuzFDs.yr)
+phyto.kin.fuzFDs.yr <- cbind(date = as.numeric(plank_env.data.yr$Date),phyto.kin.fuzFDs.yr)
 write.csv(phyto.kin.fuzFDs.yr,"Data/raw_FD/FD_kin_phyto_yr_raw.csv",row.names = FALSE)
 
 # Lower Zurich #
-phyto.LZ.fuzFDs.mth <-tidyFD(plank.LZ.combo.mth[,4:178], phyto.LZ.traits.dat, trophic.lvl = "phyto",
+phyto.LZ.fuzFDs.mth <-tidyFD(plank_env.LZmthdata[,7:181], phyto.LZ.traits.dat, trophic.lvl = "phyto",
                              traittype = "fuzzy", method = FD_metrics, correction="cailliez", ndim =9)
-phyto.LZ.fuzFDs.mth <- cbind(date = as.numeric(plank.LZ.combo.mth$date),phyto.LZ.fuzFDs.mth)
+phyto.LZ.fuzFDs.mth <- cbind(date = as.numeric(plank_env.LZmthdata$date),phyto.LZ.fuzFDs.mth)
 write.csv(phyto.LZ.fuzFDs.mth,"Data/raw_FD/FD_LZ_phyto_mth_raw.csv",row.names = FALSE)
 
-phyto.LZ.fuzFDs.yr <-tidyFD(plank.LZ.combo.yr[,2:176], phyto.LZ.traits.dat, trophic.lvl = "phyto",
+phyto.LZ.fuzFDs.yr <-tidyFD(plank_env.LZyrdata[,5:179], phyto.LZ.traits.dat, trophic.lvl = "phyto",
                             traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-phyto.LZ.fuzFDs.yr <- cbind(date = as.numeric(plank.LZ.combo.yr$date),phyto.LZ.fuzFDs.yr)
+phyto.LZ.fuzFDs.yr <- cbind(date = as.numeric(plank_env.LZyrdata$date),phyto.LZ.fuzFDs.yr)
 write.csv(phyto.LZ.fuzFDs.yr,"Data/raw_FD/FD_LZ_phyto_yr_raw.csv",row.names = FALSE)
 
 # Mendota #
-phyto.mad.fuzFDs.mth <-tidyFD(plank.mad.combo.mth[,4:200], phyto.mad.traits.dat, trophic.lvl = "phyto",
+phyto.mad.fuzFDs.mth <-tidyFD(plank_env.madmthdata[,4:200], phyto.mad.traits.dat, trophic.lvl = "phyto",
                               traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-phyto.mad.fuzFDs.mth <- cbind(date = as.numeric(plank.mad.combo.mth$date),phyto.mad.fuzFDs.mth)
+phyto.mad.fuzFDs.mth <- cbind(date = as.numeric(plank_env.madmthdata$date),phyto.mad.fuzFDs.mth)
 write.csv(phyto.mad.fuzFDs.mth,"Data/raw_FD/FD_mad_phyto_mth_raw.csv",row.names = FALSE)
 
-phyto.mad.fuzFDs.yr <-tidyFD(plank.mad.combo.yr[,2:198], phyto.mad.traits.dat, trophic.lvl = "phyto",
+phyto.mad.fuzFDs.yr <-tidyFD(plank_env.madyrdata[,2:198], phyto.mad.traits.dat, trophic.lvl = "phyto",
                              traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-phyto.mad.fuzFDs.yr <- cbind(date = as.numeric(plank.mad.combo.yr$date),phyto.mad.fuzFDs.yr)
+phyto.mad.fuzFDs.yr <- cbind(date = as.numeric(plank_env.madyrdata$date),phyto.mad.fuzFDs.yr)
 write.csv(phyto.mad.fuzFDs.yr,"Data/raw_FD/FD_mad_phyto_yr_raw.csv",row.names = FALSE)
 
 # Windermere #
@@ -140,34 +140,34 @@ phyto.wind.fuzFDs.yr <- read.csv("Data/raw_FD/FD_wind_phyto_yr_raw.csv")
 FD_metrics <- c("MNND","Rao","FRic","FDis","FDiv","FEve","SRic","SDiv","RARDis","RARScr")
 
 # Kinneret #
-zoo.kin.fuzFDs.mth <-tidyFD(plank.kin.combo.mth[,49:79], zoo.kin.traits.dat, trophic.lvl = "zoo",
+zoo.kin.fuzFDs.mth <-tidyFD(plank_env.data.mth[,49:79], zoo.kin.traits.dat, trophic.lvl = "zoo",
                             traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-zoo.kin.fuzFDs.mth <- cbind(date = as.numeric(plank.kin.combo.mth$Date),zoo.kin.fuzFDs.mth)
+zoo.kin.fuzFDs.mth <- cbind(date = as.numeric(plank_env.data.mth$Date),zoo.kin.fuzFDs.mth)
 write.csv(zoo.kin.fuzFDs.mth,file = "Data/raw_FD/FD_kin_zoo_mth_raw.csv",row.names = F)
 
-zoo.kin.fuzFDs.yr <-tidyFD(plank.kin.combo.yr[,47:77], zoo.kin.traits.dat, trophic.lvl = "zoo",
+zoo.kin.fuzFDs.yr <-tidyFD(plank_env.data.yr[,47:77], zoo.kin.traits.dat, trophic.lvl = "zoo",
                            traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-zoo.kin.fuzFDs.yr <- cbind(date = as.numeric(plank.kin.combo.yr$Date),zoo.kin.fuzFDs.yr)
+zoo.kin.fuzFDs.yr <- cbind(date = as.numeric(plank_env.data.yr$Date),zoo.kin.fuzFDs.yr)
 write.csv(zoo.kin.fuzFDs.yr,file = "Data/raw_FD/FD_kin_zoo_yr_raw.csv",row.names = F)
 
 # Lower Zurich #
-zoo.LZ.fuzFDs.mth <-tidyFD(plank.LZ.combo.mth[,179:205], zoo.LZ.traits.dat, trophic.lvl = "zoo",
+zoo.LZ.fuzFDs.mth <-tidyFD(plank_env.LZmthdata[,182:208], zoo.LZ.traits.dat, trophic.lvl = "zoo",
                            traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-zoo.LZ.fuzFDs.mth <- cbind(date = as.numeric(plank.LZ.combo.mth$date),zoo.LZ.fuzFDs.mth)
+zoo.LZ.fuzFDs.mth <- cbind(date = as.numeric(plank_env.LZmthdata$date),zoo.LZ.fuzFDs.mth)
 write.csv(zoo.LZ.fuzFDs.mth,file = "Data/raw_FD/FD_LZ_zoo_mth_raw.csv",row.names = F)
 
-zoo.LZ.fuzFDs.yr <-tidyFD(plank.LZ.combo.yr[,177:203], zoo.LZ.traits.dat, trophic.lvl = "zoo",
+zoo.LZ.fuzFDs.yr <-tidyFD(plank_env.LZyrdata[,180:206], zoo.LZ.traits.dat, trophic.lvl = "zoo",
                           traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-zoo.LZ.fuzFDs.yr <- cbind(date = as.numeric(plank.LZ.combo.yr$date),zoo.LZ.fuzFDs.yr)
+zoo.LZ.fuzFDs.yr <- cbind(date = as.numeric(plank_env.LZyrdata$date),zoo.LZ.fuzFDs.yr)
 write.csv(zoo.LZ.fuzFDs.yr,file = "Data/raw_FD/FD_LZ_zoo_yr_raw.csv",row.names = F)
 
 # Mendota #
-zoo.mad.fuzFDs.mth <-tidyFD(plank.mad.combo.mth[,201:224], zoo.mad.traits.dat, trophic.lvl = "zoo",
+zoo.mad.fuzFDs.mth <-tidyFD(plank_env.madmthdata[,201:224], zoo.mad.traits.dat, trophic.lvl = "zoo",
                             traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-zoo.mad.fuzFDs.mth <- cbind(date = as.numeric(plank.mad.combo.mth$date),zoo.mad.fuzFDs.mth)
+zoo.mad.fuzFDs.mth <- cbind(date = as.numeric(plank_env.madmthdata$date),zoo.mad.fuzFDs.mth)
 write.csv(zoo.mad.fuzFDs.mth,file = "Data/raw_FD/FD_mad_zoo_mth_raw.csv",row.names = F)
 
-zoo.mad.fuzFDs.yr <-tidyFD(plank.mad.combo.yr[,199:222], zoo.mad.traits.dat, trophic.lvl = "zoo",
+zoo.mad.fuzFDs.yr <-tidyFD(plank_env.madyrdata[,199:222], zoo.mad.traits.dat, trophic.lvl = "zoo",
                            traittype = "fuzzy", method = FD_metrics, correction="cailliez")
-zoo.mad.fuzFDs.yr <- cbind(date = as.numeric(plank.mad.combo.yr$date),zoo.mad.fuzFDs.yr)
+zoo.mad.fuzFDs.yr <- cbind(date = as.numeric(plank_env.madyrdata$date),zoo.mad.fuzFDs.yr)
 write.csv(zoo.mad.fuzFDs.yr,file = "Data/raw_FD/FD_mad_zoo_yr_raw.csv",row.names = F)

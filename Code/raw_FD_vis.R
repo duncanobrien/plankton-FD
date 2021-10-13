@@ -22,73 +22,73 @@ load("Data/all.system.states.RData")
 ## Raw FD Prep ##
 ###########################################################################
 
-kin.tot <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-8])%>%
+kin.tot <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-c(7,9)])%>%
   mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>% # log density, mvi and zo.ration to linearise
   #mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x))) # center and scale to unit variance for plotting
 
-kin.diff1 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-8])%>%
+kin.diff1 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-c(7,9)])%>%
   mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>% # first difference (xt = xt - xt-1)
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
-kin.diff12 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-8])%>%
+kin.diff12 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-c(7,9)])%>%
   mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>% # first difference for monthly data (xt = xt - xt-12)
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
-mad.tot <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-8])%>%
-  mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
+mad.tot <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(7,9)])%>%
+  mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[7,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   #mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
-mad.diff1 <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-8])%>%
+mad.diff1 <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(7,9)])%>%
   mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
-mad.diff12 <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-8])%>%
+mad.diff12 <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(7,9)])%>%
   mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
-LZ.tot <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-8])%>%
+LZ.tot <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(7,9)])%>%
   mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   #mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
-LZ.diff1 <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-8])%>%
+LZ.diff1 <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(7,9)])%>%
   mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
-LZ.diff12 <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-8])%>%
+LZ.diff12 <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(7,9)])%>%
   mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
-wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-8])%>%
+wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(7,9)])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   # mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))%>%
   mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA) # add dummy zooFD variable for missing data
 
-wind.diff1 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-8])%>%
+wind.diff1 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(7,9)])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))%>%
   mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA) # add dummy zooFD variable for missing data
 
-wind.diff12 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-8])%>%
+wind.diff12 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(7,9)])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))%>%
@@ -122,6 +122,7 @@ pdf(file="Results/raw_visualisations/raw_smooth_vis.pdf",
     width=9, height = 9)
 ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_smooth(aes(fill = metric),method = "gam",alpha=0.3) +
+  #geom_path(aes(col=metric))+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
                       space="free_x" ) +
@@ -134,9 +135,7 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
   scale_y_continuous(breaks= seq(-1,1,1))+
   #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
   scale_x_continuous(breaks = seq(1970,2015,10))+
-  theme(panel.spacing=unit(0.2,"lines"),
-        strip.background=element_rect(color="grey30", fill="grey90"),
-        panel.border=element_rect(color="grey90"))
+  theme(panel.spacing=unit(0.2,"lines"))
 dev.off()
 
 pdf(file="Results/raw_visualisations/raw_diff1_vis.pdf",
