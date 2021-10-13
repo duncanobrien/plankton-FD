@@ -204,7 +204,7 @@ gc.lag.changes.df <- all.lakes.granger %>%
   filter(P.value <= 0.05) # only keep significant (5% level) causality
   
 pdf(file="Results/granger_causality_lag_changes.pdf",
-    width=10, height = 5)
+    width=11, height = 5,onefile=FALSE)
 ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve","FRic")),
                          aes(x=lag,y=log(F.value), col =system)) +
   geom_point(alpha=0.5) + 
@@ -227,5 +227,5 @@ ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve"
     scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB"),name= "Lake")+
     guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
     theme_bw()+ ggtitle("Zooplankton"),
-  ncol=2,common.legend=T)
+  nrow=2,common.legend=T)
 dev.off()
