@@ -192,8 +192,8 @@ dev.off()
 pdf(file="Results/granger_causality_spread_alt.pdf",
     width=10, height = 7)
 ggplot(gc.best.lag.df,aes(x= state.metric,y= lag,fill= causality.direc)) + 
-  #geom_boxplot(alpha = 0.8,size = 0.5)+
-  geom_point(aes(y=lag, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.5, position = position_dodge(width=0.75),size = 3) + 
+  geom_boxplot(alpha = 0.1,size = 0.1)+
+  geom_point(aes(y=lag, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.8, position = position_dodge(width=0.75),size = 3) + 
   geom_text(data = count.df %>% distinct(FD.metric, causality.direc, state.metric, N),
             aes(y = 65, label = N),
             position = position_dodge(width = 0.8))+
