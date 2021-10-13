@@ -193,14 +193,15 @@ pdf(file="Results/granger_causality_spread_alt.pdf",
     width=10, height = 7)
 ggplot(gc.best.lag.df,aes(x= state.metric,y= lag,fill= causality.direc)) + 
   #geom_boxplot(alpha = 0.8,size = 0.5)+
-  geom_point(aes(y=lag, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
-  scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  geom_point(aes(y=lag, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.5, position = position_dodge(width=0.75),size = 3) + 
   geom_text(data = count.df %>% distinct(FD.metric, causality.direc, state.metric, N),
             aes(y = 65, label = N),
             position = position_dodge(width = 0.8))+
-  scale_shape_manual(values = c(21,22,24,25))+
+  scale_shape_manual(values = c(21,22,24,25),name = "Lake")+
+  scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
   facet_wrap(~FD.metric) +
   xlab("State metric") + ylab("Optimum lag (months)")+
+  guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
   theme_bw()
 dev.off()
 
