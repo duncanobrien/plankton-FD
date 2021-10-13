@@ -41,7 +41,7 @@ kin.diff12 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.st
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
 mad.tot <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(7,9)])%>%
-  mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[7,"FRic"])%>%
+  mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   #mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
