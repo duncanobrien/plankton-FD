@@ -188,3 +188,44 @@ ggplot(gc.best.lag.df,aes(x= state.metric,y= lag,fill= causality.direc)) +
   xlab("State metric") + ylab("Optimum lag (months)")+
   theme_bw()
 dev.off()
+
+
+gc.lag.changes.df <- all.lakes.granger %>%
+  filter(!grepl("\\.aic$",statistic) & !grepl("\\.sig$",statistic))%>% # drop AIC and sig rows
+  group_by(FD.metric,state.metric,system) %>%
+  pivot_longer(c(lag_1:lag_60),names_to = "lag",values_to = "value",names_prefix = "lag_") %>% # pivot lag columns in to single column
+  mutate(value = as.numeric(value),lag = as.numeric(lag))%>% # ensure values are numeric
+  pivot_wider(names_from = statistic,values_from = value)%>% # pivot F/P statistic rows in to columns for ease of summarising down the line
+  group_by(FD.metric,state.metric,system,lag)%>%
+  pivot_longer(c(x_y.F,y_x.F),names_to = "F.measure",values_to = "F.value")%>% # pivot back down in to separate columns 
+  pivot_longer(c(x_y.P,y_x.P),names_to = "P.measure",values_to = "P.value")%>%
+  filter(substr(F.measure,1,3) == substr(P.measure,1,3)) %>% # match forward & reverse measures
+  mutate(causality.direc = ifelse(grepl("^x_y",F.measure),"forward","reverse"))%>% # classify directions
+  filter(P.value <= 0.05) # only keep significant (5% level) causality
+  
+pdf(file="Results/granger_causality_lag_changes.pdf",
+    width=10, height = 5)
+ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve","FRic")),
+                         aes(x=lag,y=log(F.value), col =system)) +
+  geom_point(alpha=0.5) + 
+  ylab("Log F value") + xlab("Lag")+
+  #ggh4x::facet_nested(state.metric ~ causality.direc + FD.metric ) + 
+  ggh4x::facet_nested(causality.direc ~ FD.metric + state.metric ) + 
+  force_panelsizes(rows = c(0.5, 0.5),cols = 0.5) +
+  scale_x_continuous(breaks = c(30,60))+
+  scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB"),name= "Lake")+
+  guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
+  theme_bw() + ggtitle("Phytoplankton"),
+  ggplot(filter(gc.lag.changes.df,FD.metric %in% c("zooFDis","zooFEve","zooFRic")),
+         aes(x=lag,y=log(F.value), col =system)) +
+    geom_point(alpha=0.5) + 
+    ylab("Log F value") + xlab("Lag")+
+    #ggh4x::facet_nested(state.metric ~ causality.direc + FD.metric ) + 
+    ggh4x::facet_nested(causality.direc ~ FD.metric + state.metric ) + 
+    force_panelsizes(rows = c(0.5, 0.5),cols = 0.5) +
+    scale_x_continuous(breaks = c(30,60))+
+    scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB"),name= "Lake")+
+    guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
+    theme_bw()+ ggtitle("Zooplankton"),
+  ncol=2,common.legend=T)
+dev.off()

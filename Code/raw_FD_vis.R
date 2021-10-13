@@ -134,7 +134,9 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
   scale_y_continuous(breaks= seq(-1,1,1))+
   #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
   scale_x_continuous(breaks = seq(1970,2015,10))+
-  theme(panel.spacing = unit(0.2,"line"))
+  theme(panel.spacing=unit(0.2,"lines"),
+        strip.background=element_rect(color="grey30", fill="grey90"),
+        panel.border=element_rect(color="grey90"))
 dev.off()
 
 pdf(file="Results/raw_visualisations/raw_diff1_vis.pdf",
