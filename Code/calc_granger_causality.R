@@ -189,6 +189,20 @@ ggplot(gc.best.lag.df,aes(x= state.metric,y= lag,fill= causality.direc)) +
   theme_bw()
 dev.off()
 
+pdf(file="Results/granger_causality_spread_alt.pdf",
+    width=10, height = 7)
+ggplot(gc.best.lag.df,aes(x= state.metric,y= lag,fill= causality.direc)) + 
+  #geom_boxplot(alpha = 0.8,size = 0.5)+
+  geom_point(aes(y=lag, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
+  scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  geom_text(data = count.df %>% distinct(FD.metric, causality.direc, state.metric, N),
+            aes(y = 65, label = N),
+            position = position_dodge(width = 0.8))+
+  scale_shape_manual(values = c(21,22,24,25))+
+  facet_wrap(~FD.metric) +
+  xlab("State metric") + ylab("Optimum lag (months)")+
+  theme_bw()
+dev.off()
 
 gc.lag.changes.df <- all.lakes.granger %>%
   filter(!grepl("\\.aic$",statistic) & !grepl("\\.sig$",statistic))%>% # drop AIC and sig rows
