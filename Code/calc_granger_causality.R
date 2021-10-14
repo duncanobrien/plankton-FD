@@ -185,7 +185,7 @@ ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) +
            aes(x = 65,y=state.metric, label = N),
           position = position_dodge(width = 0.8))+
   facet_wrap(~FD.metric) +
-  xlab("State metric") + ylab("Optimum lag (months)")+
+  ylab("State metric") + xlab("Optimum lag (months)")+
   theme_bw()
 dev.off()
 
@@ -200,7 +200,7 @@ ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) +
   scale_shape_manual(values = c(21,22,24,25),name = "Lake")+
   scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
   facet_wrap(~FD.metric) +
-  xlab("State metric") + ylab("Optimum lag (months)")+
+  ylab("State metric") + xlab("Optimum lag (months)")+
   guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
   theme_bw()
 dev.off()
