@@ -177,12 +177,12 @@ count.df <- gc.best.lag.df %>%
 
 pdf(file="Results/granger_causality_spread.pdf",
     width=10, height = 7)
-ggplot(gc.best.lag.df,aes(x= state.metric,y= lag,fill= causality.direc)) + 
+ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
   geom_boxplot(alpha = 0.8,size = 0.5)+
-  geom_point(aes(y=lag, group=causality.direc), alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
+  geom_point(aes(x=lag,y=state.metric, group=causality.direc), alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
   scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
   geom_text(data = count.df %>% distinct(FD.metric, causality.direc, state.metric, N),
-           aes(y = 65, label = N),
+           aes(x = 65,y=state.metric, label = N),
           position = position_dodge(width = 0.8))+
   facet_wrap(~FD.metric) +
   xlab("State metric") + ylab("Optimum lag (months)")+
@@ -191,11 +191,11 @@ dev.off()
 
 pdf(file="Results/granger_causality_spread_alt.pdf",
     width=10, height = 7)
-ggplot(gc.best.lag.df,aes(x= state.metric,y= lag,fill= causality.direc)) + 
+ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
   geom_boxplot(alpha = 0.1,size = 0.1)+
-  geom_point(aes(y=lag, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.8, position = position_dodge(width=0.75),size = 3) + 
+  geom_point(aes(x=lag,y=state.metric, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.8, position = position_dodge(width=0.75),size = 3) + 
   geom_text(data = count.df %>% distinct(FD.metric, causality.direc, state.metric, N),
-            aes(y = 65, label = N),
+            aes(x = 65,y=state.metric, label = N),
             position = position_dodge(width = 0.8))+
   scale_shape_manual(values = c(21,22,24,25),name = "Lake")+
   scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
@@ -226,7 +226,7 @@ ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve"
   ylab("Log F value") + xlab("Lag")+
   #ggh4x::facet_nested(state.metric ~ causality.direc + FD.metric ) + 
   ggh4x::facet_nested(causality.direc ~ FD.metric + state.metric ) + 
-  force_panelsizes(rows = c(0.5, 0.5),cols = 0.5) +
+  #force_panelsizes(rows = c(0.5, 0.5),cols = 0.5) +
   scale_x_continuous(breaks = c(30,60))+
   scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB"),name= "Lake")+
   guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
@@ -237,7 +237,7 @@ ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve"
     ylab("Log F value") + xlab("Lag")+
     #ggh4x::facet_nested(state.metric ~ causality.direc + FD.metric ) + 
     ggh4x::facet_nested(causality.direc ~ FD.metric + state.metric ) + 
-    force_panelsizes(rows = c(0.5, 0.5),cols = 0.5) +
+    #force_panelsizes(rows = c(0.5, 0.5),cols = 0.5) +
     scale_x_continuous(breaks = c(30,60))+
     scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB"),name= "Lake")+
     guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
