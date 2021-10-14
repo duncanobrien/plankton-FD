@@ -25,7 +25,7 @@ source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Windermere/Data/windermere
 ##########################################################################################
 ## Read in Plankton Trait Data ##
 ##########################################################################################
-phyto.kin.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 3) %>%
+phyto.kin.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 3) %>%
   slice(-c(1)) %>% #drop redundant first col
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Species,Notes)) %>%
@@ -33,7 +33,7 @@ phyto.kin.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet =
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>%
   mutate(across(c(mob,troph),as.factor))
 
-zoo.kin.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) %>%
+zoo.kin.traits.dat <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
@@ -41,7 +41,7 @@ zoo.kin.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) 
   mutate(across(c(lgth_1:omniherb),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(rv_mech,f_mode),as.factor))
 
-phyto.LZ.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 6) %>%
+phyto.LZ.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 6) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
@@ -50,7 +50,7 @@ phyto.LZ.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
-zoo.LZ.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %>%
+zoo.LZ.traits.dat <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
@@ -58,7 +58,7 @@ zoo.LZ.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %
   mutate(across(c(lgth_1:omniherb),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(rv_mech,f_mode),as.factor))
 
-phyto.mad.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 5) %>%
+phyto.mad.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 5) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
@@ -67,7 +67,7 @@ phyto.mad.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet =
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
-zoo.mad.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) %>%
+zoo.mad.traits.dat <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
@@ -76,7 +76,7 @@ zoo.mad.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) 
   mutate(across(c(lgth_1:omniherb),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(rv_mech,f_mode),as.factor))
 
-phyto.wind.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 4) %>%
+phyto.wind.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 4) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
@@ -163,7 +163,7 @@ write.csv(zoo.LZ.fuzFDs.yr,file = "Data/raw_FD/FD_LZ_zoo_yr_raw.csv",row.names =
 
 # Mendota #
 zoo.mad.fuzFDs.mth <-tidyFD(plank_env.madmthdata[,201:224], zoo.mad.traits.dat, trophic.lvl = "zoo",
-                            traittype = "fuzzy", method = FD_metrics, correction="cailliez")
+                            traittype = "fuzzy", method = FD_metrics, correction="cailliez",ndim=10)
 zoo.mad.fuzFDs.mth <- cbind(date = as.numeric(plank_env.madmthdata$date),zoo.mad.fuzFDs.mth)
 write.csv(zoo.mad.fuzFDs.mth,file = "Data/raw_FD/FD_mad_zoo_mth_raw.csv",row.names = F)
 
