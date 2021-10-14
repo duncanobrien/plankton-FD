@@ -130,7 +130,7 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
                       space="free_x" ) +
   scale_colour_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
-  scale_fill_manual(values = c("#7b3294","#c2a5cf","grey","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
+  scale_fill_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   theme_bw() + xlab("Date")+ ylab("Scaled metric value")+
   geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
              aes(xintercept=1993.3), colour="black",linetype="dashed")+
@@ -166,7 +166,7 @@ ggplot(all.lakes.diff12 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooF
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
                       space="free_x") +
-  scale_colour_manual(values = c("#7b3294","#c2a5cf","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
+  scale_colour_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   theme_bw() + xlab("Date")+ ylab("Scaled metric value")+
   geom_vline(data=all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
              aes(xintercept=1993.3), colour="black",linetype="dashed")+
