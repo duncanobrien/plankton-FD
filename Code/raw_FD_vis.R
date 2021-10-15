@@ -125,7 +125,7 @@ pdf(file="Results/raw_visualisations/raw_smooth_vis.pdf",
     width=9, height = 9)
 ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_point(aes(col=metric),alpha = 0.3,pch =21)+
-  geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "cs",k=20),alpha=1,fill="grey") +
+  geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "tp",k=50),method.args = list(method = "REML"),alpha=1,fill="grey") +
   #geom_path(aes(col=metric))+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
