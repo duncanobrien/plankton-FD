@@ -425,6 +425,27 @@ ggplot(raw.ccf.mth1,aes(x = state.metric, y =  r0, col = FD.metric,fill= FD.metr
   ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF t0 between lag1 differenced FD and system state")
 dev.off()
 
+mean.obs.cor.lag0 <- summary.ccf.mth1 %>%
+            filter(measure %in% "r0.ccf")%>%
+            group_by(system,troph) %>%
+  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+
+mean.obs.cor.lag0 <- summary.ccf.mth1 %>%
+  filter(measure %in% "r0.ccf")%>%
+  group_by(system,troph,FD.metric) %>%
+  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+
+
+mean.obs.cor.lagx <- summary.ccf.mth1 %>%
+  filter(measure %in% "rmax.ccf")%>%
+  group_by(system,troph) %>%
+  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+
+mean.obs.cor.lagx <- summary.ccf.mth1 %>%
+  filter(measure %in% "rmax.ccf")%>%
+  group_by(system,troph,FD.metric) %>%
+  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+
 ###########################################################################
 ## Estimate cross correlation and permute (Lag12, Monthly) ##
 ###########################################################################
