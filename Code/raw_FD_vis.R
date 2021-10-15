@@ -124,7 +124,8 @@ all.lakes.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12)%>%
 pdf(file="Results/raw_visualisations/raw_smooth_vis.pdf",
     width=9, height = 9)
 ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
-  geom_smooth(aes(fill = metric),method = "gam",formula =y ~ s(x, bs = "cs",k=20),alpha=0.3) +
+  geom_point(aes(col=metric),alpha = 0.3,pch =21)+
+  geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "cs",k=20),alpha=1,fill="grey") +
   #geom_path(aes(col=metric))+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
@@ -135,7 +136,8 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
   geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
              aes(xintercept=1993.3), colour="black",linetype="dashed")+
   #scale_y_continuous(breaks= scales::pretty_breaks(n = 3))+
-  scale_y_continuous(breaks= seq(-1,1,1))+
+  coord_cartesian(ylim = c(-2.5,2.5))+ 
+  scale_y_continuous(breaks= seq(-2,2,2))+
   #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
   scale_x_continuous(breaks = seq(1970,2015,10))+
   theme(panel.spacing=unit(0.2,"lines"))
