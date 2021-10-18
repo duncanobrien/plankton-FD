@@ -259,13 +259,13 @@ LZ.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
                                          iter = 10000,perm.method = "red.noise",lag=1,
                                          scale = T, normalise = F,span =12*5,identical.t = F,
                                          comp.ts = base::diff(log(all.system.states$LZ.mth$mvi)[12:391],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$LZ.mth$maxt[13:391]),
+                                         comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[13:391]),
                                          pre.diff  =T))
   zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.LZ.fuzFDs.mth[,paste(x)], 
                                               timedat = as.numeric(phyto.LZ.fuzFDs.mth$date),
                                               iter = 10000,perm.method = "red.noise",lag=1,
                                               scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$LZ.mth$zp.ratio)))
+                                              comp.ts = log(all.system.states$wind.mth$zp.ratio)))
   
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
   out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
@@ -347,15 +347,15 @@ wind.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
                                         timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
                                         iter = 10000,perm.method = "red.noise",lag=1,
                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$LZ.mth$FI[12:288],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$LZ.mth$maxt[13:288]),
+                                        comp.ts = base::diff(all.system.states$wind.mth$FI[12:288],lag=1),
+                                        comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[13:288]),
                                         pre.diff =T))
   mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[13:403,paste(x)], 
                                          timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
                                          iter = 10000,perm.method = "red.noise",lag=1,
                                          scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$LZ.mth$mvi)[12:288],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$LZ.mth$maxt[13:288]),
+                                         comp.ts = base::diff(log(all.system.states$wind.mth$mvi)[12:288],lag=1),
+                                         comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[13:288]),
                                          pre.diff  =T))
   zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[,paste(x)], 
                                               timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
@@ -435,6 +435,10 @@ mean.obs.cor.lag0 <- summary.ccf.mth1 %>%
   group_by(system,troph,FD.metric) %>%
   summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
 
+mean.obs.cor.lag0 <- summary.ccf.mth1 %>%
+  filter(measure %in% "r0.ccf")%>%
+  group_by(troph,FD.metric) %>%
+  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
 
 mean.obs.cor.lagx <- summary.ccf.mth1 %>%
   filter(measure %in% "rmax.ccf")%>%
@@ -768,15 +772,15 @@ wind.phytomth.diff12<- pbmclapply(c("FDis","FEve","FRic"),function(x){
                                         timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
                                         iter = 10000,perm.method = "spatial",lag=12,
                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$LZ.mth$FI[12:288],lag=12),
-                                        comp.ts.timedat = seq_along(all.system.states$LZ.mth$maxt[24:288]),
+                                        comp.ts = base::diff(all.system.states$wind.mth$FI[12:288],lag=12),
+                                        comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[24:288]),
                                         pre.diff =T))
   mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[,paste(x)], 
                                          timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
                                          iter = 10000,perm.method = "spatial",lag=12,
                                          scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$LZ.mth$mvi)[12:288],lag=12),
-                                         comp.ts.timedat = seq_along(all.system.states$LZ.mth$maxt[24:288]),
+                                         comp.ts = base::diff(log(all.system.states$wind.mth$mvi)[12:288],lag=12),
+                                         comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[24:288]),
                                          pre.diff  =T))
   zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[,paste(x)], 
                                               timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
