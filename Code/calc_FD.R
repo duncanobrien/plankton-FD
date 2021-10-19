@@ -22,6 +22,9 @@ source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Madison/Data/madison_envir
 source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Windermere/Data/windermere_plankton_data.R")
 source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Windermere/Data/windermere_environmental_data.R")
 
+source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kasumigaura/Data/kasumigaura_plankton_data.R")
+source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kasumigaura/Data/Kasumigaura_environmental_data.R")
+
 ##########################################################################################
 ## Read in Plankton Trait Data ##
 ##########################################################################################
@@ -83,6 +86,22 @@ phyto.wind.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
+phyto.kas.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 8) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  select(-c(Notes)) %>%
+  drop_na()%>% #drop no data species
+  mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
+  mutate(across(c(mob,troph),as.factor))
+
+zoo.kas.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 5) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes)) %>%
+  drop_na()%>% #drop no data species
+  mutate(across(c(lgth_1:omniherb),as.numeric)) %>% #ensure numeric and not character
+  mutate(across(c(rv_mech,f_mode),as.factor))
+
 ##########################################################################################
 ## Estimate Phytoplankton FD ##
 ##########################################################################################
@@ -134,6 +153,18 @@ phyto.wind.fuzFDs.yr <- cbind(date = as.numeric(phyto_env.windyrdata$Date),phyto
 write.csv(phyto.wind.fuzFDs.yr,"Data/raw_FD/FD_wind_phyto_yr_raw.csv",row.names = FALSE)
 phyto.wind.fuzFDs.yr <- read.csv("Data/raw_FD/FD_wind_phyto_yr_raw.csv")
 
+# Kasumigaura #
+
+phyto.kas.fuzFDs.mth <-tidyFD(plank_env.kasmthdata[,4:121], phyto.kas.traits.dat, trophic.lvl = "phyto",
+                              traittype = "fuzzy", method = FD_metrics, correction="cailliez")
+phyto.kas.fuzFDs.mth <- cbind(date = as.numeric(plank_env.kasmthdata$date),phyto.kas.fuzFDs.mth)
+write.csv(phyto.kas.fuzFDs.mth,"Data/raw_FD/FD_kas_phyto_mth_raw.csv",row.names = FALSE)
+
+phyto.kas.fuzFDs.yr <-tidyFD(plank_env.kasyrdata[,2:119], phyto.kas.traits.dat, trophic.lvl = "phyto",
+                             traittype = "fuzzy", method = FD_metrics, correction="cailliez")
+phyto.kas.fuzFDs.yr <- cbind(date = as.numeric(plank_env.kasyrdata$date),phyto.kas.fuzFDs.yr)
+write.csv(phyto.kas.fuzFDs.yr,"Data/raw_FD/FD_kas_phyto_yr_raw.csv",row.names = FALSE)
+
 ##########################################################################################
 ## Estimate Zooplankton FD ##
 ##########################################################################################
@@ -171,3 +202,15 @@ zoo.mad.fuzFDs.yr <-tidyFD(plank_env.madyrdata[,199:222], zoo.mad.traits.dat, tr
                            traittype = "fuzzy", method = FD_metrics, correction="cailliez")
 zoo.mad.fuzFDs.yr <- cbind(date = as.numeric(plank_env.madyrdata$date),zoo.mad.fuzFDs.yr)
 write.csv(zoo.mad.fuzFDs.yr,file = "Data/raw_FD/FD_mad_zoo_yr_raw.csv",row.names = F)
+
+# Kasumigaura #
+
+zoo.kas.fuzFDs.mth <-tidyFD(plank_env.kasmthdata[,122:156], zoo.kas.traits.dat, trophic.lvl = "zoo",
+                            traittype = "fuzzy", method = FD_metrics, correction="cailliez")
+zoo.kas.fuzFDs.mth <- cbind(date = as.numeric(plank_env.kasmthdata$date),zoo.kas.fuzFDs.mth)
+write.csv(zoo.kas.fuzFDs.mth,file = "Data/raw_FD/FD_kas_zoo_mth_raw.csv",row.names = F)
+
+zoo.kas.fuzFDs.yr <-tidyFD(plank_env.kasyrdata[,120:154], zoo.kas.traits.dat, trophic.lvl = "zoo",
+                           traittype = "fuzzy", method = FD_metrics, correction="cailliez")
+zoo.kas.fuzFDs.yr <- cbind(date = as.numeric(plank_env.kasyrdata$date),zoo.kas.fuzFDs.yr)
+write.csv(zoo.kas.fuzFDs.yr,file = "Data/raw_FD/FD_kas_zoo_yr_raw.csv",row.names = F)
