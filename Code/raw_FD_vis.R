@@ -11,10 +11,12 @@ phyto.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_phyto_mth_raw.csv")
 phyto.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_phyto_mth_raw.csv")
 phyto.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_phyto_mth_raw.csv")
 phyto.wind.fuzFDs.mth <- read.csv("Data/raw_FD/FD_wind_phyto_mth_raw.csv")
+phyto.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_phyto_mth_raw.csv")
 
 zoo.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_zoo_mth_raw.csv")
 zoo.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_zoo_mth_raw.csv")
 zoo.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_zoo_mth_raw.csv")
+zoo.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_zoo_mth_raw.csv")
 
 load("Data/all.system.states.RData")
 
@@ -94,23 +96,41 @@ wind.diff12 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.s
   mutate(across(-c(date,data.source,res),~scale(.x)))%>%
   mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA) # add dummy zooFD variable for missing data
 
+kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  #mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+kas.diff1 <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+kas.diff12 <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
 # Merge lakes #
 
-all.lakes.gam <- rbind(kin.tot,LZ.tot,mad.tot,wind.tot)%>%
+all.lakes.gam <- rbind(kin.tot,LZ.tot,mad.tot,wind.tot,kas.tot)%>%
   pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
   mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
                               ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD",
                                      ifelse(metric %in% c("env"),"Stress", "State Metric"))),
          metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD","Stress")))
 
-all.lakes.diff1 <- rbind(kin.diff1,LZ.diff1,mad.diff1,wind.diff1)%>%
+all.lakes.diff1 <- rbind(kin.diff1,LZ.diff1,mad.diff1,wind.diff1,kas.diff1)%>%
   pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
   mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
                               ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD",
                                      ifelse(metric %in% c("env"),"Stress", "State Metric"))),
          metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD","Stress")))
 
-all.lakes.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12)%>%
+all.lakes.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12,kas.diff12)%>%
   pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
   mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
                               ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD",
@@ -125,7 +145,7 @@ pdf(file="Results/raw_visualisations/raw_smooth_vis.pdf",
     width=9, height = 9)
 ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_point(aes(col=metric),alpha = 0.3,pch =21)+
-  geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "tp",k=50),method.args = list(method = "REML"),alpha=1,fill="grey") +
+  geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "tp",k=20),method.args = list(method = "REML"),alpha=1,fill="grey") +
   #geom_path(aes(col=metric))+
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
