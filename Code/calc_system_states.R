@@ -123,7 +123,7 @@ windyr.mvi <- data.frame(multi.var.index(df=phyto_env.windyrdata[,c(2:18,20:23)]
   mutate(date = phyto_env.windyrdata$Date[maxt])
 
 ##########################################################################################
-## Kinneret 'Fisher Information' and 'Multivariate Index of Variance' ##
+## Kasumigaura 'Fisher Information' and 'Multivariate Index of Variance' ##
 ##########################################################################################
 sd.kasmth <- apply(plank_env.kasmthdata[,4:156], MARGIN = 2, FUN = sd)
 kasFImth <- GFisher(seq(1,dim(plank_env.kasmthdata)[1],1),plank_env.kasmthdata[,4:156],
@@ -214,7 +214,7 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                "zp.ratio" = rowSums(phyto_env.windyrdata[,20:23])/rowSums(phyto_env.windyrdata[,2:18]),
                                                "env" = prcomp(scale(phyto_env.windyrdata[,c("TEMP","TOTP","NO3N")]))$x[,1])%>%
                             left_join(windFIyr.dat,by="date") %>% left_join(windyr.mvi,by=c("date","maxt")),
-                          kas.mth = data.frame("data.source" = "kasermere",
+                          kas.mth = data.frame("data.source" = "Kasumigaura",
                                                 "res" = "Month",
                                                 "date" = plank_env.kasmthdata$date,
                                                 "density" = rowSums(plank_env.kasmthdata[,4:156]),
@@ -222,7 +222,7 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                 "zp.ratio" = rowSums(plank_env.kasmthdata[,122:156])/rowSums(plank_env.kasmthdata[,4:121]),
                                                 "env" = prcomp(scale(plank_env.kasmthdata[,c("wtemp","totP","NO3N","water.lvl")]))$x[,1])%>%
                             left_join(kasFImth.dat,by="date") %>% left_join(kasmth.mvi,by=c("date","maxt")),
-                          kas.yr = data.frame("data.source" = "kasermere",
+                          kas.yr = data.frame("data.source" = "Kasumigaura",
                                                "res" = "Year",
                                                "date" = plank_env.kasyrdata$date,
                                                "density" = rowSums(plank_env.kasyrdata[,2:154]),
