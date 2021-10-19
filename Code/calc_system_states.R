@@ -125,26 +125,26 @@ windyr.mvi <- data.frame(multi.var.index(df=phyto_env.windyrdata[,c(2:18,20:23)]
 ##########################################################################################
 ## Kinneret 'Fisher Information' and 'Multivariate Index of Variance' ##
 ##########################################################################################
-sd.kasmth <- apply(plank_env.kasmthdata[,4:158], MARGIN = 2, FUN = sd)
-kasFImth <- GFisher(seq(1,dim(plank_env.kasmthdata)[1],1),plank_env.kasmthdata[,4:158],
-                    sost =  matrix(sd.kasmth,1,dim(plank_env.kasmthdata[,4:158])[2]), 
+sd.kasmth <- apply(plank_env.kasmthdata[,4:156], MARGIN = 2, FUN = sd)
+kasFImth <- GFisher(seq(1,dim(plank_env.kasmthdata)[1],1),plank_env.kasmthdata[,4:156],
+                    sost =  matrix(sd.kasmth,1,dim(plank_env.kasmthdata[,4:156])[2]), 
                     hwin = 12, winspace = 1 , TL =95)
 kasFImth.dat <- data.frame(FI = kasFImth$FI,
                            date = plank_env.kasmthdata$date[apply(kasFImth$t_win, MARGIN = 2, FUN = max)],
                            maxt =apply(kasFImth$t_win, MARGIN = 2, FUN = max))
 
-kasmth.mvi <- data.frame(multi.var.index(df=plank_env.kasmthdata[,4:158],window = 12))%>%
+kasmth.mvi <- data.frame(multi.var.index(df=plank_env.kasmthdata[,4:156],window = 12))%>%
   mutate(date = plank_env.kasmthdata$date[maxt])
 
-sd.kasyr <- apply(plank_env.kasyrdata[,2:156], MARGIN = 2, FUN = sd)
-kasFIyr <- GFisher(seq(1,dim(plank_env.kasyrdata)[1],1),plank_env.kasyrdata[,2:156],
-                   sost =  matrix(sd.kasyr,1,dim(plank_env.kasyrdata[,2:156])[2]), 
+sd.kasyr <- apply(plank_env.kasyrdata[,2:154], MARGIN = 2, FUN = sd)
+kasFIyr <- GFisher(seq(1,dim(plank_env.kasyrdata)[1],1),plank_env.kasyrdata[,2:154],
+                   sost =  matrix(sd.kasyr,1,dim(plank_env.kasyrdata[,2:154])[2]), 
                    hwin = 5, winspace = 1 , TL =85)
 kasFIyr.dat <- data.frame(FI = kasFIyr$FI,
                           date = plank_env.kasyrdata$date[apply(kasFIyr$t_win, MARGIN = 2, FUN = max)],
                           maxt =apply(kasFIyr$t_win, MARGIN = 2, FUN = max))
 
-kasyr.mvi <- data.frame(multi.var.index(df=plank_env.kasyrdata[,2:156],window = 5))%>%
+kasyr.mvi <- data.frame(multi.var.index(df=plank_env.kasyrdata[,2:154],window = 5))%>%
   mutate(date = plank_env.kasyrdata$date[maxt])
 
 ##########################################################################################
@@ -217,18 +217,17 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                           kas.mth = data.frame("data.source" = "kasermere",
                                                 "res" = "Month",
                                                 "date" = plank_env.kasmthdata$date,
-                                                "density" = rowSums(plank_env.kasmthdata[,4:158]),
-                                                "community" = prcomp(scale(plank_env.kasmthdata[,4:158]))$x[,1],
-                                                "zp.ratio" = rowSums(plank_env.kasmthdata[,123:158])/rowSums(plank_env.kasmthdata[,4:122]),
+                                                "density" = rowSums(plank_env.kasmthdata[,4:156]),
+                                                "community" = prcomp(scale(plank_env.kasmthdata[,4:156]))$x[,1],
+                                                "zp.ratio" = rowSums(plank_env.kasmthdata[,122:156])/rowSums(plank_env.kasmthdata[,4:121]),
                                                 "env" = prcomp(scale(plank_env.kasmthdata[,c("wtemp","totP","NO3N","water.lvl")]))$x[,1])%>%
                             left_join(kasFImth.dat,by="date") %>% left_join(kasmth.mvi,by=c("date","maxt")),
                           kas.yr = data.frame("data.source" = "kasermere",
                                                "res" = "Year",
                                                "date" = plank_env.kasyrdata$date,
-                                               "density" = rowSums(plank_env.kasyrdata[,2:156]),
-                                               "community" = prcomp(scale(plank_env.kasyrdata[,2:156]))$x[,1],
-                                               "zp.ratio" = rowSums(plank_env.kasyrdata[,121:156])/rowSums(plank_env.kasyrdata[,2:120]),
+                                               "density" = rowSums(plank_env.kasyrdata[,2:154]),
+                                               "community" = prcomp(scale(plank_env.kasyrdata[,2:154]))$x[,1],
+                                               "zp.ratio" = rowSums(plank_env.kasyrdata[,120:154])/rowSums(plank_env.kasyrdata[,2:119]),
                                                "env" = prcomp(scale(plank_env.kasyrdata[,c("wtemp","totP","NO3N","water.lvl")]))$x[,1])%>%
                             left_join(kasFIyr.dat,by="date") %>% left_join(kasyr.mvi,by=c("date","maxt")))
 save(all.system.states,file = "Data/all.system.states.RData")
-
