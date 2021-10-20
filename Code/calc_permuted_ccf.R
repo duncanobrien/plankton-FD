@@ -483,16 +483,14 @@ kas.zoomth.diff.raw <- lapply(kas.zoomth.diff, `[[`, 'perm.dens')%>%
 ## Save out (Lag1, Monthly) ##
 ###########################################################################
 summary.ccf.mth1 <- rbind(kin.phytomth.diff.summary,kin.zoomth.diff.summary,mad.phytomth.diff.summary,mad.zoomth.diff.summary,
-                         LZ.phytomth.diff.summary,LZ.zoomth.diff.summary,wind.phytomth.diff.summary)
+                         LZ.phytomth.diff.summary,LZ.zoomth.diff.summary,wind.phytomth.diff.summary,kas.phytomth.diff.summary,
+                         kas.zoomth.diff.summary)
 raw.ccf.mth1 <- rbind(kin.phytomth.diff.raw,kin.zoomth.diff.raw,mad.phytomth.diff.raw,mad.zoomth.diff.raw,
-                     LZ.phytomth.diff.raw,LZ.zoomth.diff.raw,wind.phytomth.diff.raw)
+                     LZ.phytomth.diff.raw,LZ.zoomth.diff.raw,wind.phytomth.diff.raw,kas.phytomth.diff.raw,
+                     kas.zoomth.diff.raw)
 
 write.csv(summary.ccf.mth1,file ="Results/summary.ccf.mth.lag1.csv",row.names = F)
-summary.ccf.mth1 <- read.csv(file ="Results/summary.ccf.mth.lag1.csv")
 save(raw.ccf.mth1,file = "Results/raw.ccf.mth.lag1.RData") # RData required to reduce file size compared to .csv
-load("Results/raw.ccf.mth.lag1.RData")
-summary.ccf.mth1 <- rbind(summary.ccf.mth1,kas.phytomth.diff.summary,kas.zoomth.diff.summary)
-raw.ccf.mth1 <- rbind(raw.ccf.mth1,kas.phytomth.diff.raw,kas.zoomth.diff.raw)
 
 pdf(file="Results/FD_perm_lag1_diffmth_absrmax.pdf",
     width=10, height = 8)
@@ -907,6 +905,102 @@ wind.phytomth.diff12.raw <- lapply(wind.phytomth.diff12, `[[`, 'perm.dens')%>%
   data.table::rbindlist(idcol = "FD.metric")%>%
   mutate(system = "Windermere", res = "Month",troph = "Phytoplankton")
 
+# Kasumigaura Phytoplankton and Zooplankton #
+
+kas.phytomth.diff12<- pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                       timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                       iter = 10000,perm.method = "spatial", lag=12,
+                                       scale = T, normalise = F,span =12*5,identical.t = F,
+                                       comp.ts = all.system.states$kas.mth$community))
+  bio <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "spatial",lag=12,
+                                         scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = log(all.system.states$kas.mth$density)))
+  fi <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                        timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                        iter = 10000,perm.method = "spatial",lag=12,
+                                        scale = T, normalise = F,span =12*5,identical.t = F,
+                                        comp.ts = base::diff(all.system.states$kas.mth$FI[12:452],lag=12),
+                                        comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[24:452]),
+                                        pre.diff =T))
+  mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "spatial",lag=12,
+                                         scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = base::diff(log(all.system.states$kas.mth$mvi)[12:452],lag=12),
+                                         comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[24:452]),
+                                         pre.diff  =T))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                              timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                              iter = 10000,perm.method = "spatial",lag=12,
+                                              scale = T, normalise = F,span =12*5,identical.t = F,
+                                              comp.ts = log(all.system.states$kas.mth$zp.ratio)))
+  
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
+  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
+                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1)
+names(kas.phytomth.diff12) <- c("FDis","FEve","FRic")
+kas.phytomth.diff12.summary <- lapply(kas.phytomth.diff12, `[[`, 'summary')%>%
+  data.table::rbindlist(idcol = "FD.metric") %>% 
+  mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton") %>%
+  mutate(sig = ifelse(is.na(obs.value) | obs.value == "NaN" | obs.difference == 0,"",
+                      ifelse(quantile >= 0.975 | quantile <= 0.025,"*","")))
+kas.phytomth.diff12.raw <- lapply(kas.phytomth.diff12, `[[`, 'perm.dens')%>%
+  data.table::rbindlist(idcol = "FD.metric")%>%
+  mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton")
+
+kas.zoomth.diff12<- pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                       timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                       iter = 10000,perm.method = "spatial", lag=12,
+                                       scale = T, normalise = F,span =12*5,identical.t = F,
+                                       comp.ts = all.system.states$kas.mth$community))
+  bio <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "spatial",lag=12,
+                                         scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = log(all.system.states$kas.mth$density)))
+  fi <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                        timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                        iter = 10000,perm.method = "spatial",lag=12,
+                                        scale = T, normalise = F,span =12*5,identical.t = F,
+                                        comp.ts = base::diff(all.system.states$kas.mth$FI[12:452],lag=12),
+                                        comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[24:452]),
+                                        pre.diff =T))
+  mvi <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "spatial",lag=12,
+                                         scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = base::diff(log(all.system.states$kas.mth$mvi)[12:452],lag=12),
+                                         comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[24:452]),
+                                         pre.diff =T))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                              timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                              iter = 10000,perm.method = "spatial",lag=12,
+                                              scale = T, normalise = F,span =12*5,identical.t = F,
+                                              comp.ts = log(all.system.states$kas.mth$zp.ratio)))
+  
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
+  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
+                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1)
+names(kas.zoomth.diff12) <- c("FDis","FEve","FRic")
+kas.zoomth.diff12.summary <- lapply(kas.zoomth.diff12, `[[`, 'summary')%>%
+  data.table::rbindlist(idcol = "FD.metric") %>% 
+  mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton") %>%
+  mutate(sig = ifelse(is.na(obs.value) | obs.value == "NaN" | obs.difference == 0,"",
+                      ifelse(quantile >= 0.975 | quantile <= 0.025,"*","")))
+kas.zoomth.diff12.raw <- lapply(kas.zoomth.diff12, `[[`, 'perm.dens')%>%
+  data.table::rbindlist(idcol = "FD.metric")%>%
+  mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton")
+
 ###########################################################################
 ## Save out (Lag12,Monthly) ##
 ###########################################################################
@@ -918,6 +1012,10 @@ raw.ccf.mth12 <- rbind(kin.phytomth.diff12.raw,kin.zoomth.diff12.raw,mad.phytomt
 write.csv(summary.ccf.mth12,file ="Results/summary.ccf.mth.lag12.csv",row.names = F)
 save(raw.ccf.mth12,file = "Results/raw.ccf.mth.lag12.RData") # RDate required to reduce file size compared to .csv
 
+summary.ccf.mth12 <- read.csv(file ="Results/summary.ccf.mth.lag12.csv")
+load(file = "Results/raw.ccf.mth.lag12.RData")
+summary.ccf.mth12 <- rbind(summary.ccf.mth12,kas.phytomth.diff12.summary,kas.zoomth.diff12.summary)
+raw.ccf.mth12 <- rbind(raw.ccf.mth12,kas.phytomth.diff12.raw,kas.zoomth.diff12.raw)
 
 pdf(file="Results/FD_perm_lag12_diffmth_absrmax.pdf",
     width=10, height = 8)
