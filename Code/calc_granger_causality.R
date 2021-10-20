@@ -17,10 +17,12 @@ phyto.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_phyto_mth_raw.csv")
 phyto.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_phyto_mth_raw.csv")
 phyto.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_phyto_mth_raw.csv")
 phyto.wind.fuzFDs.mth <- read.csv("Data/raw_FD/FD_wind_phyto_mth_raw.csv")
+phyto.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_phyto_mth_raw.csv")
 
 zoo.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_zoo_mth_raw.csv")
 zoo.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_zoo_mth_raw.csv")
 zoo.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_zoo_mth_raw.csv")
+zoo.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_zoo_mth_raw.csv")
 
 load("Data/all.system.states.RData")
 
@@ -47,6 +49,11 @@ wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.stat
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))%>%
   mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA) # add dummy zooFD variable for missing data
+
+kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
 
 ###########################################################################
 ## Estimate Granger Causality ##
@@ -145,11 +152,34 @@ wind.granger <- data.frame(data.table::rbindlist(wind.granger,idcol = "FD.metric
   mutate(system = "Windermere", res = "Month")
   # specify metadata for future plotting
 
+kas.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+  
+  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    
+    if(any(is.na(kas.tot[,paste(x)]))){
+      kas.tot[,paste(x)] <- zoo::na.approx(kas.tot[,paste(x)],maxgap =3)
+    } # certain FD metrics may have NAs for single data points
+    
+    if(i %in% c("FI","mvi")){
+      df <- na.omit(kas.tot) #drop the first few rows of NAs caused by the window calculation of these metrics
+    }else{
+      df <- kas.tot
+    }
+    gc.df <- cross.granger(ts = df[,paste(x)], comp.ts =df[,paste(i)],span = 12*5,method="var",covariates = df[,"env"])
+    gc.df$state.metric <- paste(i)
+    return(gc.df)
+  }
+  return(tmp)
+},mc.cores = 3) 
+names(kas.granger) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+kas.granger <- data.frame(data.table::rbindlist(kas.granger,idcol = "FD.metric"))%>%
+  mutate(system = "Kasumigaura", res = "Month") # specify metadata for future plotting
+
 ###########################################################################
 ## Save out ##
 ###########################################################################
 
-all.lakes.granger <- rbind(kin.granger,mad.granger,LZ.granger,wind.granger)
+all.lakes.granger <- rbind(kin.granger,mad.granger,LZ.granger,wind.granger,kas.granger)
 write.csv(all.lakes.granger,file ="Results/all.lakes.granger.csv",row.names = F)
 
 all.lakes.granger <- read.csv("Results/all.lakes.granger.csv")
@@ -197,7 +227,7 @@ ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) +
   geom_text(data = count.df %>% distinct(FD.metric, causality.direc, state.metric, N),
             aes(x = 65,y=state.metric, label = N),
             position = position_dodge(width = 0.8))+
-  scale_shape_manual(values = c(21,22,24,25),name = "Lake")+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
   facet_wrap(~FD.metric) +
   ylab("State metric") + xlab("Optimum lag (months)")+
@@ -222,24 +252,24 @@ pdf(file="Results/granger_causality_lag_changes.pdf",
     width=11, height = 5,onefile=FALSE)
 ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve","FRic")),
                          aes(x=lag,y=log(F.value), col =system)) +
-  geom_point(alpha=0.5) + 
+  geom_point(alpha=0.4) + 
   ylab("Log F value") + xlab("Lag")+
   #ggh4x::facet_nested(state.metric ~ causality.direc + FD.metric ) + 
   ggh4x::facet_nested(causality.direc ~ FD.metric + state.metric ) + 
   #force_panelsizes(rows = c(0.5, 0.5),cols = 0.5) +
   scale_x_continuous(breaks = c(30,60))+
-  scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB"),name= "Lake")+
+  scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
   guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
   theme_bw() + ggtitle("Phytoplankton"),
   ggplot(filter(gc.lag.changes.df,FD.metric %in% c("zooFDis","zooFEve","zooFRic")),
          aes(x=lag,y=log(F.value), col =system)) +
-    geom_point(alpha=0.5) + 
+    geom_point(alpha=0.4) + 
     ylab("Log F value") + xlab("Lag")+
     #ggh4x::facet_nested(state.metric ~ causality.direc + FD.metric ) + 
     ggh4x::facet_nested(causality.direc ~ FD.metric + state.metric ) + 
     #force_panelsizes(rows = c(0.5, 0.5),cols = 0.5) +
     scale_x_continuous(breaks = c(30,60))+
-    scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB"),name= "Lake")+
+    scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
     guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
     theme_bw()+ ggtitle("Zooplankton"),
   nrow=2,common.legend=T)
