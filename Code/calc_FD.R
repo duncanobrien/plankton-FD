@@ -156,7 +156,7 @@ phyto.wind.fuzFDs.yr <- read.csv("Data/raw_FD/FD_wind_phyto_yr_raw.csv")
 # Kasumigaura #
 
 phyto.kas.fuzFDs.mth <-tidyFD(plank_env.kasmthdata[,4:121], phyto.kas.traits.dat, trophic.lvl = "phyto",
-                              traittype = "fuzzy", method = FD_metrics, correction="cailliez")
+                              traittype = "fuzzy", method = FD_metrics, correction="cailliez", ndim =10)
 phyto.kas.fuzFDs.mth <- cbind(date = as.numeric(plank_env.kasmthdata$date),phyto.kas.fuzFDs.mth)
 write.csv(phyto.kas.fuzFDs.mth,"Data/raw_FD/FD_kas_phyto_mth_raw.csv",row.names = FALSE)
 

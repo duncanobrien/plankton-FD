@@ -13,10 +13,12 @@ phyto.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_phyto_mth_raw.csv")
 phyto.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_phyto_mth_raw.csv")
 phyto.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_phyto_mth_raw.csv")
 phyto.wind.fuzFDs.mth <- read.csv("Data/raw_FD/FD_wind_phyto_mth_raw.csv")
+phyto.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_phyto_mth_raw.csv")
 
 zoo.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_zoo_mth_raw.csv")
 zoo.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_zoo_mth_raw.csv")
 zoo.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_zoo_mth_raw.csv")
+zoo.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_zoo_mth_raw.csv")
 
 load("Data/all.system.states.RData")
 
@@ -379,6 +381,103 @@ wind.phytomth.diff.raw <- lapply(wind.phytomth.diff, `[[`, 'perm.dens')%>%
   data.table::rbindlist(idcol = "FD.metric")%>%
   mutate(system = "Windermere", res = "Month",troph = "Phytoplankton")
 
+# Kasumigaura Phytoplankton #
+
+kas.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                       timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                       iter = 10000,perm.method = "red.noise", lag=1,
+                                       scale = T, normalise = F,span =12*5,identical.t = F,
+                                       comp.ts = all.system.states$kas.mth$community))
+  bio <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "red.noise",lag=1,
+                                         scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = log(all.system.states$kas.mth$density)))
+  fi <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                        timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                        iter = 10000,perm.method = "red.noise",lag=1,
+                                        scale = T, normalise = F,span =12*5,identical.t = F,
+                                        comp.ts = base::diff(all.system.states$kas.mth$FI[12:452],lag=1),
+                                        comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[13:452]),
+                                        pre.diff =T))
+  mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "red.noise",lag=1,
+                                         scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = base::diff(log(all.system.states$kas.mth$mvi)[12:452],lag=1),
+                                         comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[13:452]),
+                                         pre.diff  =T))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
+                                              timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
+                                              iter = 10000,perm.method = "red.noise",lag=1,
+                                              scale = T, normalise = F,span =12*5,identical.t = F,
+                                              comp.ts = log(all.system.states$kas.mth$zp.ratio)))
+  
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
+  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
+                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1)
+names(kas.phytomth.diff) <- c("FDis","FEve","FRic")
+kas.phytomth.diff.summary <- lapply(kas.phytomth.diff, `[[`, 'summary')%>%
+  data.table::rbindlist(idcol = "FD.metric") %>% 
+  mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton") %>%
+  mutate(sig = ifelse(is.na(obs.value) | obs.value == "NaN" | obs.difference == 0,"",
+                      ifelse(quantile >= 0.975 | quantile <= 0.025,"*","")))
+kas.phytomth.diff.raw <- lapply(kas.phytomth.diff, `[[`, 'perm.dens')%>%
+  data.table::rbindlist(idcol = "FD.metric")%>%
+  mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton")
+
+# Kasumigaura Zooplankton #
+
+kas.zoomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                       timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                       iter = 10000,perm.method = "red.noise", lag=1,
+                                       scale = T, normalise = F,span =12*5,identical.t = F,
+                                       comp.ts = all.system.states$kas.mth$community))
+  bio <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "red.noise",lag=1,
+                                         scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = log(all.system.states$kas.mth$density)))
+  fi <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                        timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                        iter = 10000,perm.method = "red.noise",lag=1,
+                                        scale = T, normalise = F,span =12*5,identical.t = F,
+                                        comp.ts = base::diff(all.system.states$kas.mth$FI[12:452],lag=1),
+                                        comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[13:452]),
+                                        pre.diff =T))
+  mvi <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "red.noise",lag=1,
+                                         scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = base::diff(log(all.system.states$kas.mth$mvi)[12:452],lag=1),
+                                         comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[13:452]),
+                                         pre.diff  =T))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
+                                              timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
+                                              iter = 10000,perm.method = "red.noise",lag=1,
+                                              scale = T, normalise = F,span =12*5,identical.t = F,
+                                              comp.ts = log(all.system.states$kas.mth$zp.ratio)))
+  
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
+  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
+                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1)
+names(kas.zoomth.diff) <- c("FDis","FEve","FRic")
+kas.zoomth.diff.summary <- lapply(kas.zoomth.diff, `[[`, 'summary')%>%
+  data.table::rbindlist(idcol = "FD.metric") %>% 
+  mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton") %>%
+  mutate(sig = ifelse(is.na(obs.value) | obs.value == "NaN" | obs.difference == 0,"",
+                      ifelse(quantile >= 0.975 | quantile <= 0.025,"*","")))
+kas.zoomth.diff.raw <- lapply(kas.zoomth.diff, `[[`, 'perm.dens')%>%
+  data.table::rbindlist(idcol = "FD.metric")%>%
+  mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton")
 
 ###########################################################################
 ## Save out (Lag1, Monthly) ##
@@ -389,7 +488,11 @@ raw.ccf.mth1 <- rbind(kin.phytomth.diff.raw,kin.zoomth.diff.raw,mad.phytomth.dif
                      LZ.phytomth.diff.raw,LZ.zoomth.diff.raw,wind.phytomth.diff.raw)
 
 write.csv(summary.ccf.mth1,file ="Results/summary.ccf.mth.lag1.csv",row.names = F)
+summary.ccf.mth1 <- read.csv(file ="Results/summary.ccf.mth.lag1.csv")
 save(raw.ccf.mth1,file = "Results/raw.ccf.mth.lag1.RData") # RData required to reduce file size compared to .csv
+load("Results/raw.ccf.mth.lag1.RData")
+summary.ccf.mth1 <- rbind(summary.ccf.mth1,kas.phytomth.diff.summary,kas.zoomth.diff.summary)
+raw.ccf.mth1 <- rbind(raw.ccf.mth1,kas.phytomth.diff.raw,kas.zoomth.diff.raw)
 
 pdf(file="Results/FD_perm_lag1_diffmth_absrmax.pdf",
     width=10, height = 8)
