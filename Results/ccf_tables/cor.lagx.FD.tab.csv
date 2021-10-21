@@ -1,0 +1,28 @@
+"system","troph","FD.metric","mean.cor","median.cor","se","nsig","prop.sig"
+"Kasumigaura","Phytoplankton","FDis",0.152,0.139,0.0105,1,0.2
+"Kasumigaura","Phytoplankton","FEve",0.119,0.112,0.00362,0,0
+"Kasumigaura","Phytoplankton","FRic",0.142,0.136,0.00838,3,0.6
+"Kasumigaura","Zooplankton","FDis",0.13,0.135,0.00262,0,0
+"Kasumigaura","Zooplankton","FEve",0.125,0.124,0.0023,0,0
+"Kasumigaura","Zooplankton","FRic",0.135,0.14,0.00542,2,0.4
+"Kinneret","Phytoplankton","FDis",0.21,0.131,0.0347,2,0.4
+"Kinneret","Phytoplankton","FEve",0.115,0.118,0.00407,0,0
+"Kinneret","Phytoplankton","FRic",0.134,0.136,0.00842,1,0.2
+"Kinneret","Zooplankton","FDis",0.128,0.123,0.00316,0,0
+"Kinneret","Zooplankton","FEve",0.129,0.133,0.00429,0,0
+"Kinneret","Zooplankton","FRic",0.107,0.0959,0.00387,1,0.2
+"Lower Zurich","Phytoplankton","FDis",0.154,0.158,0.00519,1,0.2
+"Lower Zurich","Phytoplankton","FEve",0.13,0.118,0.00683,1,0.2
+"Lower Zurich","Phytoplankton","FRic",0.163,0.17,0.0084,1,0.2
+"Lower Zurich","Zooplankton","FDis",0.141,0.141,0.00654,1,0.2
+"Lower Zurich","Zooplankton","FEve",0.159,0.15,0.00803,1,0.2
+"Lower Zurich","Zooplankton","FRic",0.186,0.204,0.0122,3,0.6
+"Mendota","Phytoplankton","FDis",0.181,0.174,0.011,1,0.2
+"Mendota","Phytoplankton","FEve",0.172,0.188,0.00742,1,0.2
+"Mendota","Phytoplankton","FRic",0.211,0.204,0.0101,2,0.4
+"Mendota","Zooplankton","FDis",0.194,0.178,0.00566,2,0.4
+"Mendota","Zooplankton","FEve",0.179,0.175,0.00798,1,0.2
+"Mendota","Zooplankton","FRic",0.196,0.186,0.00532,1,0.2
+"Windermere","Phytoplankton","FDis",0.176,0.184,0.008,2,0.4
+"Windermere","Phytoplankton","FEve",0.186,0.163,0.00909,1,0.2
+"Windermere","Phytoplankton","FRic",0.178,0.188,0.00853,1,0.2
