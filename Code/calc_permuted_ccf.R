@@ -559,30 +559,49 @@ obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
 write.csv(obs.cor.lag0.state.tab,file ="Results/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
 
 obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% "absmax.ccf")%>%
+  filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
+  pivot_wider(names_from = measure,values_from = obs.value)%>%
+  ungroup()%>%
+  mutate(t.absmax.ccf=ifelse(is.numeric(absmax.ccf) & !is.na(t.absmax.ccf),t.absmax.ccf,
+                             dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
+  na.omit() %>%#drop duplicate rows
   group_by(system,troph) %>%
-  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
-            se = sd(obs.value)/n(),
+  summarise(mean.cor = mean(absmax.ccf),median.cor = median(absmax.ccf),
+            cor.se = sd(absmax.ccf)/n(), 
+            median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:se,~round(.x,digits=4)))
+  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
 write.csv(obs.cor.lagx.lake.tab,file ="Results/ccf_tables/cor.lagx.lake.tab.csv",row.names = F)
 
 obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% "absmax.ccf")%>%
+  filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
+  pivot_wider(names_from = measure,values_from = obs.value)%>%
+  ungroup()%>%
+  mutate(t.absmax.ccf=ifelse(is.numeric(absmax.ccf) & !is.na(t.absmax.ccf),t.absmax.ccf,
+                             dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
+  na.omit() %>%#drop duplicate rows
   group_by(system,troph,FD.metric) %>%
-  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
-            se = sd(obs.value)/n(),
+  summarise(mean.cor = mean(absmax.ccf),median.cor = median(absmax.ccf),
+            cor.se = sd(absmax.ccf)/n(), 
+            median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:se,~round(.x,digits=4)))
+  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
 write.csv(obs.cor.lagx.FD.tab,file ="Results/ccf_tables/cor.lagx.FD.tab.csv",row.names = F)
 
 obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% "absmax.ccf")%>%
+  dplyr::select(!c(quantile,median.perm.value,obs.difference,res))%>%
+  filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
+  pivot_wider(names_from = measure,values_from = obs.value)%>%
+  ungroup()%>%
+  mutate(t.absmax.ccf=ifelse(is.numeric(absmax.ccf) & !is.na(t.absmax.ccf),t.absmax.ccf,
+                              dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
+  na.omit() %>%#drop duplicate rows
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
-            se = sd(obs.value)/n(),
+  summarise(mean.cor = mean(absmax.ccf),median.cor = median(absmax.ccf),
+            cor.se = sd(absmax.ccf)/n(), 
+            median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:se,~round(.x,digits=4)))
+  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
 write.csv(obs.cor.lagx.state.tab,file ="Results/ccf_tables/cor.lagx.state.tab.csv",row.names = F)
 
 ###########################################################################
