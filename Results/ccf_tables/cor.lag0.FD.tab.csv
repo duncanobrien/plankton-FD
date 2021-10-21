@@ -1,7 +1,7 @@
 "troph","FD.metric","mean.cor","median.cor","se","nsig","prop.sig"
-"Phytoplankton","FDis",-0.0409,-0.029,0.00913,14,0.56
-"Phytoplankton","FEve",-0.00029,0.0041,0.00397,6,0.24
+"Phytoplankton","FDis",-0.0409,-0.029,0.0091,14,0.56
+"Phytoplankton","FEve",-3e-04,0.0041,0.004,6,0.24
 "Phytoplankton","FRic",0.0128,0.0217,0.0064,12,0.48
-"Zooplankton","FDis",-0.0439,0.00525,0.00807,9,0.45
-"Zooplankton","FEve",-0.00211,0.0273,0.00554,6,0.3
-"Zooplankton","FRic",0.000233,0.0034,0.00314,4,0.2
+"Zooplankton","FDis",-0.0439,0.0053,0.0081,9,0.45
+"Zooplankton","FEve",-0.0021,0.0273,0.0055,6,0.3
+"Zooplankton","FRic",2e-04,0.0034,0.0031,4,0.2

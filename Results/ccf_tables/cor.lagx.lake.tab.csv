@@ -1,1 +1,10 @@
 "system","troph","mean.cor","median.cor","se","nsig","prop.sig"
+"Kasumigaura","Phytoplankton",-0.0303,-0.1042,0.0115,4,0.266666666666667
+"Kasumigaura","Zooplankton",-0.051,-0.1142,0.0119,5,0.333333333333333
+"Kinneret","Phytoplankton",-0.0591,-0.1183,0.0174,6,0.4
+"Kinneret","Zooplankton",-0.0545,-0.1223,0.0095,3,0.2
+"Lower Zurich","Phytoplankton",-0.09,-0.1499,0.0123,6,0.4
+"Lower Zurich","Zooplankton",-0.0609,-0.1402,0.0128,7,0.466666666666667
+"Mendota","Phytoplankton",0.0051,0.1147,0.015,8,0.533333333333333
+"Mendota","Zooplankton",0.0386,0.1745,0.0138,6,0.4
+"Windermere","Phytoplankton",0.0885,0.1778,0.0118,5,0.333333333333333
