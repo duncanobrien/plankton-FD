@@ -526,30 +526,64 @@ ggplot(raw.ccf.mth1,aes(x = state.metric, y =  r0, col = FD.metric,fill= FD.metr
   ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF t0 between lag1 differenced FD and system state")
 dev.off()
 
-mean.obs.cor.lag0 <- summary.ccf.mth1 %>%
+###########################################################################
+## Summary correlations (Lag1, Monthly) ##
+###########################################################################
+summary.ccf.mth1 <- read.csv("Results/summary.ccf.mth.lag1.csv")
+
+obs.cor.lag0.lake.tab <- summary.ccf.mth1 %>%
             filter(measure %in% "r0.ccf")%>%
             group_by(system,troph) %>%
-  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+            summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+              se = sd(obs.value)/n(),
+              nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+            mutate(across(mean.cor:se,~signif(.x,digits=3)))
+write.csv(obs.cor.lag0.lake.tab,file ="Results/ccf_tables/cor.lag0.lake.tab.csv",row.names = F)
 
-mean.obs.cor.lag0 <- summary.ccf.mth1 %>%
+obs.cor.lag0.FD.tab <- summary.ccf.mth1 %>%
   filter(measure %in% "r0.ccf")%>%
-  group_by(system,troph,FD.metric) %>%
-  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+  group_by(troph,FD.metric) %>% 
+  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+            se = sd(obs.value)/n(),
+            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+write.csv(obs.cor.lag0.FD.tab,file ="Results/ccf_tables/cor.lag0.FD.tab.csv",row.names = F)
 
-mean.obs.cor.lag0 <- summary.ccf.mth1 %>%
+obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
   filter(measure %in% "r0.ccf")%>%
-  group_by(troph,FD.metric) %>%
-  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+            se = sd(obs.value)/n(),
+            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+write.csv(obs.cor.lag0.state.tab,file ="Results/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
 
-mean.obs.cor.lagx <- summary.ccf.mth1 %>%
+obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
   filter(measure %in% "rmax.ccf")%>%
   group_by(system,troph) %>%
-  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+            se = sd(obs.value)/n(),
+            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+write.csv(obs.cor.lagx.lake.tab,file ="Results/ccf_tables/cor.lagx.lake.tab.csv",row.names = F)
 
-mean.obs.cor.lagx <- summary.ccf.mth1 %>%
+obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
   filter(measure %in% "rmax.ccf")%>%
   group_by(system,troph,FD.metric) %>%
-  summarise(mean.cor = mean(abs(obs.value)),median.cor = median(abs(obs.value)),nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig))
+  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+            se = sd(obs.value)/n(),
+            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+write.csv(obs.cor.lagx.FD.tab,file ="Results/ccf_tables/cor.lagx.FD.tab.csv",row.names = F)
+
+obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
+  filter(measure %in% "rmax.ccf")%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+            se = sd(obs.value)/n(),
+            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+write.csv(obs.cor.lagx.state.tab,file ="Results/ccf_tables/cor.lagx.state.tab.csv",row.names = F)
 
 ###########################################################################
 ## Estimate cross correlation and permute (Lag12, Monthly) ##
