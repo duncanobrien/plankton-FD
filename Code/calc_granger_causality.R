@@ -182,9 +182,9 @@ kas.granger <- data.frame(data.table::rbindlist(kas.granger,idcol = "FD.metric")
 ###########################################################################
 
 all.lakes.granger <- rbind(kin.granger,mad.granger,LZ.granger,wind.granger,kas.granger)
-write.csv(all.lakes.granger,file ="Results/all.lakes.granger.csv",row.names = F)
+write.csv(all.lakes.granger,file ="Results/granger_causality/all.lakes.granger.csv",row.names = F)
 
-all.lakes.granger <- read.csv("Results/all.lakes.granger.csv")
+all.lakes.granger <- read.csv("Results/granger_causality/all.lakes.granger.csv")
 
 gc.best.lag.df <- all.lakes.granger %>%
   filter(!grepl("\\.aic$",statistic) & !grepl("\\.sig$",statistic))%>% # drop AIC and sig rows
@@ -207,7 +207,7 @@ count.df <- gc.best.lag.df %>%
   group_by(state.metric,causality.direc,FD.metric)%>%
   mutate(N = n()) # count per group
 
-pdf(file="Results/granger_causality_spread.pdf",
+pdf(file="Results/granger_causality/granger_causality_spread.pdf",
     width=10, height = 7)
 ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
   geom_boxplot(alpha = 0.8,size = 0.5)+
@@ -221,7 +221,7 @@ ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) +
   theme_bw()
 dev.off()
 
-pdf(file="Results/granger_causality_spread_alt.pdf",
+pdf(file="Results/granger_causality/granger_causality_spread_alt.pdf",
     width=10, height = 7)
 ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
   geom_boxplot(alpha = 0.1,size = 0.1)+
@@ -250,7 +250,7 @@ gc.lag.changes.df <- all.lakes.granger %>%
   mutate(causality.direc = ifelse(grepl("^x_y",F.measure),"forward","reverse"))%>% # classify directions
   filter(P.value <= 0.05) # only keep significant (5% level) causality
   
-pdf(file="Results/granger_causality_lag_changes.pdf",
+pdf(file="Results/granger_causality/granger_causality_lag_changes.pdf",
     width=11, height = 5,onefile=FALSE)
 ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve","FRic")),
                          aes(x=lag,y=log(F.value), col =system)) +
