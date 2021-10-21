@@ -537,7 +537,7 @@ obs.cor.lag0.lake.tab <- summary.ccf.mth1 %>%
             summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
               se = sd(obs.value)/n(),
               nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-            mutate(across(mean.cor:se,~signif(.x,digits=3)))
+            mutate(across(mean.cor:se,~round(.x,digits=4)))
 write.csv(obs.cor.lag0.lake.tab,file ="Results/ccf_tables/cor.lag0.lake.tab.csv",row.names = F)
 
 obs.cor.lag0.FD.tab <- summary.ccf.mth1 %>%
@@ -546,7 +546,7 @@ obs.cor.lag0.FD.tab <- summary.ccf.mth1 %>%
   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
             se = sd(obs.value)/n(),
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+  mutate(across(mean.cor:se,~round(.x,digits=4)))
 write.csv(obs.cor.lag0.FD.tab,file ="Results/ccf_tables/cor.lag0.FD.tab.csv",row.names = F)
 
 obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
@@ -555,7 +555,7 @@ obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
             se = sd(obs.value)/n(),
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+  mutate(across(mean.cor:se,~round(.x,digits=4)))
 write.csv(obs.cor.lag0.state.tab,file ="Results/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
 
 obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
@@ -564,7 +564,7 @@ obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
             se = sd(obs.value)/n(),
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+  mutate(across(mean.cor:se,~round(.x,digits=4)))
 write.csv(obs.cor.lagx.lake.tab,file ="Results/ccf_tables/cor.lagx.lake.tab.csv",row.names = F)
 
 obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
@@ -573,7 +573,7 @@ obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
             se = sd(obs.value)/n(),
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+  mutate(across(mean.cor:se,~round(.x,digits=4)))
 write.csv(obs.cor.lagx.FD.tab,file ="Results/ccf_tables/cor.lagx.FD.tab.csv",row.names = F)
 
 obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
@@ -582,7 +582,7 @@ obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
             se = sd(obs.value)/n(),
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:se,~signif(.x,digits=3)))
+  mutate(across(mean.cor:se,~round(.x,digits=4)))
 write.csv(obs.cor.lagx.state.tab,file ="Results/ccf_tables/cor.lagx.state.tab.csv",row.names = F)
 
 ###########################################################################
