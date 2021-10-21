@@ -26,3 +26,6 @@
 "Windermere","Phytoplankton","FDis",0.1282,0.1839,0.0289,1,3.4974,1,0.2
 "Windermere","Phytoplankton","FEve",0.0403,0.1629,0.0459,7,1.1747,2,0.4
 "Windermere","Phytoplankton","FRic",0.0971,0.1419,0.0354,22,8.3001,2,0.4
+"Windermere","Zooplankton","FDis",-0.0691,-0.1886,0.0505,13,4.424,3,0.6
+"Windermere","Zooplankton","FEve",0.0454,0.1403,0.046,2,5.4747,2,0.4
+"Windermere","Zooplankton","FRic",0.0397,0.1612,0.0436,-8,4.7045,3,0.6
