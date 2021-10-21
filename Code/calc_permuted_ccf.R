@@ -559,7 +559,7 @@ obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
 write.csv(obs.cor.lag0.state.tab,file ="Results/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
 
 obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% "rmax.ccf")%>%
+  filter(measure %in% "absmax.ccf")%>%
   group_by(system,troph) %>%
   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
             se = sd(obs.value)/n(),
@@ -568,7 +568,7 @@ obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
 write.csv(obs.cor.lagx.lake.tab,file ="Results/ccf_tables/cor.lagx.lake.tab.csv",row.names = F)
 
 obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% "rmax.ccf")%>%
+  filter(measure %in% "absmax.ccf")%>%
   group_by(system,troph,FD.metric) %>%
   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
             se = sd(obs.value)/n(),
@@ -577,7 +577,7 @@ obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
 write.csv(obs.cor.lagx.FD.tab,file ="Results/ccf_tables/cor.lagx.FD.tab.csv",row.names = F)
 
 obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% "rmax.ccf")%>%
+  filter(measure %in% "absmax.ccf")%>%
   group_by(troph,FD.metric,state.metric) %>%
   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
             se = sd(obs.value)/n(),
