@@ -1,4 +1,4 @@
-"troph","FD.metric","state.metric","mean.cor","median.cor","se","nsig","prop.sig"
+"troph","FD.metric","state.metric","mean.cor","median.cor","cor.se","nsig","prop.sig"
 "Phytoplankton","FDis","Community",0.0346,0.0865,0.0262,3,0.6
 "Phytoplankton","FDis","Density",-0.3301,-0.3299,0.0428,4,0.8
 "Phytoplankton","FDis","FI",-0.0175,9e-04,0.0144,1,0.2

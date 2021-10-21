@@ -86,6 +86,14 @@ phyto.wind.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx
   mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
+zoo.wind.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 2) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes)) %>%
+  drop_na()%>% #drop no data species
+  mutate(across(c(lgth_1:omniherb),as.numeric)) %>% #ensure numeric and not character
+  mutate(across(c(rv_mech,f_mode),as.factor))
+
 phyto.kas.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 8) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
@@ -197,6 +205,17 @@ zoo.mad.fuzFDs.mth <-tidyFD(plank_env.madmthdata[,201:224], zoo.mad.traits.dat, 
                             traittype = "fuzzy", method = FD_metrics, correction="cailliez",ndim=10)
 zoo.mad.fuzFDs.mth <- cbind(date = as.numeric(plank_env.madmthdata$date),zoo.mad.fuzFDs.mth)
 write.csv(zoo.mad.fuzFDs.mth,file = "Data/raw_FD/FD_mad_zoo_mth_raw.csv",row.names = F)
+
+zoo.mad.fuzFDs.yr <-tidyFD(plank_env.madyrdata[,199:222], zoo.mad.traits.dat, trophic.lvl = "zoo",
+                           traittype = "fuzzy", method = FD_metrics, correction="cailliez")
+zoo.mad.fuzFDs.yr <- cbind(date = as.numeric(plank_env.madyrdata$date),zoo.mad.fuzFDs.yr)
+write.csv(zoo.mad.fuzFDs.yr,file = "Data/raw_FD/FD_mad_zoo_yr_raw.csv",row.names = F)
+
+# Windermere #
+zoo.wind.fuzFDs.mth <-tidyFD(phyto_env.windmthdata[,22:25], zoo.wind.traits.dat, trophic.lvl = "zoo",
+                            traittype = "fuzzy", method = FD_metrics, correction="cailliez",ndim=10)
+zoo.wind.fuzFDs.mth <- cbind(date = as.numeric(phyto_env.windmthdata$Date),zoo.wind.fuzFDs.mth)
+write.csv(zoo.wind.fuzFDs.mth,file = "Data/raw_FD/FD_wind_zoo_mth_raw.csv",row.names = F)
 
 zoo.mad.fuzFDs.yr <-tidyFD(plank_env.madyrdata[,199:222], zoo.mad.traits.dat, trophic.lvl = "zoo",
                            traittype = "fuzzy", method = FD_metrics, correction="cailliez")

@@ -1,4 +1,4 @@
-"system","troph","mean.cor","median.cor","se","nsig","prop.sig"
+"system","troph","mean.cor","median.cor","cor.se","nsig","prop.sig"
 "Kasumigaura","Phytoplankton",0.0039,0.0217,0.009,6,0.4
 "Kasumigaura","Zooplankton",-0.0222,0.0143,0.0095,5,0.333333333333333
 "Kinneret","Phytoplankton",3e-04,0.0115,0.0159,7,0.466666666666667

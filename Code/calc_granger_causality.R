@@ -22,6 +22,7 @@ phyto.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_phyto_mth_raw.csv")
 zoo.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_zoo_mth_raw.csv")
 zoo.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_zoo_mth_raw.csv")
 zoo.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_zoo_mth_raw.csv")
+zoo.wind.fuzFDs.mth <- read.csv("Data/raw_FD/FD_wind_zoo_mth_raw.csv")
 zoo.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_zoo_mth_raw.csv")
 
 load("Data/all.system.states.RData")
@@ -46,9 +47,9 @@ LZ.tot <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
 wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.wind.fuzFDs.mth[,"FDis"],zooFEve = zoo.wind.fuzFDs.mth[,"FEve"],zooFRic = zoo.wind.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  mutate(across(-c(date,data.source,res),~scale(.x)))%>%
-  mutate(zooFDis = NA, zooFEve = NA, zooFRic = NA) # add dummy zooFD variable for missing data
+  mutate(across(-c(date,data.source,res),~scale(.x)))
 
 kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
@@ -128,7 +129,7 @@ names(LZ.granger) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
 LZ.granger <- data.frame(data.table::rbindlist(LZ.granger,idcol = "FD.metric"))%>%
   mutate(system = "Lower Zurich", res = "Month") # specify metadata for future plotting
 
-wind.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+wind.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
   
   tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
     
@@ -137,8 +138,9 @@ wind.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
     } # certain FD metrics may have NAs for single data points
     
     if(i %in% c("FI","mvi")){
-      df <- na.omit(wind.tot[,-c(13:15)]) #drop the first few rows of NAs caused by the window calculation of these metrics
-    }else{
+      #df <- na.omit(wind.tot[,-c(13:15)]) #drop the first few rows of NAs caused by the window calculation of these metrics
+      df <- na.omit(wind.tot)
+      }else{
       df <- wind.tot
     }
     gc.df <- cross.granger(ts = df[,paste(x)], comp.ts =df[,paste(i)],span = 12*5,method="var",covariates = df[,"env"])
@@ -147,7 +149,7 @@ wind.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
   }
   return(tmp)
 },mc.cores = 3) 
-names(wind.granger) <- c("FDis","FEve","FRic")
+names(wind.granger) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
 wind.granger <- data.frame(data.table::rbindlist(wind.granger,idcol = "FD.metric"))%>%
   mutate(system = "Windermere", res = "Month")
   # specify metadata for future plotting
