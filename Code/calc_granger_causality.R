@@ -60,161 +60,236 @@ kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.state
 ## Estimate Granger Causality ##
 ###########################################################################
 
-kin.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+kin.granger.TY <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
   
   tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
     
     if(any(is.na(kin.tot[,paste(x)]))){
-      kin.tot[,paste(x)] <- zoo::na.approx(kin.tot[,paste(x)],maxgap =3)
+      kin.tot[,paste(x)] <- zoo::na.approx(kin.tot[,paste(x)],maxgap =3,na.rm=F)
     } # certain FD metrics may have NAs for single data points
     
-    if(i %in% c("FI","mvi")){
-      df <- na.omit(kin.tot) #drop the first few rows of NAs caused by the window calculation of these metrics
-    }else{
-      df <- kin.tot
-    }
-    gc.df <- cross.granger(ts = df[,paste(x)], comp.ts =df[,paste(i)],span = 12*5,method="var",covariates = df[,"env"])
-    gc.df$state.metric <- paste(i)
-    return(gc.df)
-}
-  return(tmp)
-  },mc.cores = 3) 
-names(kin.granger) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
-kin.granger <- data.frame(data.table::rbindlist(kin.granger,idcol = "FD.metric"))%>%
-  mutate(system = "Kinneret", res = "Month") # specify metadata for future plotting
-
-mad.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
-  
-  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    df <- na.omit(kin.tot)
     
-    if(any(is.na(mad.tot[,paste(x)]))){
-      mad.tot[,paste(x)] <- zoo::na.approx(mad.tot[,paste(x)],maxgap =3)
-    } # certain FD metrics may have NAs for single data points
-    
-    if(i %in% c("FI","mvi")){
-      df <- na.omit(mad.tot) #drop the first few rows of NAs caused by the window calculation of these metrics
-    }else{
-      df <- mad.tot
-    }
-    gc.df <- cross.granger(ts = df[,paste(x)], comp.ts =df[,paste(i)],span = 12*5,method="var",covariates = df[,"env"])
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TY",covariates = df[,"env"],ic = "AIC")
     gc.df$state.metric <- paste(i)
     return(gc.df)
   }
   return(tmp)
 },mc.cores = 3) 
-names(mad.granger) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
-mad.granger <- data.frame(data.table::rbindlist(mad.granger,idcol = "FD.metric"))%>%
-  mutate(system = "Mendota", res = "Month") # specify metadata for future plotting
+names(kin.granger.TY) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+kin.granger.TY <- data.frame(data.table::rbindlist(kin.granger.TY,idcol = "FD.metric"))%>%
+  mutate(system = "Kinneret", res = "Month") # specify metadata for future plotting
 
-LZ.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+LZ.granger.TY <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
   
   tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
     
     if(any(is.na(LZ.tot[,paste(x)]))){
-      LZ.tot[,paste(x)] <- zoo::na.approx(LZ.tot[,paste(x)],maxgap =3)
+      LZ.tot[,paste(x)] <- zoo::na.approx(LZ.tot[,paste(x)],maxgap =3,na.rm=F)
     } # certain FD metrics may have NAs for single data points
     
-    if(i %in% c("FI","mvi")){
-      df <- na.omit(LZ.tot) #drop the first few rows of NAs caused by the window calculation of these metrics
-    }else{
-      df <- LZ.tot
-    }
-    gc.df <- cross.granger(ts = df[,paste(x)], comp.ts =df[,paste(i)],span = 12*5,method="var",covariates = df[,"env"])
+    df <- na.omit(LZ.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TY",covariates = df[,"env"],ic = "AIC")
     gc.df$state.metric <- paste(i)
     return(gc.df)
   }
   return(tmp)
 },mc.cores = 3) 
-names(LZ.granger) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
-LZ.granger <- data.frame(data.table::rbindlist(LZ.granger,idcol = "FD.metric"))%>%
+names(LZ.granger.TY) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+LZ.granger.TY <- data.frame(data.table::rbindlist(LZ.granger.TY,idcol = "FD.metric"))%>%
   mutate(system = "Lower Zurich", res = "Month") # specify metadata for future plotting
 
-wind.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
-  
-  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
-    
-    if(any(is.na(wind.tot[,paste(x)]))){
-      wind.tot[,paste(x)] <- zoo::na.approx(wind.tot[,paste(x)],maxgap =3)
-    } # certain FD metrics may have NAs for single data points
-    
-    if(i %in% c("FI","mvi")){
-      #df <- na.omit(wind.tot[,-c(13:15)]) #drop the first few rows of NAs caused by the window calculation of these metrics
-      df <- na.omit(wind.tot)
-      }else{
-      df <- wind.tot
-    }
-    gc.df <- cross.granger(ts = df[,paste(x)], comp.ts =df[,paste(i)],span = 12*5,method="var",covariates = df[,"env"])
-    gc.df$state.metric <- paste(i)
-    return(gc.df)
-  }
-  return(tmp)
-},mc.cores = 3) 
-names(wind.granger) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
-wind.granger <- data.frame(data.table::rbindlist(wind.granger,idcol = "FD.metric"))%>%
-  mutate(system = "Windermere", res = "Month")
-  # specify metadata for future plotting
-
-kas.granger <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+kas.granger.TY <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
   
   tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
     
     if(any(is.na(kas.tot[,paste(x)]))){
-      kas.tot[,paste(x)] <- zoo::na.approx(kas.tot[,paste(x)],maxgap =3)
+      kas.tot[,paste(x)] <- zoo::na.approx(kas.tot[,paste(x)],maxgap =3,na.rm=F)
     } # certain FD metrics may have NAs for single data points
     
-    if(i %in% c("FI","mvi")){
-      df <- na.omit(kas.tot) #drop the first few rows of NAs caused by the window calculation of these metrics
-    }else{
-      df <- kas.tot
-    }
-    gc.df <- cross.granger(ts = df[,paste(x)], comp.ts =df[,paste(i)],span = 12*5,method="var",covariates = df[,"env"])
+    df <- na.omit(kas.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TY",covariates = df[,"env"],ic = "AIC")
     gc.df$state.metric <- paste(i)
     return(gc.df)
   }
   return(tmp)
 },mc.cores = 3) 
-names(kas.granger) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
-kas.granger <- data.frame(data.table::rbindlist(kas.granger,idcol = "FD.metric"))%>%
+names(kas.granger.TY) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+kas.granger.TY <- data.frame(data.table::rbindlist(kas.granger.TY,idcol = "FD.metric"))%>%
   mutate(system = "Kasumigaura", res = "Month") # specify metadata for future plotting
+
+mad.granger.TY <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+  
+  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    
+    if(any(is.na(mad.tot[,paste(x)]))){
+      mad.tot[,paste(x)] <- zoo::na.approx(mad.tot[,paste(x)],maxgap =3,na.rm=F)
+    } # certain FD metrics may have NAs for single data points
+    
+    df <- na.omit(mad.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TY",covariates = df[,"env"],ic = "AIC")
+    gc.df$state.metric <- paste(i)
+    return(gc.df)
+  }
+  return(tmp)
+},mc.cores = 3) 
+names(mad.granger.TY) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+mad.granger.TY <- data.frame(data.table::rbindlist(mad.granger.TY,idcol = "FD.metric"))%>%
+  mutate(system = "Mendota", res = "Month") # specify metadata for future plotting
+
+wind.granger.TY <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+  
+  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    
+    if(any(is.na(wind.tot[,paste(x)]))){
+      wind.tot[,paste(x)] <- zoo::na.approx(wind.tot[,paste(x)],maxgap =3,na.rm=F)
+    } # certain FD metrics may have NAs for single data points
+    
+    df <- na.omit(wind.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TY",covariates = df[,"env"],ic = "AIC")
+    gc.df$state.metric <- paste(i)
+    return(gc.df)
+  }
+  return(tmp)
+},mc.cores = 3) 
+names(wind.granger.TY) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+wind.granger.TY <- data.frame(data.table::rbindlist(wind.granger.TY,idcol = "FD.metric"))%>%
+  mutate(system = "Windermere", res = "Month") # specify metadata for future plotting
+
+
+kin.granger.TYrestrict <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+  
+  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    
+    if(any(is.na(kin.tot[,paste(x)]))){
+      kin.tot[,paste(x)] <- zoo::na.approx(kin.tot[,paste(x)],maxgap =3,na.rm=F)
+    } # certain FD metrics may have NAs for single data points
+    
+    df <- na.omit(kin.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TYrestrict",covariates = df[,"env"],ic = "AIC")
+    gc.df$state.metric <- paste(i)
+    return(gc.df)
+  }
+  return(tmp)
+},mc.cores = 3) 
+names(kin.granger.TYrestrict) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+kin.granger.TYrestrict <- data.frame(data.table::rbindlist(kin.granger.TYrestrict,idcol = "FD.metric"))%>%
+  mutate(system = "Kinneret", res = "Month") # specify metadata for future plotting
+
+LZ.granger.TYrestrict <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+  
+  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    
+    if(any(is.na(LZ.tot[,paste(x)]))){
+      LZ.tot[,paste(x)] <- zoo::na.approx(LZ.tot[,paste(x)],maxgap =3,na.rm=F)
+    } # certain FD metrics may have NAs for single data points
+    
+    df <- na.omit(LZ.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TYrestrict",covariates = df[,"env"],ic = "AIC")
+    gc.df$state.metric <- paste(i)
+    return(gc.df)
+  }
+  return(tmp)
+},mc.cores = 3) 
+names(LZ.granger.TYrestrict) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+LZ.granger.TYrestrict <- data.frame(data.table::rbindlist(LZ.granger.TYrestrict,idcol = "FD.metric"))%>%
+  mutate(system = "Lower Zurich", res = "Month") # specify metadata for future plotting
+
+kas.granger.TYrestrict <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+  
+  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    
+    if(any(is.na(kas.tot[,paste(x)]))){
+      kas.tot[,paste(x)] <- zoo::na.approx(kas.tot[,paste(x)],maxgap =3,na.rm=F)
+    } # certain FD metrics may have NAs for single data points
+    
+    df <- na.omit(kas.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TYrestrict",covariates = df[,"env"],ic = "AIC")
+    gc.df$state.metric <- paste(i)
+    return(gc.df)
+  }
+  return(tmp)
+},mc.cores = 3) 
+names(kas.granger.TYrestrict) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+kas.granger.TYrestrict <- data.frame(data.table::rbindlist(kas.granger.TYrestrict,idcol = "FD.metric"))%>%
+  mutate(system = "Kasumigaura", res = "Month") # specify metadata for future plotting
+
+mad.granger.TYrestrict <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+  
+  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    
+    if(any(is.na(mad.tot[,paste(x)]))){
+      mad.tot[,paste(x)] <- zoo::na.approx(mad.tot[,paste(x)],maxgap =3,na.rm=F)
+    } # certain FD metrics may have NAs for single data points
+    
+    df <- na.omit(mad.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TYrestrict",covariates = df[,"env"],ic = "AIC")
+    gc.df$state.metric <- paste(i)
+    return(gc.df)
+  }
+  return(tmp)
+},mc.cores = 3) 
+names(mad.granger.TYrestrict) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+mad.granger.TYrestrict <- data.frame(data.table::rbindlist(mad.granger.TYrestrict,idcol = "FD.metric"))%>%
+  mutate(system = "Mendota", res = "Month") # specify metadata for future plotting
+
+wind.granger.TYrestrict <- pbmcapply::pbmclapply(c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic"),function(x){
+  
+  tmp <- foreach::foreach(i = c("density","community","FI","mvi","zp.ratio"),.combine = "rbind",.export = c("cross.granger"),.packages = c("vars","dplyr")) %do%{
+    
+    if(any(is.na(wind.tot[,paste(x)]))){
+      wind.tot[,paste(x)] <- zoo::na.approx(wind.tot[,paste(x)],maxgap =3,na.rm=F)
+    } # certain FD metrics may have NAs for single data points
+    
+    df <- na.omit(wind.tot)
+    
+    gc.df <- cross.granger.ic(ts = df[,paste(x)], comp.ts = df[,paste(i)],span = 12*5,method="TYrestrict",covariates = df[,"env"],ic = "AIC")
+    gc.df$state.metric <- paste(i)
+    return(gc.df)
+  }
+  return(tmp)
+},mc.cores = 3) 
+names(wind.granger.TYrestrict) <- c("FDis","FEve","FRic","zooFDis","zooFEve","zooFRic")
+wind.granger.TYrestrict <- data.frame(data.table::rbindlist(wind.granger.TYrestrict,idcol = "FD.metric"))%>%
+  mutate(system = "Windermere", res = "Month") # specify metadata for future plotting
 
 ###########################################################################
 ## Save out ##
 ###########################################################################
+all.lakes.granger.TYRes <- rbind(kin.granger.TYrestrict,mad.granger.TYrestrict,LZ.granger.TYrestrict,wind.granger.TYrestrict,kas.granger.TYrestrict) %>%
+  filter(P.value <= 0.05)
 
-all.lakes.granger <- rbind(kin.granger,mad.granger,LZ.granger,wind.granger,kas.granger)
-write.csv(all.lakes.granger,file ="Results/granger_causality/all.lakes.granger.csv",row.names = F)
+all.lakes.granger.TY <- rbind(kin.granger.TY,mad.granger.TY,LZ.granger.TY,wind.granger.TY,kas.granger.TY) %>%
+  filter(P.value <= 0.05)
 
-all.lakes.granger <- read.csv("Results/granger_causality/all.lakes.granger.csv")
+write.csv(all.lakes.granger.TY,file ="Results/granger_causality/all.lakes.TY.granger.csv",row.names = F)
 
-gc.best.lag.df <- all.lakes.granger %>%
-  filter(!grepl("\\.aic$",statistic) & !grepl("\\.sig$",statistic))%>% # drop AIC and sig rows
-  group_by(FD.metric,state.metric,system) %>%
-  pivot_longer(c(lag_1:lag_60),names_to = "lag",values_to = "value",names_prefix = "lag_") %>% # pivot lag columns in to single column
-  mutate(value = as.numeric(value),lag = as.numeric(lag))%>% # ensure values are numeric
-  pivot_wider(names_from = statistic,values_from = value)%>% # pivot F/P statistic rows in to columns for ease of summarising down the line
-  group_by(FD.metric,state.metric,system,lag)%>%
-  pivot_longer(c(x_y.F,y_x.F),names_to = "F.measure",values_to = "F.value")%>% # pivot back down in to separate columns 
-  pivot_longer(c(x_y.P,y_x.P),names_to = "P.measure",values_to = "P.value")%>%
-  filter(substr(F.measure,1,3) == substr(P.measure,1,3)) %>% # match forward & reverse measures
-  mutate(causality.direc = ifelse(grepl("^x_y",F.measure),"forward","reverse"))%>% # classify directions
-  filter(P.value <= 0.05)%>% # only keep significant (5% level) causality
-  group_by(FD.metric,state.metric,system,causality.direc)%>%
-  mutate(best.value = max(F.value))%>% # find highest F value per group but keep the associated P value (was lost if not pivotted in to a separate column)
-  ungroup()%>%
-  filter(best.value == F.value) # filter data frame to lags with highest Granger causality
+all.lakes.granger.TY <- read.csv("Results/granger_causality/all.lakes.TY.granger.csv")
 
-count.df <- gc.best.lag.df %>%
+count.TYdf <- all.lakes.granger.TY %>%
+  group_by(state.metric,causality.direc,FD.metric)%>%
+  mutate(N = n()) # count per group
+
+count.TYResdf <- all.lakes.granger.TYRes %>%
   group_by(state.metric,causality.direc,FD.metric)%>%
   mutate(N = n()) # count per group
 
 pdf(file="Results/granger_causality/granger_causality_spread.pdf",
     width=10, height = 7)
-ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
+ggplot(all.lakes.granger.TY,aes(x=lag,y= state.metric,fill= causality.direc)) + 
   geom_boxplot(alpha = 0.8,size = 0.5)+
   geom_point(aes(x=lag,y=state.metric, group=causality.direc), alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
   scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
-  geom_text(data = count.df %>% distinct(FD.metric, causality.direc, state.metric, N),
-           aes(x = 65,y=state.metric, label = N),
+  geom_text(data = count.TYdf %>% distinct(FD.metric, causality.direc, state.metric, N),
+           aes(x = (max(all.lakes.granger.TY$lag)+5),y=state.metric, label = N),
           position = position_dodge(width = 0.8))+
   facet_wrap(~FD.metric) +
   ylab("State metric") + xlab("Optimum lag (months)")+
@@ -223,11 +298,11 @@ dev.off()
 
 pdf(file="Results/granger_causality/granger_causality_spread_alt.pdf",
     width=10, height = 7)
-ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
+ggplot(all.lakes.granger.TY,aes(x=lag,y= state.metric,fill= causality.direc)) + 
   geom_boxplot(alpha = 0.1,size = 0.1)+
   geom_point(aes(x=lag,y=state.metric, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.8, position = position_dodge(width=0.75),size = 3) + 
-  geom_text(data = count.df %>% distinct(FD.metric, causality.direc, state.metric, N),
-            aes(x = 65,y=state.metric, label = N),
+  geom_text(data = count.TYdf %>% distinct(FD.metric, causality.direc, state.metric, N),
+            aes(x = (max(all.lakes.granger.TY$lag)+5),y=state.metric, label = N),
             position = position_dodge(width = 0.8))+
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
@@ -237,6 +312,20 @@ ggplot(gc.best.lag.df,aes(x=lag,y= state.metric,fill= causality.direc)) +
   theme_bw()
 dev.off()
 
+
+ggplot(all.lakes.granger.TYRes,aes(x=lag,y= state.metric,fill= causality.direc)) + 
+  geom_boxplot(alpha = 0.1,size = 0.1)+
+  geom_point(aes(x=lag,y=state.metric, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.8, position = position_dodge(width=0.75),size = 3) + 
+  geom_text(data = count.TYResdf %>% distinct(FD.metric, causality.direc, state.metric, N),
+            aes(x = (max(all.lakes.granger.TYRes$lag)+5),y=state.metric, label = N),
+            position = position_dodge(width = 0.8))+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  facet_wrap(~FD.metric) +
+  ylab("State metric") + xlab("Optimum lag (months)")+
+  guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
+  theme_bw()
+
 gc.lag.changes.df <- all.lakes.granger %>%
   filter(!grepl("\\.aic$",statistic) & !grepl("\\.sig$",statistic))%>% # drop AIC and sig rows
   group_by(FD.metric,state.metric,system) %>%
@@ -244,10 +333,11 @@ gc.lag.changes.df <- all.lakes.granger %>%
   mutate(value = as.numeric(value),lag = as.numeric(lag))%>% # ensure values are numeric
   pivot_wider(names_from = statistic,values_from = value)%>% # pivot F/P statistic rows in to columns for ease of summarising down the line
   group_by(FD.metric,state.metric,system,lag)%>%
-  pivot_longer(c(x_y.F,y_x.F),names_to = "F.measure",values_to = "F.value")%>% # pivot back down in to separate columns 
-  pivot_longer(c(x_y.P,y_x.P),names_to = "P.measure",values_to = "P.value")%>%
-  filter(substr(F.measure,1,3) == substr(P.measure,1,3)) %>% # match forward & reverse measures
-  mutate(causality.direc = ifelse(grepl("^x_y",F.measure),"forward","reverse"))%>% # classify directions
+  pivot_longer(c(x_y.F:y_x.P),
+               names_to = c("measure", ".value"),
+               names_pattern = "(.*)\\.(.*)") %>%
+  rename(F.value = F,P.value = P)%>% #rename problematic F and P column
+  mutate(causality.direc = ifelse(grepl("^x_y",measure),"forward","reverse"))%>% # classify directions
   filter(P.value <= 0.05) # only keep significant (5% level) causality
   
 pdf(file="Results/granger_causality/granger_causality_lag_changes.pdf",
@@ -276,23 +366,4 @@ ggpubr::ggarrange(ggplot(filter(gc.lag.changes.df,FD.metric %in% c("FDis","FEve"
     theme_bw()+ ggtitle("Zooplankton"),
   nrow=2,common.legend=T)
 dev.off()
-
-
-gc.best.aic.df <- all.lakes.granger %>%
-  filter(!grepl("\\.sig$",statistic))%>% # drop AIC and sig rows
-  group_by(FD.metric,state.metric,system) %>%
-  pivot_longer(c(lag_1:lag_60),names_to = "lag",values_to = "value",names_prefix = "lag_") %>% # pivot lag columns in to single column
-  mutate(value = as.numeric(value),lag = as.numeric(lag))%>% # ensure values are numeric
-  pivot_wider(names_from = statistic,values_from = value)%>% # pivot F/P statistic rows in to columns for ease of summarising down the line
-  group_by(FD.metric,state.metric,system,lag)%>%
-  pivot_longer(c(x_y.F,y_x.F),names_to = "F.measure",values_to = "F.value")%>% # pivot back down in to separate columns 
-  pivot_longer(c(x_y.P,y_x.P),names_to = "P.measure",values_to = "P.value")%>%
-  pivot_longer(c(x_y.aic,y_x.aic),names_to = "AIC.measure",values_to = "AIC.value")%>%
-  filter(substr(F.measure,1,3) == substr(P.measure,1,3) & substr(F.measure,1,3) == substr(AIC.measure,1,3)) %>% # match forward & reverse measures
-  mutate(causality.direc = ifelse(grepl("^x_y",F.measure),"forward","reverse"))%>% # classify directions
-  #filter(P.value <= 0.05)%>% # only keep significant (5% level) causality
-  group_by(FD.metric,state.metric,system,causality.direc)%>%
-  mutate(best.value = min(AIC.value))%>% # find highest F value per group but keep the associated P value (was lost if not pivotted in to a separate column)
-  ungroup()%>%
-  filter(best.value == AIC.value) # filter data frame to lags with highest Granger causality
 

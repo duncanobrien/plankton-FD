@@ -154,8 +154,12 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
   scale_colour_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   scale_fill_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   theme_bw() + xlab("Date")+ ylab("Scaled metric value")+
+  geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kasumigaura"), 
+             aes(xintercept=1997.0), colour="black",linetype="dashed")+
   geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
-             aes(xintercept=1993.3), colour="black",linetype="dashed")+
+             aes(xintercept=1993.0), colour="black",linetype="dashed")+
+  geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Mendota"), 
+             aes(xintercept=2009.0), colour="black",linetype="dashed")+
   #scale_y_continuous(breaks= scales::pretty_breaks(n = 3))+
   coord_cartesian(ylim = c(-2.5,2.5))+ 
   scale_y_continuous(breaks= seq(-2,2,2))+
@@ -173,8 +177,12 @@ ggplot(all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFE
                       space="free_x") +
   scale_colour_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   theme_bw() + xlab("Date")+ ylab("Scaled metric value")+
-  geom_vline(data=all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
-             aes(xintercept=1993.3), colour="black",linetype="dashed")+
+  geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kasumigaura"), 
+             aes(xintercept=1997.0), colour="black",linetype="dashed")+
+  geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
+             aes(xintercept=1993.0), colour="black",linetype="dashed")+
+  geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Mendota"), 
+             aes(xintercept=2009.0), colour="black",linetype="dashed")+
   #scale_y_continuous(breaks= scales::pretty_breaks(n = 3))+
   scale_y_continuous(breaks= seq(-6,6,4))+
   #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
@@ -191,8 +199,12 @@ ggplot(all.lakes.diff12 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooF
                       space="free_x") +
   scale_colour_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   theme_bw() + xlab("Date")+ ylab("Scaled metric value")+
-  geom_vline(data=all.lakes.diff1 %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
-             aes(xintercept=1993.3), colour="black",linetype="dashed")+
+  geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kasumigaura"), 
+             aes(xintercept=1997.0), colour="black",linetype="dashed")+
+  geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
+             aes(xintercept=1993.0), colour="black",linetype="dashed")+
+  geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Mendota"), 
+             aes(xintercept=2009.0), colour="black",linetype="dashed")+
   #scale_y_continuous(breaks= scales::pretty_breaks(n = 3))+
   scale_y_continuous(breaks= seq(-6,6,4))+
   #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
