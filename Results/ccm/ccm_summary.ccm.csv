@@ -1,4 +1,4 @@
-"FD.metric","measure","quantile.x_y","obs.value.x_y","median.perm.value.x_y","quantile.y_x","obs.value.y_x","median.perm.value.y_x","state.metric","system","res","troph","sig.x_y","sig.y_z"
+"FD.metric","measure","x_y.quantile","x_y.obs_value","x_y.median_perm_value","y_x.quantile","y_x.obs_value","y_x.median_perm_value","state.metric","system","res","troph","x_y.sig","y_x.sig"
 "FDis","r0.skill",1,0.818934853092484,0.00998622318656526,1,0.791517283096668,0.0098032158322585,"Community","Kinneret","Month","Phytoplankton","*","*"
 "FDis","absmax.skill",1,0.856888891708652,0.141697113931574,1,0.808786907429704,0.139329871946582,"Community","Kinneret","Month","Phytoplankton","*","*"
 "FDis","t.absmax.skill",0.572,-2,-10,0.57,-2,-13,"Community","Kinneret","Month","Phytoplankton","",""
