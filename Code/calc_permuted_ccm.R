@@ -1,0 +1,457 @@
+### Cross Cross Map System State with FD ###
+
+## Preamble ##
+require(tidyverse) # dplyr, ggplot etc.
+require(pbmcapply) # paralled lapply 
+require(data.table) # rbindlist function
+
+source("Code/ccm_perm_fn.R")
+
+###########################################################################
+## Read in Data ##
+###########################################################################
+phyto.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_phyto_mth_raw.csv")
+phyto.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_phyto_mth_raw.csv")
+phyto.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_phyto_mth_raw.csv")
+phyto.wind.fuzFDs.mth <- read.csv("Data/raw_FD/FD_wind_phyto_mth_raw.csv")
+phyto.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_phyto_mth_raw.csv")
+
+zoo.kin.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kin_zoo_mth_raw.csv")
+zoo.LZ.fuzFDs.mth <- read.csv("Data/raw_FD/FD_LZ_zoo_mth_raw.csv")
+zoo.mad.fuzFDs.mth <- read.csv("Data/raw_FD/FD_mad_zoo_mth_raw.csv")
+zoo.wind.fuzFDs.mth <- read.csv("Data/raw_FD/FD_wind_zoo_mth_raw.csv")
+zoo.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_zoo_mth_raw.csv")
+
+load("Data/all.system.states.RData")
+
+###########################################################################
+## Raw FD Prep ##
+###########################################################################
+
+kin.tot <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>% # log density, mvi and zo.ration to linearise
+  mutate(across(-c(date,data.source,res),~scale(.x))) # center and scale to unit variance for plotting
+
+mad.tot <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+LZ.tot <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.wind.fuzFDs.mth[,"FDis"],zooFEve = zoo.wind.fuzFDs.mth[,"FEve"],zooFRic = zoo.wind.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+###########################################################################
+## Estimate convergent cross map and permute ##
+###########################################################################
+
+## Kinneret CCM ##
+
+kin.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
+                                       iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+# only single core specified as 'ccm.perm' already paralled within the function. 
+# Provides opportunity for further parallelisation if desired
+names(kin.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+kin.phytomth.ccm.summary <- lapply(kin.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Kinneret", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                      ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+kin.phytomth.ccm.raw <- lapply(kin.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Kinneret", res = "Month",troph = "Phytoplankton")# specify metadata for future plotting
+
+ggplot(kin.raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = kin.summary.ccm[kin.summary.ccm$measure %in% "absmax.skill",],
+             aes(x = state.metric, y = obs.value.x_y),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = kin.summary.ccm[kin.summary.ccm$measure %in% "absmax.skill",], 
+            aes(x = state.metric, y = 0.45,label = sig.x_y),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  geom_text(data = kin.summary.ccm[kin.summary.ccm$measure %in% "t.absmax.skill",], 
+            aes(x = state.metric, y = 0.4,label = obs.value.x_y),col= "black",size = 3,position = position_dodge(width = 0.9))+
+  facet_wrap(~troph,nrow=2,strip.position = "right")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF between lag1 differenced FD and system state")
+
+kin.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+# only single core specified as 'ccm.perm' already paralled within the function. 
+# Provides opportunity for further parallelisation if desired
+names(kin.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+kin.zoomth.ccm.summary <- lapply(kin.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Kinneret", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+kin.zoomth.ccm.raw <- lapply(kin.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Kinneret", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
+
+kin.summary.ccm <- rbind(kin.phytomth.ccm.summary,kin.zoomth.ccm.summary)
+kin.raw.ccm <- rbind(kin.phytomth.ccm.raw,kin.zoomth.ccm.raw)
+
+write.csv(kin.summary.ccm,file ="Results/ccm/kin_ccm_summary.ccm.csv",row.names = F)
+save(kin.raw.ccm,file = "Results/ccm/kin_raw.ccm.RData") # RData required to reduce file size compared to .csv
+
+## Mendota CCM ##
+
+mad.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+# only single core specified as 'ccm.perm' already paralled within the function. 
+# Provides opportunity for further parallelisation if desired
+names(mad.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+mad.phytomth.ccm.summary <- lapply(mad.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Mendota", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+mad.phytomth.ccm.raw <- lapply(mad.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Mendota", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
+
+mad.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+# only single core specified as 'ccm.perm' already paralled within the function. 
+# Provides opportunity for further parallelisation if desired
+names(mad.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+mad.zoomth.ccm.summary <- lapply(mad.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Mendota", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+mad.zoomth.ccm.raw <- lapply(mad.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Mendota", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
+
+mad.summary.ccm <- rbind(mad.phytomth.ccm.summary,mad.zoomth.ccm.summary)
+mad.raw.ccm <- rbind(mad.phytomth.ccm.raw,mad.zoomth.ccm.raw)
+write.csv(mad.summary.ccm,file ="Results/ccm/mad_ccm_summary.ccm.csv",row.names = F)
+save(mad.raw.ccm,file = "Results/ccm/mad_raw.ccm.RData") # RData required to reduce file size compared to .csv
+
+ggplot(mad.raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = mad.summary.ccm[mad.summary.ccm$measure %in% "absmax.skill",],
+             aes(x = state.metric, y = obs.value.x_y),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = mad.summary.ccm[mad.summary.ccm$measure %in% "absmax.skill",], 
+            aes(x = state.metric, y = 0.45,label = sig.x_y),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  geom_text(data = mad.summary.ccm[mad.summary.ccm$measure %in% "t.absmax.skill",], 
+            aes(x = state.metric, y = 0.4,label = obs.value.x_y),col= "black",size = 3,position = position_dodge(width = 0.9))+
+  facet_wrap(~troph,nrow=2,strip.position = "right")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF between lag1 differenced FD and system state")
+
+## Lower Zurich CCM ##
+
+LZ.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+names(LZ.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+LZ.phytomth.ccm.summary <- lapply(LZ.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Lower Zurich", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+LZ.phytomth.ccm.raw <- lapply(LZ.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Lower Zurich", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
+
+LZ.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+names(LZ.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+LZ.zoomth.ccm.summary <- lapply(LZ.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Lower Zurich", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+LZ.zoomth.ccm.raw <- lapply(LZ.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Lower Zurich", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
+
+LZ.summary.ccm <- rbind(LZ.phytomth.ccm.summary,LZ.zoomth.ccm.summary)
+LZ.raw.ccm <- rbind(LZ.phytomth.ccm.raw,LZ.zoomth.ccm.raw)
+write.csv(LZ.summary.ccm,file ="Results/ccm/LZ_ccm_summary.ccm.csv",row.names = F)
+save(LZ.raw.ccm,file = "Results/ccm/LZ_raw.ccm.RData") # RData required to reduce file size compared to .csv
+
+## Windermere CCM ##
+
+wind.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+names(wind.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+wind.phytomth.ccm.summary <- lapply(wind.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Windermere", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+wind.phytomth.ccm.raw <- lapply(wind.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Windermere", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
+
+wind.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+names(wind.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+wind.zoomth.ccm.summary <- lapply(wind.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Windermere", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+wind.zoomth.ccm.raw <- lapply(wind.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Windermere", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
+
+wind.summary.ccm <- rbind(wind.phytomth.ccm.summary,wind.zoomth.ccm.summary)
+wind.raw.ccm <- rbind(wind.phytomth.ccm.raw,wind.zoomth.ccm.raw)
+write.csv(wind.summary.ccm,file ="Results/ccm/wind_ccm_summary.ccm.csv",row.names = F)
+save(wind.raw.ccm,file = "Results/ccm/wind_raw.ccm.RData") # RData required to reduce file size compared to .csv
+
+## Kasumigaura CCM ##
+
+kas.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+names(kas.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+kas.phytomth.ccm.summary <- lapply(kas.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+kas.phytomth.ccm.raw <- lapply(kas.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
+
+kas.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <- suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"density")],
+                                  iter = 500,span =12*5))
+  bio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5))
+  fi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"FI")],
+                                   iter = 500,span =12*5))
+  mvi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"mvi")],
+                                    iter = 500,span =12*5))
+  zp.ratio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"zp.ratio")],
+                                         iter = 500,span =12*5))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  # extract the observed correlation coefs for FD vs each system state
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+  # extract all permuted correlation coefs for FD vs each system state
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1) 
+names(kas.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
+kas.zoomth.ccm.summary <- lapply(kas.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
+  data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
+  mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
+  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
+                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
+  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
+                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+kas.zoomth.ccm.raw <- lapply(kas.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
+  data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
+  mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
+
+kas.summary.ccm <- rbind(kas.phytomth.ccm.summary,kas.zoomth.ccm.summary)
+kas.raw.ccm <- rbind(kas.phytomth.ccm.raw,kas.zoomth.ccm.raw)
+write.csv(kas.summary.ccm,file ="Results/ccm/kas_ccm_summary.ccm.csv",row.names = F)
+save(kas.raw.ccm,file = "Results/ccm/kas_raw.ccm.RData") # RData required to reduce file size compared to .csv
+
+###########################################################################
+## Save out ##
+###########################################################################
+summary.ccm <- rbind(kin.phytomth.ccm.summary,kin.zoomth.ccm.summary,mad.phytomth.ccm.summary,mad.zoomth.ccm.summary,
+                          LZ.phytomth.ccm.summary,LZ.zoomth.ccm.summary,wind.phytomth.ccm.summary,wind.zoomth.ccm.summary,
+                          kas.phytomth.ccm.summary,kas.zoomth.ccm.summary)
+raw.ccm <- rbind(kin.phytomth.ccm.raw,kin.zoomth.ccm.raw,mad.phytomth.ccm.raw,mad.zoomth.ccm.raw,
+                      LZ.phytomth.ccm.raw,LZ.zoomth.ccm.raw,wind.phytomth.ccm.raw,wind.zoomth.ccm.raw,
+                      kas.phytomth.ccm.raw,kas.zoomth.ccm.raw)
+
+write.csv(summary.ccm,file ="Results/ccm/ccm_summary.ccm.csv",row.names = F)
+save(raw.ccm,file = "Results/ccm/raw.ccm.RData") # RData required to reduce file size compared to .csv
+
+###########################################################################
+## Create figures ##
+###########################################################################
