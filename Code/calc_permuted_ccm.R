@@ -84,27 +84,13 @@ names(kin.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 kin.phytomth.ccm.summary <- lapply(kin.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                      ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 kin.phytomth.ccm.raw <- lapply(kin.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Phytoplankton")# specify metadata for future plotting
-
-ggplot(kin.raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.metric)) + 
-  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
-  theme_bw() + 
-  geom_point(data = kin.summary.ccm[kin.summary.ccm$measure %in% "absmax.skill",],
-             aes(x = state.metric, y = obs.value.x_y),position = position_dodge(width = 0.9),size=2) +
-  geom_text(data = kin.summary.ccm[kin.summary.ccm$measure %in% "absmax.skill",], 
-            aes(x = state.metric, y = 0.45,label = sig.x_y),col= "black",size = 4,position = position_dodge(width = 0.9))+
-  geom_text(data = kin.summary.ccm[kin.summary.ccm$measure %in% "t.absmax.skill",], 
-            aes(x = state.metric, y = 0.4,label = obs.value.x_y),col= "black",size = 3,position = position_dodge(width = 0.9))+
-  facet_wrap(~troph,nrow=2,strip.position = "right")+
-  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF between lag1 differenced FD and system state")
 
 kin.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
   pc <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
@@ -131,10 +117,10 @@ names(kin.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 kin.zoomth.ccm.summary <- lapply(kin.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 kin.zoomth.ccm.raw <- lapply(kin.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
@@ -172,10 +158,10 @@ names(mad.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 mad.phytomth.ccm.summary <- lapply(mad.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Mendota", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 mad.phytomth.ccm.raw <- lapply(mad.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Mendota", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
@@ -205,10 +191,10 @@ names(mad.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 mad.zoomth.ccm.summary <- lapply(mad.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Mendota", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 mad.zoomth.ccm.raw <- lapply(mad.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Mendota", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
@@ -217,20 +203,6 @@ mad.summary.ccm <- rbind(mad.phytomth.ccm.summary,mad.zoomth.ccm.summary)
 mad.raw.ccm <- rbind(mad.phytomth.ccm.raw,mad.zoomth.ccm.raw)
 write.csv(mad.summary.ccm,file ="Results/ccm/mad_ccm_summary.ccm.csv",row.names = F)
 save(mad.raw.ccm,file = "Results/ccm/mad_raw.ccm.RData") # RData required to reduce file size compared to .csv
-
-ggplot(mad.raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.metric)) + 
-  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
-  theme_bw() + 
-  geom_point(data = mad.summary.ccm[mad.summary.ccm$measure %in% "absmax.skill",],
-             aes(x = state.metric, y = obs.value.x_y),position = position_dodge(width = 0.9),size=2) +
-  geom_text(data = mad.summary.ccm[mad.summary.ccm$measure %in% "absmax.skill",], 
-            aes(x = state.metric, y = 0.45,label = sig.x_y),col= "black",size = 4,position = position_dodge(width = 0.9))+
-  geom_text(data = mad.summary.ccm[mad.summary.ccm$measure %in% "t.absmax.skill",], 
-            aes(x = state.metric, y = 0.4,label = obs.value.x_y),col= "black",size = 3,position = position_dodge(width = 0.9))+
-  facet_wrap(~troph,nrow=2,strip.position = "right")+
-  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF between lag1 differenced FD and system state")
 
 ## Lower Zurich CCM ##
 
@@ -257,10 +229,10 @@ names(LZ.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 LZ.phytomth.ccm.summary <- lapply(LZ.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Lower Zurich", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 LZ.phytomth.ccm.raw <- lapply(LZ.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Lower Zurich", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
@@ -288,10 +260,10 @@ names(LZ.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 LZ.zoomth.ccm.summary <- lapply(LZ.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Lower Zurich", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 LZ.zoomth.ccm.raw <- lapply(LZ.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Lower Zurich", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
@@ -326,10 +298,10 @@ names(wind.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 wind.phytomth.ccm.summary <- lapply(wind.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Windermere", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 wind.phytomth.ccm.raw <- lapply(wind.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Windermere", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
@@ -357,10 +329,10 @@ names(wind.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 wind.zoomth.ccm.summary <- lapply(wind.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Windermere", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 wind.zoomth.ccm.raw <- lapply(wind.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Windermere", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
@@ -395,10 +367,10 @@ names(kas.phytomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 kas.phytomth.ccm.summary <- lapply(kas.phytomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 kas.phytomth.ccm.raw <- lapply(kas.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
@@ -426,10 +398,10 @@ names(kas.zoomth.ccm) <- c("FDis","FEve","FRic") # name list elements
 kas.zoomth.ccm.summary <- lapply(kas.zoomth.ccm, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
-  mutate(sig.x_y = ifelse(is.na(obs.value.x_y) | obs.value.x_y == "NaN","",
-                          ifelse(quantile.x_y >= 0.975 | quantile.x_y <= 0.025,"*","")))%>%
-  mutate(sig.y_z = ifelse(is.na(obs.value.y_x) | obs.value.y_x == "NaN","",
-                          ifelse(quantile.y_x >= 0.975 | quantile.y_x <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+  mutate(x_y.sig = ifelse(is.na(x_y.obs.value) | x_y.obs.value == "NaN","",
+                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+  mutate(y_x.sig = ifelse(is.na(y_x.obs.value) | y_x.obs.value == "NaN","",
+                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 kas.zoomth.ccm.raw <- lapply(kas.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
@@ -455,3 +427,71 @@ save(raw.ccm,file = "Results/ccm/raw.ccm.RData") # RData required to reduce file
 ###########################################################################
 ## Create figures ##
 ###########################################################################
+summary.ccm <- read.csv(file ="Results/ccm/ccm_summary.ccm.csv")
+load(file = "Results/ccm/raw.ccm.RData") # RData required to reduce file size compared to .csv
+
+ccm.plot.df <- summary.ccm %>%
+  filter(measure != "r0.skill")%>% # keep absolute highest cross map skill
+  group_by(FD.metric,system,state.metric) %>%
+  select(-c(x_y.median_perm_value,y_x.median_perm_value))%>% #drop unnecessary variables
+  nest(x_y = c(measure:x_y.obs_value,x_y.sig), y_x =  c(measure,y_x.quantile:y_x.obs_value,y_x.sig))%>% #nest into x_y and y_x for ease of manipulation
+  mutate(x_y = map(x_y, ~.x %>% 
+          pivot_longer(cols = c(x_y.quantile:x_y.obs_value), #
+                       names_to = c(".value"), names_prefix = "x_y.",
+                       names_repair = "unique", values_to = "value") %>% #pivot just x_y
+                     mutate(lag = obs_value[2])%>% #add lag from t.absmax.skill row
+                     slice(-2) %>% #drop t.absmax.skill row
+                     rename(sig = x_y.sig) %>% #remove excess prefix
+                     setNames(paste0('x_y.', names(.))))) %>% #add prefix for downstream wrangling
+  mutate(y_x = map(y_x, ~.x %>% 
+          pivot_longer(cols = c(y_x.quantile:y_x.obs_value), #repeart process for y_x
+                        names_to = c(".value"),names_prefix = "y_x.",
+                        names_repair = "unique", values_to = "value") %>%
+                     mutate(lag = obs_value[2])%>%
+                     slice(-2) %>%
+                     rename(sig = y_x.sig) %>%
+                     setNames(paste0('y_x.', names(.))))) %>%
+  unnest(cols = c(x_y, y_x),names_repair = "unique") %>% #unnest
+  pivot_longer(c(x_y.measure:y_x.lag), #pivot using prefix as reference
+               names_to = c("direc",".value"),
+               names_pattern = "(.*)\\.(.*)" ) %>%
+  mutate(causality.direc = ifelse(grepl("^x_y",direc),"forward","reverse"))%>% #classify directions
+  mutate(across(quantile:lag, ~as.numeric(.))) %>% #ensure values are numeric
+  mutate(lag = -1*lag) %>% #for plotting purpose convert lags from negative to positive 
+  filter(sig == "*")%>% #only keep significant relationships
+  #mutate(FD.metric = ifelse(troph == "Zooplankton", paste("zoo",FD.metric,sep = ""),FD.metric))%>%
+  ungroup()
+
+count.ccmdf <- ccm.plot.df %>%
+  group_by(state.metric,causality.direc,FD.metric,troph)%>%
+  summarise(N = n()) #significant count per group
+
+pdf(file="Results/ccm/ccm_causality_spread.pdf",
+    width=10, height = 7)
+ggplot(ccm.plot.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
+  geom_boxplot(alpha = 0.8,size = 0.5)+
+  geom_point(aes(x=lag,y=state.metric, group=causality.direc), alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
+  scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  geom_text(data = count.ccmdf,
+            aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N),
+            position = position_dodge(width = 0.8))+
+  facet_grid(troph~FD.metric) +
+  ylab("State metric") + xlab("Optimum lag (months)")+
+  theme_bw()
+dev.off()
+
+pdf(file="Results/ccm/ccm_causality_spread_alt.pdf",
+    width=10, height = 7)
+ggplot(ccm.plot.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
+  geom_boxplot(alpha = 0.1,size = 0.1)+
+  geom_point(aes(x=lag,y=state.metric, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.8, position = position_dodge(width=0.75),size = 3) + 
+  geom_text(data = count.ccmdf,
+            aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N),
+            position = position_dodge(width = 0.8))+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  facet_grid(troph~FD.metric) +
+  ylab("State metric") + xlab("Optimum lag (months)")+
+  guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
+  theme_bw()
+dev.off()

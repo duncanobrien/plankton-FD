@@ -134,8 +134,9 @@ ccm.perm <- function(dat,iter =999, span = 12){
   out[3,] <- c("t.absmax.skill",ecdf(perm.tmp$x_y.lag)(obs.out$x_y.lag),obs.out$x_y.lag,median(perm.tmp$x_y.lag),ecdf(perm.tmp$y_x.lag)(obs.out$y_x.lag),obs.out$y_x.lag,median(perm.tmp$y_x.lag))
   
   out <- data.frame(out) %>% 
-    stats::setNames(c("measure","quantile.x_y","obs.value.x_y","median.perm.value.x_y","quantile.y_x","obs.value.y_x","median.perm.value.y_x")) %>%
-    mutate(across(quantile.x_y:median.perm.value.y_x, ~as.numeric(as.character(.)))) # ensure numeric data not character
+    stats::setNames(c("measure","x_y.quantile", "x_y.obs_value","x_y.median_perm_value","y_x.quantile",
+                      "y_x.obs_value","y_x.median_perm_value")) %>%
+    mutate(across(x_y.quantile:y_x.median_perm_value, ~as.numeric(as.character(.)))) # ensure numeric data not character
   
   out.ls <- list("perm.dens" = perm.tmp, "summary" = out)
   return(out.ls)
