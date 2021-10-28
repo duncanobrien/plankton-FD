@@ -444,7 +444,7 @@ ccm.plot.df <- summary.ccm %>%
                      rename(sig = x_y.sig) %>% #remove excess prefix
                      setNames(paste0('x_y.', names(.))))) %>% #add prefix for downstream wrangling
   mutate(y_x = map(y_x, ~.x %>% 
-          pivot_longer(cols = c(y_x.quantile:y_x.obs_value), #repeart process for y_x
+          pivot_longer(cols = c(y_x.quantile:y_x.obs_value), #repeat process for y_x
                         names_to = c(".value"),names_prefix = "y_x.",
                         names_repair = "unique", values_to = "value") %>%
                      mutate(lag = obs_value[2])%>%
@@ -455,7 +455,10 @@ ccm.plot.df <- summary.ccm %>%
   pivot_longer(c(x_y.measure:y_x.lag), #pivot using prefix as reference
                names_to = c("direc",".value"),
                names_pattern = "(.*)\\.(.*)" ) %>%
-  mutate(causality.direc = ifelse(grepl("^x_y",direc),"forward","reverse"))%>% #classify directions
+  mutate(causality.direc = ifelse(grepl("^x_y",direc),"FD map State","State map FD"))%>% 
+      #classify directions. Is counterintuitive as here x_y represents x map y, 
+      #which if significant implies y causes x (x contains information on y and 
+      #therefore is causative)
   mutate(across(quantile:lag, ~as.numeric(.))) %>% #ensure values are numeric
   mutate(lag = -1*lag) %>% #for plotting purpose convert lags from negative to positive 
   filter(sig == "*")%>% #only keep significant relationships
@@ -471,7 +474,8 @@ pdf(file="Results/ccm/ccm_causality_spread.pdf",
 ggplot(ccm.plot.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
   geom_boxplot(alpha = 0.8,size = 0.5)+
   geom_point(aes(x=lag,y=state.metric, group=causality.direc), alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
-  scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  #scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  scale_fill_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
   geom_text(data = count.ccmdf,
             aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N),
             position = position_dodge(width = 0.8))+
@@ -489,9 +493,24 @@ ggplot(ccm.plot.df,aes(x=lag,y= state.metric,fill= causality.direc)) +
             aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N),
             position = position_dodge(width = 0.8))+
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
-  scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  #scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+  scale_fill_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
   facet_grid(troph~FD.metric) +
   ylab("State metric") + xlab("Optimum lag (months)")+
-  guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
+  #guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
+  guides(fill = guide_legend(override.aes = list(col = c("#A1B4FE","#FFE7A1"))))+
   theme_bw()
 dev.off()
+
+ggplot(raw.ccm,aes(x = state.metric, y =  x_y.r0, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = summary.ccm[summary.ccm$measure %in% "r0.skill",],
+             aes(x = state.metric, y = x_y.obs_value),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = summary.ccm[summary.ccm$measure %in% "r0.skill",], 
+            aes(x = state.metric, y = 0.8,label = x_y.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  #facet_wrap(~troph,nrow=2,strip.position = "right")+
+  facet_grid(system~troph)+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross map strength t0 between FD and system state")
