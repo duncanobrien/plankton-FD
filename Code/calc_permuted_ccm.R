@@ -1,4 +1,4 @@
-### Cross Cross Map System State with FD ###
+### Cross Map System State with FD ###
 
 ## Preamble ##
 require(tidyverse) # dplyr, ggplot etc.
