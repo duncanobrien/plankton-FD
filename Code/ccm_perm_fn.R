@@ -7,9 +7,9 @@
 #@iter = number of permutations
 #@span = number of lag time points to cross map across
 
-ccm.perm <- function(dat,iter =999, span = 12){
+ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
   
-  require(rEDM) # convergen cross mapping functions
+  require(rEDM) # convergent cross mapping functions
   require(parallel) # parallel
   require(zoo) # na.approx function
   require(data.table) # data wrangling functions
@@ -53,7 +53,7 @@ ccm.perm <- function(dat,iter =999, span = 12){
     filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
   
   if(simplex_FD$E != simplex_state$E){ #select minimum embedding dimension 
-    simplex_use <- min(c(simplex_FD$E,simplex_state$E))
+    simplex_use <- max(c(simplex_FD$E,simplex_state$E))
   }else{
     simplex_use <- simplex_FD$E
   }
@@ -70,14 +70,14 @@ ccm.perm <- function(dat,iter =999, span = 12){
     data.table::rbindlist(use.names=FALSE)%>%
     rename("x_y" = 2, "y_x" = 3) # rename columns to generic x_y/y_x for downstream wrangling
   
-  obsx <- obs.ccm %>% filter(x_y == max(abs(x_y)) | tp == 0) %>% dplyr::select(-y_x) # extract observed cross skill at best lag and lag0 for x->y
-  obsy <- obs.ccm %>% filter(y_x == max(abs(y_x)) | tp == 0) %>% dplyr::select(-x_y)# extract observed cross skill at best lag and lag0 for y->x
+  obsx <- obs.ccm %>% filter(x_y == max(x_y) | tp == 0) %>% dplyr::select(-y_x) # extract observed cross skill at best lag and lag0 for x->y
+  obsy <- obs.ccm %>% filter(y_x == max(y_x) | tp == 0) %>% dplyr::select(-x_y)# extract observed cross skill at best lag and lag0 for y->x
   
   obs.out <- data.frame(x_y.r0 = obsx$x_y[obsx$tp == 0],
                          x_y.lag = obsx$tp[abs(obsx$x_y) == max(abs(obsx$x_y),na.rm=TRUE)])
   obs.out$x_y.skill <- obsx$x_y[obsx$tp == obs.out$x_y.lag]
   obs.out$y_x.r0  <- obsy$y_x[obsy$tp == 0]
-  obs.out$y_x.lag  <- obsy$tp[abs(obsy$y_x) == max(abs(obsy$y_x),na.rm=TRUE)]
+  obs.out$y_x.lag  <- obsy$tp[obsy$y_x == max(obsy$y_x,na.rm=TRUE)]
   obs.out$y_x.skill <- obsy$y_x[obsy$tp == obs.out$y_x.lag] # create comparable out data frame
   
   
@@ -111,14 +111,14 @@ ccm.perm <- function(dat,iter =999, span = 12){
       data.table::rbindlist(use.names=FALSE)%>%
       rename("x_y" = 2, "y_x" = 3) 
     
-    permx <- perm.ccm %>% filter(x_y == max(abs(x_y)) | tp == 0) %>% select(-y_x)
-    permy <- perm.ccm %>% filter(y_x == max(abs(y_x)) | tp == 0) %>% select(-x_y)
+    permx <- perm.ccm %>% filter(x_y == max(x_y) | tp == 0) %>% select(-y_x)
+    permy <- perm.ccm %>% filter(y_x == max(y_x) | tp == 0) %>% select(-x_y)
     
     perm.out <- data.frame(x_y.r0 = permx$x_y[permx$tp == 0],
                            x_y.lag = permx$tp[abs(permx$x_y) == max(abs(permx$x_y),na.rm=TRUE)])
     perm.out$x_y.skill <- permx$x_y[permx$tp == perm.out$x_y.lag]
     perm.out$y_x.r0  <- permy$y_x[permy$tp == 0]
-    perm.out$y_x.lag  <- permy$tp[abs(permy$y_x) == max(abs(permy$y_x),na.rm=TRUE)]
+    perm.out$y_x.lag  <- permy$tp[permy$y_x == max(permy$y_x,na.rm=TRUE)]
     perm.out$y_x.skill <- permy$y_x[permy$tp == perm.out$y_x.lag]
     
     return(perm.out)
@@ -130,14 +130,18 @@ ccm.perm <- function(dat,iter =999, span = 12){
   out <- matrix(NA,nrow = 3,ncol=7) # using permuted metrics, estimate permuted median and quantile of observed data for optimal lag and lag0
   
   out[1,] <- c("r0.skill",ecdf(perm.tmp$x_y.r0)(obs.out$x_y.r0),obs.out$x_y.r0,median(perm.tmp$x_y.r0),ecdf(perm.tmp$y_x.r0)(obs.out$y_x.r0),obs.out$y_x.r0,median(perm.tmp$y_x.r0))
-  out[2,] <- c("absmax.skill",ecdf(perm.tmp$x_y.skill)(obs.out$x_y.skill),obs.out$x_y.skill,median(perm.tmp$x_y.skill),ecdf(perm.tmp$y_x.skill)(obs.out$y_x.skill),obs.out$y_x.skill,median(perm.tmp$y_x.skill))
-  out[3,] <- c("t.absmax.skill",ecdf(perm.tmp$x_y.lag)(obs.out$x_y.lag),obs.out$x_y.lag,median(perm.tmp$x_y.lag),ecdf(perm.tmp$y_x.lag)(obs.out$y_x.lag),obs.out$y_x.lag,median(perm.tmp$y_x.lag))
+  out[2,] <- c("max.skill",ecdf(perm.tmp$x_y.skill)(obs.out$x_y.skill),obs.out$x_y.skill,median(perm.tmp$x_y.skill),ecdf(perm.tmp$y_x.skill)(obs.out$y_x.skill),obs.out$y_x.skill,median(perm.tmp$y_x.skill))
+  out[3,] <- c("t.max.skill",ecdf(perm.tmp$x_y.lag)(obs.out$x_y.lag),obs.out$x_y.lag,median(perm.tmp$x_y.lag),ecdf(perm.tmp$y_x.lag)(obs.out$y_x.lag),obs.out$y_x.lag,median(perm.tmp$y_x.lag))
   
   out <- data.frame(out) %>% 
     stats::setNames(c("measure","x_y.quantile", "x_y.obs_value","x_y.median_perm_value","y_x.quantile",
                       "y_x.obs_value","y_x.median_perm_value")) %>%
     mutate(across(x_y.quantile:y_x.median_perm_value, ~as.numeric(as.character(.)))) # ensure numeric data not character
   
-  out.ls <- list("perm.dens" = perm.tmp, "summary" = out)
+  if(isTRUE(return.raw)){
+  out.ls <- list("perm.dens" = perm.tmp, "summary" = out,"raw.obs" = obs.ccm[,c(2,3,6)])
+  }else{
+    out.ls <- list("perm.dens" = perm.tmp, "summary" = out)
+  }
   return(out.ls)
 }
