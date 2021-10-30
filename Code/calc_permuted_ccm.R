@@ -557,6 +557,7 @@ dev.off()
 ## Cross skill changes with lag ##
 
 lag.ccm <- read.csv(file ="Results/ccm/raw_data/ccm_lag.csv")
+
 ccm.lag.plot.df <- lag.ccm %>%
   group_by(FD.metric,state.metric,troph)%>%
   pivot_longer(c(x_y,y_x),
@@ -573,6 +574,7 @@ ggpubr::ggarrange(
                     scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
                     #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
                     scale_x_continuous(breaks = c(-60,-30,0))+
+                    scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
                     guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
                     theme_bw() + ggtitle("Phytoplankton"),
   ggplot(filter(ccm.lag.plot.df,troph %in% "Zooplankton"),aes(x=tp,y=skill, col =causality.direc)) +
@@ -580,6 +582,7 @@ ggpubr::ggarrange(
     ylab("Cross map skill") + xlab("Lag")+
     ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
     scale_x_continuous(breaks = c(-60,-30,0))+
+    scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
     scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
     #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
     guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
