@@ -539,10 +539,10 @@ raw.ccf.mth1 <- rbind(kin.phytomth.diff.raw,kin.zoomth.diff.raw,mad.phytomth.dif
                      LZ.phytomth.diff.raw,LZ.zoomth.diff.raw,wind.phytomth.diff.raw,wind.zoomth.diff.raw,
                      kas.phytomth.diff.raw,kas.zoomth.diff.raw)
 
-write.csv(summary.ccf.mth1,file ="Results/summary.ccf.mth.lag1.csv",row.names = F)
-save(raw.ccf.mth1,file = "Results/raw.ccf.mth.lag1.RData") # RData required to reduce file size compared to .csv
+write.csv(summary.ccf.mth1,file ="Results/ccf/raw_data/summary.ccf.mth.lag1.csv",row.names = F)
+save(raw.ccf.mth1,file = "Results/ccf/raw_data/raw.ccf.mth.lag1.RData") # RData required to reduce file size compared to .csv
 
-pdf(file="Results/FD_perm_lag1_diffmth_absrmax.pdf",
+pdf(file="Results/ccf/FD_perm_lag1_diffmth_absrmax.pdf",
     width=10, height = 8)
 ggplot(raw.ccf.mth1,aes(x = state.metric, y =  abs.rmax, col = FD.metric,fill= FD.metric)) + 
   geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
@@ -560,7 +560,7 @@ ggplot(raw.ccf.mth1,aes(x = state.metric, y =  abs.rmax, col = FD.metric,fill= F
   ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF between lag1 differenced FD and system state")
 dev.off()
 
-pdf(file="Results/FD_perm_lag1_diffmth_r0.pdf",
+pdf(file="Results/ccf/FD_perm_lag1_diffmth_r0.pdf",
     width=10, height = 8)
 ggplot(raw.ccf.mth1,aes(x = state.metric, y =  r0, col = FD.metric,fill= FD.metric)) + 
   geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3) +
@@ -579,7 +579,7 @@ dev.off()
 ###########################################################################
 ## Summary correlations (Lag1, Monthly) ##
 ###########################################################################
-summary.ccf.mth1 <- read.csv("Results/summary.ccf.mth.lag1.csv")
+summary.ccf.mth1 <- read.csv("Results/ccf/raw_data/summary.ccf.mth.lag1.csv")
 
 obs.cor.lag0.lake.tab <- summary.ccf.mth1 %>%
             filter(measure %in% "r0.ccf")%>%
@@ -588,7 +588,7 @@ obs.cor.lag0.lake.tab <- summary.ccf.mth1 %>%
                       cor.se = sd(obs.value)/n(),
               nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
             mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
-write.csv(obs.cor.lag0.lake.tab,file ="Results/ccf_tables/cor.lag0.lake.tab.csv",row.names = F)
+write.csv(obs.cor.lag0.lake.tab,file ="Results/ccf/ccf_tables/cor.lag0.lake.tab.csv",row.names = F)
 
 obs.cor.lag0.FD.tab <- summary.ccf.mth1 %>%
   filter(measure %in% "r0.ccf")%>%
@@ -597,7 +597,7 @@ obs.cor.lag0.FD.tab <- summary.ccf.mth1 %>%
             cor.se = sd(obs.value)/n(),
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
   mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
-write.csv(obs.cor.lag0.FD.tab,file ="Results/ccf_tables/cor.lag0.FD.tab.csv",row.names = F)
+write.csv(obs.cor.lag0.FD.tab,file ="Results/ccf/ccf_tables/cor.lag0.FD.tab.csv",row.names = F)
 
 obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
   filter(measure %in% "r0.ccf")%>%
@@ -606,7 +606,7 @@ obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
             cor.se = sd(obs.value)/n(),
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
   mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
-write.csv(obs.cor.lag0.state.tab,file ="Results/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
+write.csv(obs.cor.lag0.state.tab,file ="Results/ccf/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
 
 obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
   filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
@@ -621,7 +621,7 @@ obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
             median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
   mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
-write.csv(obs.cor.lagx.lake.tab,file ="Results/ccf_tables/cor.lagx.lake.tab.csv",row.names = F)
+write.csv(obs.cor.lagx.lake.tab,file ="Results/ccf/ccf_tables/cor.lagx.lake.tab.csv",row.names = F)
 
 obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
   filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
@@ -636,7 +636,7 @@ obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
             median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
   mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
-write.csv(obs.cor.lagx.FD.tab,file ="Results/ccf_tables/cor.lagx.FD.tab.csv",row.names = F)
+write.csv(obs.cor.lagx.FD.tab,file ="Results/ccf/ccf_tables/cor.lagx.FD.tab.csv",row.names = F)
 
 obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
   dplyr::select(!c(quantile,median.perm.value,obs.difference,res))%>%
@@ -652,7 +652,7 @@ obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
             median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
   mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
-write.csv(obs.cor.lagx.state.tab,file ="Results/ccf_tables/cor.lagx.state.tab.csv",row.names = F)
+write.csv(obs.cor.lagx.state.tab,file ="Results/ccf/ccf_tables/cor.lagx.state.tab.csv",row.names = F)
 
 lag0.lagx.comp <- left_join(obs.cor.lag0.state.tab,obs.cor.lagx.state.tab,
                 by=c("troph","state.metric","FD.metric"),.groups = "rowwise",
@@ -1178,10 +1178,10 @@ raw.ccf.mth12 <- rbind(kin.phytomth.diff12.raw,kin.zoomth.diff12.raw,mad.phytomt
                           LZ.phytomth.diff12.raw,LZ.zoomth.diff12.raw,wind.phytomth.diff12.raw,wind.zoomth.diff12.raw,
                           kas.phytomth.diff12.raw,kas.zoomth.diff12.raw)
 
-write.csv(summary.ccf.mth12,file ="Results/summary.ccf.mth.lag12.csv",row.names = F)
-save(raw.ccf.mth12,file = "Results/raw.ccf.mth.lag12.RData") # RDate required to reduce file size compared to .csv
+write.csv(summary.ccf.mth12,file ="Results/ccf/raw_data/summary.ccf.mth.lag12.csv",row.names = F)
+save(raw.ccf.mth12,file = "Results/ccf/raw_data/raw.ccf.mth.lag12.RData") # RDate required to reduce file size compared to .csv
 
-pdf(file="Results/FD_perm_lag12_diffmth_absrmax.pdf",
+pdf(file="Results/ccf/FD_perm_lag12_diffmth_absrmax.pdf",
     width=10, height = 8)
 ggplot(raw.ccf.mth12,aes(x = state.metric, y =  abs.rmax, col = FD.metric,fill= FD.metric)) + 
   geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
@@ -1199,7 +1199,7 @@ ggplot(raw.ccf.mth12,aes(x = state.metric, y =  abs.rmax, col = FD.metric,fill= 
   ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF between lag12 differenced FD and system state")
 dev.off()
 
-pdf(file="Results/FD_perm_lag12_diffmth_r0.pdf",
+pdf(file="Results/ccf/FD_perm_lag12_diffmth_r0.pdf",
     width=10, height = 8)
 ggplot(raw.ccf.mth12,aes(x = state.metric, y =  r0, col = FD.metric,fill= FD.metric)) + 
   geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
@@ -1582,11 +1582,11 @@ summary.ccf.mth.undiff <- rbind(kin.phytomth.summary,kin.zoomth.summary,mad.phyt
 raw.ccf.mth.undiff <- rbind(kin.phytomth.raw,kin.zoomth.raw,mad.phytomth.raw,mad.zoomth.raw,
                        LZ.phytomth.raw,LZ.zoomth.raw,wind.phytomth.raw)
 
-write.csv(summary.ccf.mth.undiff,file ="Results/summary.ccf.mth.undiff.csv",row.names = F)
-save(raw.ccf.mth.undiff,file = "Results/raw.ccf.mth.undiff.RData") # RDate required to reduce file size compared to .csv
+write.csv(summary.ccf.mth.undiff,file ="Results/ccf/raw_data/summary.ccf.mth.undiff.csv",row.names = F)
+save(raw.ccf.mth.undiff,file = "Results/ccf/raw_data/raw.ccf.mth.undiff.RData") # RDate required to reduce file size compared to .csv
 
 
-pdf(file="Results/FD_perm_undiffmth_absrmax.pdf",
+pdf(file="Results/ccf/FD_perm_undiffmth_absrmax.pdf",
     width=10, height = 8)
 ggplot(raw.ccf.mth.undiff,aes(x = state.metric, y =  abs.rmax, col = FD.metric,fill= FD.metric)) + 
   geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
