@@ -43,16 +43,16 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
   
   ### Observed CCM ###
   simplex_FD <- rEDM::simplex(sub.dat[, c(1,2)], # identify optimal embedding dimension for FD i.e. when maximum info (rho) contained
-                        E = 2:5,
+                        E = 2:5, # range of possible embdedding dimensions
                         lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)%>%
     filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
   
   simplex_state <- rEDM::simplex(sub.dat[,c(1,3)] , # identify optimal embedding dimension for system state
-                           E = 2:5,
+                           E = 2:5, 
                            lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)%>%
     filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
   
-  if(simplex_FD$E != simplex_state$E){ #select minimum embedding dimension 
+  if(simplex_FD$E != simplex_state$E){ #select shared/maximum embedding dimension 
     simplex_use <- max(c(simplex_FD$E,simplex_state$E))
   }else{
     simplex_use <- simplex_FD$E
@@ -64,9 +64,9 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
 
   obs.ccm <- lapply(seq_len(nrow(obs.params)), function(kk){ # perform convergent cross mapping across lags
     rEDM::ccm(sub.dat[,c(2,3)], E = simplex_use, lib_sizes = floor(nrow(sub.dat)*0.75),  # single library size containing maximum information (as much of timeseries as possible)
-        random_libs = FALSE, lib_column = paste(obs.params$lib_column[kk]), 
-        target_column = paste(obs.params$target_column[kk]), 
-        tp = obs.params$tp[kk], silent = TRUE,	num_sample=1,RNGseed = 123)}) %>%
+        random_libs = FALSE, lib_column = paste(obs.params$lib_column[kk]), # lib_column = hypothesised causal variable
+        target_column = paste(obs.params$target_column[kk]), # target_column = hypothesised response variable
+        tp = obs.params$tp[kk], silent = TRUE,	num_sample=1,RNGseed = 123)}) %>% # tp = lags to iterate over, num_sample for no repeats and RNGseed for reproducibility
     data.table::rbindlist(use.names=FALSE)%>%
     rename("x_y" = 2, "y_x" = 3) # rename columns to generic x_y/y_x for downstream wrangling
   
@@ -107,7 +107,7 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
                 E = simplex_use, lib_sizes = floor(nrow(sub.dat)*0.75), 
           random_libs = FALSE, lib_column = paste(perm.params$lib_column[kk]), 
           target_column = paste(perm.params$target_column[kk]), 
-          tp = perm.params$tp[kk], silent = TRUE,	num_sample=1,RNGseed = 123)}) %>%
+          tp = perm.params$tp[kk], silent = TRUE, num_sample=1,RNGseed = 123)}) %>%
       data.table::rbindlist(use.names=FALSE)%>%
       rename("x_y" = 2, "y_x" = 3) 
     
@@ -138,7 +138,7 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
                       "y_x.obs_value","y_x.median_perm_value")) %>%
     mutate(across(x_y.quantile:y_x.median_perm_value, ~as.numeric(as.character(.)))) # ensure numeric data not character
   
-  if(isTRUE(return.raw)){
+  if(isTRUE(return.raw)){ # return observed cross skill values with lag if requested
   out.ls <- list("perm.dens" = perm.tmp, "summary" = out,"raw.obs" = obs.ccm[,c(2,3,6)])
   }else{
     out.ls <- list("perm.dens" = perm.tmp, "summary" = out)

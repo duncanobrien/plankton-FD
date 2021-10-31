@@ -11,11 +11,6 @@ GFisher <- function(timedat,data,sost,hwin,winspace,TL){
   # winspace: number of time steps we move the window (<hwin) 
   # TL: tightening Level
   
-source("/Users/DuncanOBrien/Desktop/Academia/PhD/R Training/Stolen Scripts/FI/NFisherpdffunc.R")
-source("/Users/DuncanOBrien/Desktop/Academia/PhD/R Training/Stolen Scripts/FI/CalcMeanFishfunc.R")
-source("/Users/DuncanOBrien/Desktop/Academia/PhD/R Training/Stolen Scripts/FI/SmoothFIfunc.R")
-source("/Users/DuncanOBrien/Desktop/Academia/PhD/R Training/Stolen Scripts/FI/RoundTOfunc.R")  
-  
   # pre-define variables 
   midt_win <- matrix()
   FI <- matrix()
