@@ -477,9 +477,48 @@ write.csv(lag.ccm,file ="Results/ccm/raw_data/ccm_lag.csv",row.names = F)
 ## Create figures ##
 ###########################################################################
 
-## Optimal lag ##
 summary.ccm <- read.csv(file ="Results/ccm/raw_data/ccm_summary.csv")
 load(file = "Results/ccm/raw_data/ccm_raw.RData") # RData required to reduce file size compared to .csv
+
+## Cross map skill ##
+
+pdf(file="Results/ccm/FD_perm_y_x.pdf",
+    width=10, height = 8)
+ggplot(raw.ccm,aes(x = state.metric, y =  y_x.skill, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = summary.ccm[summary.ccm$measure %in% "max.skill",],
+             aes(x = state.metric, y = y_x.obs_value),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = summary.ccm[summary.ccm$measure %in% "max.skill",], 
+            aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  geom_text(data = summary.ccm[summary.ccm$measure %in% "t.max.skill",], 
+            aes(x = state.metric, y = 0.9,label = y_x.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
+  scale_y_continuous(breaks = c(0,0.5,1.0))+
+  facet_grid(system~troph,scales = "free")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted cross skill of system state mapping FD")
+dev.off()
+
+pdf(file="Results/ccm/FD_perm_x_y.pdf",
+    width=10, height = 8)
+ggplot(raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = summary.ccm[summary.ccm$measure %in% "max.skill",],
+             aes(x = state.metric, y = x_y.obs_value),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = summary.ccm[summary.ccm$measure %in% "max.skill",], 
+            aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  geom_text(data = summary.ccm[summary.ccm$measure %in% "t.max.skill",], 
+            aes(x = state.metric, y = 0.9,label = x_y.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
+  scale_y_continuous(breaks = c(0,0.5,1.0))+
+  facet_grid(system~troph,scales = "free")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state")
+dev.off()
+
+## Optimal lag ##
 
 ccm.plot.df <- summary.ccm %>%
   filter(measure != "r0.skill")%>% # keep absolute highest cross map skill
