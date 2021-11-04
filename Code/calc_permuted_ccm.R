@@ -70,13 +70,14 @@ kin.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   # extract the observed correlation coefs for FD vs each system state
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   # extract all permuted correlation coefs for FD vs each system state
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                        "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1))) # +1 required to include lag0
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   # extract raw cross skill with lags for FD vs each system state
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
@@ -109,13 +110,12 @@ kin.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
-  # extract the observed correlation coefs for FD vs each system state
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
-  # extract all permuted correlation coefs for FD vs each system state
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   # extract raw cross skill with lags for FD vs each system state
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
@@ -156,11 +156,12 @@ mad.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
 },mc.cores = 1) 
@@ -190,11 +191,12 @@ mad.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
 },mc.cores = 1) 
@@ -217,6 +219,21 @@ mad.summary.ccm <- rbind(mad.phytomth.ccm.summary,mad.zoomth.ccm.summary)
 mad.raw.ccm <- rbind(mad.phytomth.ccm.raw,mad.zoomth.ccm.raw)
 mad.lag.ccm <- rbind(mad.phytomth.ccm.lag,mad.zoomth.ccm.lag)
 
+ggplot(mad.raw.ccm2,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = mad.summary.ccm2[mad.summary.ccm2$measure %in% "max.skill",],
+             aes(x = state.metric, y = x_y.obs_value),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = mad.summary.ccm2[mad.summary.ccm2$measure %in% "max.skill",], 
+            aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  geom_text(data = mad.summary.ccm2[mad.summary.ccm2$measure %in% "t.max.skill",], 
+            aes(x = state.metric, y = 0.9,label = x_y.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
+  scale_y_continuous(breaks = c(0,0.5,1.0))+
+  facet_wrap(~troph,scales = "free")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state")
+
 write.csv(mad.summary.ccm,file ="Results/ccm/raw_data/mad_ccm_summary.csv",row.names = F)
 write.csv(mad.raw.ccm,file ="Results/ccm/raw_data/mad_ccm_raw.csv",row.names = F)
 write.csv(mad.lag.ccm,file ="Results/ccm/raw_data/mad_ccm_lag.csv",row.names = F)
@@ -234,11 +251,12 @@ LZ.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
 },mc.cores = 1) 
@@ -268,11 +286,12 @@ LZ.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
 },mc.cores = 1) 
@@ -312,11 +331,12 @@ wind.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
 },mc.cores = 1) 
@@ -346,11 +366,12 @@ wind.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),functio
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
 },mc.cores = 1) 
@@ -390,11 +411,12 @@ kas.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
 },mc.cores = 1) 
@@ -424,11 +446,12 @@ kas.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"zp.ratio")],
                                          iter = 500,span =12*5,return.raw = T))
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",3),rep("Density",3),rep("FI",3),rep("MVI",3),rep("Z_P.ratio",3)))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
-                         "state.metric" = c(rep("Community",500),rep("Density",500),rep("FI",500),rep("MVI",500),rep("Z_P.ratio",500)))
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out.raw.obs <- data.frame(rbind(pc$raw.obs,bio$raw.obs,fi$raw.obs,mvi$raw.obs,zp.ratio$raw.obs),
-                            "state.metric" = c(rep("Community",(12*5)+1),rep("Density",(12*5)+1),rep("FI",(12*5)+1),rep("MVI",(12*5)+1),rep("Z_P.ratio",(12*5)+1)))
+                            "state.metric" = c(rep("Community",nrow(pc$raw.obs)),rep("Density",nrow(bio$raw.obs)),rep("FI",nrow(fi$raw.obs)),rep("MVI",nrow(mvi$raw.obs)),rep("Z_P.ratio",nrow(zp.ratio$raw.obs))))
   out <- list("summary" = out.val,"perm.dens" = out.dens,"raw.obs" = out.raw.obs) 
   return(out)
 },mc.cores = 1) 

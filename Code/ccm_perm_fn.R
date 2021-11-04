@@ -43,12 +43,12 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
   
   ### Observed CCM ###
   simplex_FD <- rEDM::simplex(sub.dat[, c(1,2)], # identify optimal embedding dimension for FD i.e. when maximum info (rho) contained
-                        E = 2:5, # range of possible embdedding dimensions
+                        E = 2:10, # range of possible embdedding dimensions
                         lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)%>%
     filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
   
   simplex_state <- rEDM::simplex(sub.dat[,c(1,3)] , # identify optimal embedding dimension for system state
-                           E = 2:5, 
+                           E = 2:10, 
                            lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)%>%
     filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
   
@@ -58,7 +58,7 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
     simplex_use <- simplex_FD$E
   }
   obs.params <- expand.grid(lib_column = colnames(sub.dat)[c(2,3)], target_column = colnames(sub.dat)[c(3,2)], 
-                            tp = (-1*span):0) %>% # create frame of all possible combinations
+                            tp = (-1*span):span) %>% # create frame of all possible combinations
     filter(lib_column != target_column)%>% # remove x->x and y->y matches
     slice(seq(1,n(),by=2)) # remove (reversed) duplicates 
 
@@ -74,7 +74,7 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
   obsy <- obs.ccm %>% filter(y_x == max(y_x) | tp == 0) %>% dplyr::select(-x_y)# extract observed cross skill at best lag and lag0 for y->x
   
   obs.out <- data.frame(x_y.r0 = obsx$x_y[obsx$tp == 0],
-                         x_y.lag = obsx$tp[abs(obsx$x_y) == max(abs(obsx$x_y),na.rm=TRUE)])
+                         x_y.lag = obsx$tp[obsx$x_y == max(obsx$x_y,na.rm=TRUE)])
   obs.out$x_y.skill <- obsx$x_y[obsx$tp == obs.out$x_y.lag]
   obs.out$y_x.r0  <- obsy$y_x[obsy$tp == 0]
   obs.out$y_x.lag  <- obsy$tp[obsy$y_x == max(obsy$y_x,na.rm=TRUE)]
@@ -98,7 +98,7 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
   perm.tmp <- foreach::foreach(r = 1:iter,.combine = "rbind",.multicombine = F, .packages = c("dplyr","rEDM")) %dopar%{
     perm.params <- expand.grid(lib_column = c(paste(c("perm",r),collapse = "_"),colnames(sub.dat)[3]), 
                 target_column = c(colnames(sub.dat)[3],paste(c("perm",r),collapse = "_")), 
-                tp = (-1*span):0) %>% # create frame of all possible combinations
+                tp = (-1*span):span) %>% # create frame of all possible combinations
       filter(lib_column != target_column)%>% # remove x->x and y->y matches
       slice(seq(1,n(),by=2)) # remove (reversed) duplicates 
     
@@ -115,7 +115,7 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
     permy <- perm.ccm %>% filter(y_x == max(y_x) | tp == 0) %>% select(-x_y)
     
     perm.out <- data.frame(x_y.r0 = permx$x_y[permx$tp == 0],
-                           x_y.lag = permx$tp[abs(permx$x_y) == max(abs(permx$x_y),na.rm=TRUE)])
+                           x_y.lag = permx$tp[permx$x_y == max(permx$x_y,na.rm=TRUE)])
     perm.out$x_y.skill <- permx$x_y[permx$tp == perm.out$x_y.lag]
     perm.out$y_x.r0  <- permy$y_x[permy$tp == 0]
     perm.out$y_x.lag  <- permy$tp[permy$y_x == max(permy$y_x,na.rm=TRUE)]
