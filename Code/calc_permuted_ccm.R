@@ -219,21 +219,6 @@ mad.summary.ccm <- rbind(mad.phytomth.ccm.summary,mad.zoomth.ccm.summary)
 mad.raw.ccm <- rbind(mad.phytomth.ccm.raw,mad.zoomth.ccm.raw)
 mad.lag.ccm <- rbind(mad.phytomth.ccm.lag,mad.zoomth.ccm.lag)
 
-ggplot(mad.raw.ccm2,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.metric)) + 
-  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
-  theme_bw() + 
-  geom_point(data = mad.summary.ccm2[mad.summary.ccm2$measure %in% "max.skill",],
-             aes(x = state.metric, y = x_y.obs_value),position = position_dodge(width = 0.9),size=2) +
-  geom_text(data = mad.summary.ccm2[mad.summary.ccm2$measure %in% "max.skill",], 
-            aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
-  geom_text(data = mad.summary.ccm2[mad.summary.ccm2$measure %in% "t.max.skill",], 
-            aes(x = state.metric, y = 0.9,label = x_y.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
-  scale_y_continuous(breaks = c(0,0.5,1.0))+
-  facet_wrap(~troph,scales = "free")+
-  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state")
-
 write.csv(mad.summary.ccm,file ="Results/ccm/raw_data/mad_ccm_summary.csv",row.names = F)
 write.csv(mad.raw.ccm,file ="Results/ccm/raw_data/mad_ccm_raw.csv",row.names = F)
 write.csv(mad.lag.ccm,file ="Results/ccm/raw_data/mad_ccm_lag.csv",row.names = F)
@@ -397,6 +382,21 @@ wind.lag.ccm <- rbind(wind.phytomth.ccm.lag,wind.zoomth.ccm.lag)
 write.csv(wind.summary.ccm,file ="Results/ccm/raw_data/wind_ccm_summary.csv",row.names = F)
 write.csv(wind.raw.ccm,file ="Results/ccm/raw_data/wind_ccm_raw.csv",row.names = F)
 write.csv(wind.lag.ccm,file ="Results/ccm/raw_data/wind_ccm_lag.csv",row.names = F)
+
+ggplot(wind.raw.ccm,aes(x = state.metric, y =  y_x.skill, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = wind.summary.ccm[wind.summary.ccm$measure %in% "max.skill",],
+             aes(x = state.metric, y = y_x.obs_value),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = wind.summary.ccm[wind.summary.ccm$measure %in% "max.skill",], 
+            aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  geom_text(data = wind.summary.ccm[wind.summary.ccm$measure %in% "t.max.skill",], 
+            aes(x = state.metric, y = 0.9,label = x_y.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
+  scale_y_continuous(breaks = c(0,0.5,1.0))+
+  facet_wrap(~troph,scales = "free")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state")
 
 ## Kasumigaura CCM ##
 
