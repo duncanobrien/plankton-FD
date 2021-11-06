@@ -220,8 +220,11 @@ mad.raw.ccm <- rbind(mad.phytomth.ccm.raw,mad.zoomth.ccm.raw)
 mad.lag.ccm <- rbind(mad.phytomth.ccm.lag,mad.zoomth.ccm.lag)
 
 write.csv(mad.summary.ccm,file ="Results/ccm/raw_data/mad_ccm_summary.csv",row.names = F)
+mad.summary.ccm <- read.csv(file ="Results/ccm/raw_data/mad_ccm_summary.csv")
 write.csv(mad.raw.ccm,file ="Results/ccm/raw_data/mad_ccm_raw.csv",row.names = F)
+mad.raw.ccm <- read.csv(file ="Results/ccm/raw_data/mad_ccm_raw.csv")
 write.csv(mad.lag.ccm,file ="Results/ccm/raw_data/mad_ccm_lag.csv",row.names = F)
+mad.lag.ccm <- read.csv(file ="Results/ccm/raw_data/mad_ccm_lag.csv")
 
 ## Lower Zurich CCM ##
 
@@ -380,8 +383,11 @@ wind.raw.ccm <- rbind(wind.phytomth.ccm.raw,wind.zoomth.ccm.raw)
 wind.lag.ccm <- rbind(wind.phytomth.ccm.lag,wind.zoomth.ccm.lag)
 
 write.csv(wind.summary.ccm,file ="Results/ccm/raw_data/wind_ccm_summary.csv",row.names = F)
+wind.summary.ccm <- read.csv(file ="Results/ccm/raw_data/wind_ccm_summary.csv")
 write.csv(wind.raw.ccm,file ="Results/ccm/raw_data/wind_ccm_raw.csv",row.names = F)
+wind.raw.ccm <- read.csv(file ="Results/ccm/raw_data/wind_ccm_raw.csv")
 write.csv(wind.lag.ccm,file ="Results/ccm/raw_data/wind_ccm_lag.csv",row.names = F)
+wind.lag.ccm <- read.csv(file ="Results/ccm/raw_data/wind_ccm_lag.csv")
 
 ggplot(wind.raw.ccm,aes(x = state.metric, y =  y_x.skill, col = FD.metric,fill= FD.metric)) + 
   geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
@@ -484,13 +490,26 @@ write.csv(kas.lag.ccm,file ="Results/ccm/raw_data/kas_ccm_lag.csv",row.names = F
 summary.ccm <- rbind(kin.phytomth.ccm.summary,kin.zoomth.ccm.summary,mad.phytomth.ccm.summary,mad.zoomth.ccm.summary,
                           LZ.phytomth.ccm.summary,LZ.zoomth.ccm.summary,wind.phytomth.ccm.summary,wind.zoomth.ccm.summary,
                           kas.phytomth.ccm.summary,kas.zoomth.ccm.summary)
+
+summary.ccm <- rbind(kin.summary.ccm,mad.summary.ccm,
+                     LZ.summary.ccm,kas.summary.ccm,
+                     wind.summary.ccm)
+
 raw.ccm <- rbind(kin.phytomth.ccm.raw,kin.zoomth.ccm.raw,mad.phytomth.ccm.raw,mad.zoomth.ccm.raw,
                       LZ.phytomth.ccm.raw,LZ.zoomth.ccm.raw,wind.phytomth.ccm.raw,wind.zoomth.ccm.raw,
                       kas.phytomth.ccm.raw,kas.zoomth.ccm.raw)
 
+raw.ccm <- rbind(kin.raw.ccm,mad.raw.ccm,
+                     LZ.raw.ccm,kas.raw.ccm,
+                     wind.raw.ccm)
+
 lag.ccm <- rbind(kin.phytomth.ccm.lag,kin.zoomth.ccm.lag,mad.phytomth.ccm.lag,mad.zoomth.ccm.lag,
                  LZ.phytomth.ccm.lag,LZ.zoomth.ccm.lag,wind.phytomth.ccm.lag,wind.zoomth.ccm.lag,
                  kas.phytomth.ccm.lag,kas.zoomth.ccm.lag)
+
+lag.ccm <- rbind(kin.lag.ccm,mad.lag.ccm,
+                     LZ.lag.ccm,kas.lag.ccm,
+                     wind.lag.ccm)
 
 write.csv(summary.ccm,file ="Results/ccm/raw_data/ccm_summary.csv",row.names = F)
 save(raw.ccm,file = "Results/ccm/raw_data/ccm_raw.RData") # RData required to reduce file size compared to .csv
@@ -635,19 +654,21 @@ ggpubr::ggarrange(
                     ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
                     scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
                     #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
-                    scale_x_continuous(breaks = c(-60,-30,0))+
+                    scale_x_continuous(breaks = c(-30,0,30))+
                     scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
                     guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
+                    geom_vline(xintercept = 0,colour="black")+
                     theme_bw() + ggtitle("Phytoplankton"),
   ggplot(filter(ccm.lag.plot.df,troph %in% "Zooplankton"),aes(x=tp,y=skill, col =causality.direc)) +
     geom_path() + 
     ylab("Cross map skill") + xlab("Lag")+
     ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
-    scale_x_continuous(breaks = c(-60,-30,0))+
+    scale_x_continuous(breaks = c(-30,0,30))+
     scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
     scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
     #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
     guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
+    geom_vline(xintercept = 0,colour="black")+
     theme_bw() + ggtitle("Zooplankton"),
                   nrow=2,common.legend=T)
 dev.off()
