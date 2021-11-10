@@ -302,6 +302,10 @@ LZ.summary.ccm <- rbind(LZ.phytomth.ccm.summary,LZ.zoomth.ccm.summary)
 LZ.raw.ccm <- rbind(LZ.phytomth.ccm.raw,LZ.zoomth.ccm.raw)
 LZ.lag.ccm <- rbind(LZ.phytomth.ccm.lag,LZ.zoomth.ccm.lag)
 
+write.csv(LZ.summary.ccm,file ="/Users/duncanobrien/Desktop/LZ_ccm_summary.csv",row.names = F)
+write.csv(LZ.raw.ccm,file ="/Users/duncanobrien/Desktop/LZ_ccm_raw.csv",row.names = F)
+write.csv(LZ.lag.ccm,file ="/Users/duncanobrien/Desktop/LZ_ccm_lag.csv",row.names = F)
+
 write.csv(LZ.summary.ccm,file ="Results/ccm/raw_data/LZ_ccm_summary.csv",row.names = F)
 write.csv(LZ.raw.ccm,file ="Results/ccm/raw_data/LZ_ccm_raw.csv",row.names = F)
 write.csv(LZ.lag.ccm,file ="Results/ccm/raw_data/LZ_ccm_lag.csv",row.names = F)
@@ -646,7 +650,7 @@ ccm.lag.plot.df <- lag.ccm %>%
 mutate(causality.direc = ifelse(grepl("^x_y",direc),"FD map State","State map FD"))
   
 pdf(file="Results/ccm/ccm_lag_changes.pdf",
-    width=11, height = 10,onefile = F)
+    width=12, height = 10,onefile = F)
 ggpubr::ggarrange(
   ggplot(filter(ccm.lag.plot.df,troph %in% "Phytoplankton"),aes(x=tp,y=skill, col =causality.direc)) +
                     geom_path() + 

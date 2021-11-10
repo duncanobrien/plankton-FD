@@ -52,6 +52,22 @@ kinFIyr.dat <- data.frame(FI = kinFIyr$FI,
 kinyr.mvi <- data.frame(multi.var.index(df=plank_env.data.yr[,2:77],window = 5))%>%
   mutate(date = plank_env.data.yr$Date[maxt])
 
+kingrazers <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(herb,omniherb))) == 1)
+
+kinpredators <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(omni:omniherb,~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(carn,omnicarn))) == 1)
+
 ##########################################################################################
 ## Lower Zurich 'Fisher Information' and 'Multivariate Index of Variance' ##
 ##########################################################################################
@@ -74,6 +90,22 @@ LZFIyr.dat <- data.frame(FI = LZFIyr$FI,
                          maxt =apply(LZFIyr$t_win, MARGIN = 2, FUN = max))
 LZyr.mvi <- data.frame(multi.var.index(df=plank_env.LZyrdata[,5:206],window = 5))%>%
   mutate(date = plank_env.LZyrdata$date[maxt])
+
+LZgrazers <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(herb,omniherb))) == 1)
+
+LZpredators <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(omni:omniherb,~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(omni,carn,omnicarn))) == 1)
 
 ##########################################################################################
 ## Mendota 'Fisher Information' and 'Multivariate Index of Variance' ##
@@ -99,6 +131,22 @@ madFIyr.dat <- data.frame(FI = madFIyr$FI,
 madyr.mvi <- data.frame(multi.var.index(df=plank_env.madyrdata[,2:222],window = 5))%>%
   mutate(date = plank_env.madyrdata$date[maxt])
 
+madgrazers <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(herb,omniherb))) == 1)
+
+madpredators <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(omni:omniherb,~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(omni,carn,omnicarn))) == 1)
+
 ##########################################################################################
 ## Windermere 'Fisher Information' and 'Multivariate Index of Variance' ##
 ##########################################################################################
@@ -121,6 +169,16 @@ windFIyr.dat <- data.frame(FI = windFIyr$FI,
                            maxt =apply(windFIyr$t_win, MARGIN = 2, FUN = max))
 windyr.mvi <- data.frame(multi.var.index(df=phyto_env.windyrdata[,c(2:18,20:23)],window = 5))%>%
   mutate(date = phyto_env.windyrdata$Date[maxt])
+
+windgrazers <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 2) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(herb,omniherb))) == 1)
+
+windpredators <- "TotCyclopoids"
 
 ##########################################################################################
 ## Kasumigaura 'Fisher Information' and 'Multivariate Index of Variance' ##
@@ -147,6 +205,22 @@ kasFIyr.dat <- data.frame(FI = kasFIyr$FI,
 kasyr.mvi <- data.frame(multi.var.index(df=plank_env.kasyrdata[,2:154],window = 5))%>%
   mutate(date = plank_env.kasyrdata$date[maxt])
 
+kasgrazers <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 5) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(herb,omniherb))) == 1)
+
+kaspredators <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 5) %>%
+  slice(-c(1)) %>%
+  janitor::row_to_names(row_number = 1) %>%
+  dplyr::select(-c(Notes))%>%
+  mutate(across(omni:omniherb,~as.numeric(.x)))%>%
+  rowwise()%>%
+  filter(round(sum(c(omni,carn,omnicarn))) == 1)
+
 ##########################################################################################
 ## Combine and save out all system states ##
 ##########################################################################################
@@ -155,7 +229,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                "date" = plank_env.data.mth$Date,
                                                "density" = rowSums(plank_env.data.mth[,4:79]),
                                                "community" = prcomp(scale(plank_env.data.mth[,4:79]))$x[,1],
+                                               "zoo.community" = prcomp(scale(plank_env.data.mth[,49:79]))$x[,1],
                                                "zp.ratio" = (rowSums(plank.kin.combo.mth[,49:79])/rowSums(plank.kin.combo.mth[,4:48])),
+                                               "graz.pred.ratio" = (rowSums(plank.kin.combo.mth[,kingrazers$Name])/rowSums(plank.kin.combo.mth[,kinpredators$Name])),
                                                "env" = c(rep(NA,49),prcomp(scale(na.omit(plank_env.data.mth[,c("Temp","Nitrate","P_ort","Water.Level")])))$x[,1]))%>% #missing values need accouting for
                             left_join(kinFImth.dat,by="date") %>% left_join(kinmth.mvi,by=c("date","maxt")),
                           kin.yr = data.frame("data.source" = "Kinneret",
@@ -163,7 +239,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                               "date" = plank_env.data.yr$Date,
                                               "density" = rowSums(plank.kin.combo.yr[,2:77]),
                                               "community" = prcomp(scale(plank_env.data.yr[,2:77]))$x[,1],
+                                              "zoo.community" = prcomp(scale(plank_env.data.yr[,47:77]))$x[,1],
                                               "zp.ratio" = (rowSums(plank.kin.combo.yr[,47:77])/rowSums(plank.kin.combo.yr[,2:46])),
+                                              "graz.pred.ratio" = (rowSums(plank.kin.combo.yr[,kingrazers$Name])/rowSums(plank.kin.combo.yr[,kinpredators$Name])),
                                               "env" = c(rep(NA,4),prcomp(scale(na.omit(plank_env.data.yr[,c("Temp","Nitrate","P_ort","Water.Level")])))$x[,1]))%>%
                             left_join(kinFIyr.dat,by="date") %>% left_join(kinyr.mvi,by=c("date","maxt")),
                           mad.mth = data.frame("data.source" = "Mendota",
@@ -171,7 +249,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                "date" =plank_env.madmthdata$date,
                                                "density" = rowSums(plank_env.madmthdata[,4:224]),
                                                "community" = prcomp(scale(plank_env.madmthdata[,4:224]))$x[,1],
+                                               "zoo.community" = prcomp(scale(plank_env.madmthdata[,201:224]))$x[,1],
                                                "zp.ratio" = rowSums(plank_env.madmthdata[,201:224])/rowSums(plank_env.madmthdata[,4:200]),
+                                               "graz.pred.ratio" = (rowSums(plank_env.madmthdata[,madgrazers$Name])/rowSums(plank_env.madmthdata[,madpredators$Name])),
                                                "env" = prcomp(scale(plank_env.madmthdata[,c("wtemp","totP","NO3N","water.lvl")]))$x[,1])%>%
                             left_join(madFImth.dat,by="date") %>% left_join(madmth.mvi,by=c("date","maxt")),
                           mad.yr = data.frame("data.source" = "Mendota",
@@ -179,7 +259,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                               "date" = plank_env.madyrdata$date,
                                               "density" = rowSums(plank_env.madyrdata[,2:222]),
                                               "community" = prcomp(scale(plank_env.madyrdata[,2:222]))$x[,1],
-                                              "zp.ratio" = rowSums(plank.mad.combo.yr[,199:222])/rowSums(plank.mad.combo.yr[,2:198]),
+                                              "zoo.community" = prcomp(scale(plank_env.madyrdata[,199:222]))$x[,1],
+                                              "zp.ratio" = rowSums(plank_env.madyrdata[,199:222])/rowSums(plank_env.madyrdata[,2:198]),
+                                              "graz.pred.ratio" = (rowSums(plank_env.madyrdata[,madgrazers$Name])/rowSums(plank_env.madyrdata[,madpredators$Name])),
                                               "env" = prcomp(scale(plank_env.madyrdata[,c("wtemp","totP","NO3N","water.lvl")]))$x[,1])%>%
                             left_join(madFIyr.dat,by="date") %>% left_join(madyr.mvi,by=c("date","maxt")),
                           LZ.mth = data.frame("data.source" = "Lower Zurich",
@@ -187,7 +269,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                               "date" =plank_env.LZmthdata$date,
                                               "density" = rowSums(plank_env.LZmthdata[,7:208]),
                                               "community" = prcomp(scale(plank_env.LZmthdata[,7:208]))$x[,1],
+                                              "zoo.community" = prcomp(scale(plank_env.LZmthdata[,182:208]))$x[,1],
                                               "zp.ratio" = rowSums(plank_env.LZmthdata[,182:208])/rowSums(plank_env.LZmthdata[,7:181]),
+                                              "graz.pred.ratio" = (rowSums(plank_env.LZmthdata[,LZgrazers$Name])/rowSums(plank_env.LZmthdata[,LZpredators$Name])),
                                               "env" = prcomp(scale(plank_env.LZmthdata[,c("mean.t","mean.po4","NO3_N")]))$x[,1])%>%
                             left_join(LZFImth.dat,by="date") %>% left_join(LZmth.mvi,by=c("date","maxt")),
                           LZ.yr = data.frame("data.source" = "Lower Zurich",
@@ -195,7 +279,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                              "date" = plank_env.LZyrdata$date,
                                              "density" = rowSums(plank_env.LZyrdata[,5:206]),
                                              "community" = prcomp(scale(plank_env.LZyrdata[,5:206]))$x[,1],
+                                             "zoo.community" = prcomp(scale(plank_env.LZyrdata[,180:206]))$x[,1],
                                              "zp.ratio" = rowSums(plank_env.LZyrdata[,180:206])/rowSums(plank_env.LZyrdata[,5:179]),
+                                             "graz.pred.ratio" = (rowSums(plank_env.LZyrdata[,LZgrazers$Name])/rowSums(plank_env.LZyrdata[,LZpredators$Name])),
                                              "env" = prcomp(scale(plank_env.LZyrdata[,c("mean.t","mean.po4","NO3_N")]))$x[,1])%>%
                             left_join(LZFIyr.dat,by="date") %>% left_join(LZyr.mvi,by=c("date","maxt")),
                           wind.mth = data.frame("data.source" = "Windermere",
@@ -203,7 +289,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                 "date" = phyto_env.windmthdata$Date,
                                                 "density" = rowSums(phyto_env.windmthdata[,c(4:20,22:25)]),
                                                 "community" = prcomp(scale(phyto_env.windmthdata[,c(4:20,22:25)]))$x[,1],
+                                                "zoo.community" = prcomp(scale(phyto_env.windmthdata[,22:25]))$x[,1],
                                                 "zp.ratio" = rowSums(phyto_env.windmthdata[,22:25])/rowSums(phyto_env.windmthdata[,4:20]),
+                                                "graz.pred.ratio" = (rowSums(phyto_env.windmthdata[,windgrazers$Name])/phyto_env.windmthdata[,windpredators]), #only single representative
                                                 "env" = prcomp(scale(phyto_env.windmthdata[,c("TEMP","TOTP","NO3N")]))$x[,1])%>%
                             left_join(windFImth.dat,by="date") %>% left_join(windmth.mvi,by=c("date","maxt")),
                           wind.yr = data.frame("data.source" = "Windermere",
@@ -211,7 +299,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                "date" = phyto_env.windyrdata$Date,
                                                "density" = rowSums(phyto_env.windyrdata[,c(2:18,20:23)]),
                                                "community" = prcomp(scale(phyto_env.windyrdata[,c(2:18,20:23)]))$x[,1],
+                                               "zoo.community" = prcomp(scale(phyto_env.windyrdata[,20:23]))$x[,1],
                                                "zp.ratio" = rowSums(phyto_env.windyrdata[,20:23])/rowSums(phyto_env.windyrdata[,2:18]),
+                                               "graz.pred.ratio" = (rowSums(phyto_env.windyrdata[,windgrazers$Name])/phyto_env.windyrdata[,windpredators]),
                                                "env" = prcomp(scale(phyto_env.windyrdata[,c("TEMP","TOTP","NO3N")]))$x[,1])%>%
                             left_join(windFIyr.dat,by="date") %>% left_join(windyr.mvi,by=c("date","maxt")),
                           kas.mth = data.frame("data.source" = "Kasumigaura",
@@ -219,7 +309,9 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                 "date" = plank_env.kasmthdata$date,
                                                 "density" = rowSums(plank_env.kasmthdata[,4:156]),
                                                 "community" = prcomp(scale(plank_env.kasmthdata[,4:156]))$x[,1],
+                                               "zoo.community" = prcomp(scale(plank_env.kasmthdata[,122:156]))$x[,1],
                                                 "zp.ratio" = rowSums(plank_env.kasmthdata[,122:156])/rowSums(plank_env.kasmthdata[,4:121]),
+                                               "graz.pred.ratio" = (rowSums(plank_env.kasmthdata[,kasgrazers$Name])/rowSums(plank_env.kasmthdata[,kaspredators$Name])),
                                                 "env" = prcomp(scale(plank_env.kasmthdata[,c("wtemp","totP","NO3N","water.lvl")]))$x[,1])%>%
                             left_join(kasFImth.dat,by="date") %>% left_join(kasmth.mvi,by=c("date","maxt")),
                           kas.yr = data.frame("data.source" = "Kasumigaura",
@@ -227,7 +319,10 @@ all.system.states <- list(kin.mth = data.frame("data.source" = "Kinneret",
                                                "date" = plank_env.kasyrdata$date,
                                                "density" = rowSums(plank_env.kasyrdata[,2:154]),
                                                "community" = prcomp(scale(plank_env.kasyrdata[,2:154]))$x[,1],
+                                              "zoo.community" = prcomp(scale(plank_env.kasyrdata[,120:154]))$x[,1],
                                                "zp.ratio" = rowSums(plank_env.kasyrdata[,120:154])/rowSums(plank_env.kasyrdata[,2:119]),
+                                              "graz.pred.ratio" = (rowSums(plank_env.kasyrdata[,kasgrazers$Name])/rowSums(plank_env.kasyrdata[,kaspredators$Name])),
                                                "env" = prcomp(scale(plank_env.kasyrdata[,c("wtemp","totP","NO3N","water.lvl")]))$x[,1])%>%
                             left_join(kasFIyr.dat,by="date") %>% left_join(kasyr.mvi,by=c("date","maxt")))
 save(all.system.states,file = "Data/all.system.states.RData")
+

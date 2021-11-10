@@ -33,7 +33,7 @@ phyto.kin.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx"
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Species,Notes)) %>%
   slice(-3) %>% #drop 2-Aphanizomenon oval as no data
-  mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>%
+  mutate(across(c(lgth_1:col_T,n_fix:fila_T),as.numeric)) %>%
   mutate(across(c(mob,troph),as.factor))
 
 zoo.kin.traits.dat <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) %>%
@@ -50,7 +50,7 @@ phyto.LZ.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",
   dplyr::select(-c(Notes)) %>%
   #slice(-c(4,19,22,23,24,45,52,53,60,63,70,71)) %>% #drop as no data
   drop_na()%>% #drop no data species
-  mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
+  mutate(across(c(lgth_1:col_T,n_fix:fila_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
 zoo.LZ.traits.dat <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %>%
@@ -67,7 +67,7 @@ phyto.mad.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx"
   dplyr::select(-c(Notes)) %>%
   #slice(-c(1,7,8,17,19,23,32)) %>% #drop as no data
   drop_na()%>% #drop no data species
-  mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
+  mutate(across(c(lgth_1:col_T,n_fix:fila_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
 zoo.mad.traits.dat <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) %>%
@@ -83,7 +83,7 @@ phyto.wind.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
-  mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
+  mutate(across(c(lgth_1:col_T,n_fix:fila_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
 zoo.wind.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 2) %>%
@@ -99,7 +99,7 @@ phyto.kas.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet =
   janitor::row_to_names(row_number = 1) %>%
   select(-c(Notes)) %>%
   drop_na()%>% #drop no data species
-  mutate(across(c(lgth_1:col_T,n_fix:sil_T),as.numeric)) %>% #ensure numeric and not character
+  mutate(across(c(lgth_1:col_T,n_fix:fila_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
 zoo.kas.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 5) %>%

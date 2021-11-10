@@ -111,8 +111,8 @@ source("Code/melodic_fn.R")
     
       #each group represents similar traits e.g. size is represented by length/SA/vol
       #Can also be used for fuzzy data where a group are the categories for a single trait
-      traits.data.in<-gawdis::gawdis(traits.data[,4:19], w.type="equal", 
-                                     groups =c(1,1,1,1,2,2,2,2,2,3,4,4,5,6,7,8), fuzzy=c(1,2,4)) #estimate gawdis dissimilarity for fuzzy data
+      traits.data.in<-gawdis::gawdis(traits.data[,4:20], w.type="equal", 
+                                     groups =c(1,1,1,1,2,2,2,2,2,3,4,4,5,6,7,8,9), fuzzy=c(1,2,4)) #estimate gawdis dissimilarity for fuzzy data
       attr(traits.data.in,"Labels") <- int #label rows and columns with species names    
     }
     
