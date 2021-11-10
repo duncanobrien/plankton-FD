@@ -540,6 +540,7 @@ raw.ccf.mth1 <- rbind(kin.phytomth.diff.raw,kin.zoomth.diff.raw,mad.phytomth.dif
 
 write.csv(summary.ccf.mth1,file ="Results/ccf/raw_data/summary.ccf.mth.lag1.csv",row.names = F)
 save(raw.ccf.mth1,file = "Results/ccf/raw_data/raw.ccf.mth.lag1.RData") # RData required to reduce file size compared to .csv
+load(file = "Results/ccf/raw_data/raw.ccf.mth.lag1.RData")
 
 pdf(file="Results/ccf/FD_perm_lag1_diffmth_absrmax.pdf",
     width=10, height = 8)
@@ -574,6 +575,99 @@ ggplot(raw.ccf.mth1,aes(x = state.metric, y =  r0, col = FD.metric,fill= FD.metr
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted CCF t0 between lag1 differenced FD and system state")
 dev.off()
+
+count.ccf.r0.dat <- filter(summary.ccf.mth1,measure %in% "r0.ccf") %>%
+  group_by(state.metric,FD.metric,troph)%>%
+  summarise(NSig = sum(sig=="*"),
+            NxSig= sum(sig!="*"),
+            ref.y = ifelse(all(obs.value)<0,min(obs.value), max(obs.value)))  #significant count per group
+
+pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_r0.pdf",
+    width=8, height = 4)
+ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
+  #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
+  geom_boxplot(aes(fill = FD.metric),alpha = 0.3)+
+  geom_point(position=position_dodge(width=0.75),aes(group=FD.metric,shape=system,fill=FD.metric),alpha = 0.8)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  ggrepel::geom_text_repel(data =count.ccf.r0.dat, box.padding = 0.3, direction = "y", force = 0.25,
+                           aes(x = state.metric, y = ref.y+0.05,label = paste("(",NSig,",",NxSig,")",sep = ""),group=FD.metric),
+                           col= "black",size = 3,position = position_dodge(width = 0.8),segment.color = NA)+
+  facet_wrap(~troph)+
+  ylab("Cross correlation") + xlab("System state proxy")+
+  theme_bw()
+dev.off()
+
+
+count.ccf.absmax.dat <- filter(summary.ccf.mth1,measure %in% "absmax.ccf") %>%
+  group_by(state.metric,FD.metric,troph)%>%
+  summarise(NSig = sum(sig=="*"),
+            NxSig= sum(sig!="*"),
+            ref.y = ifelse(all(obs.value)<0,min(obs.value), max(obs.value)))  #significant count per group
+
+ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
+  #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
+  geom_boxplot(aes(fill = FD.metric),alpha = 0.3)+
+  geom_point(position=position_dodge(width=0.75),aes(group=FD.metric,shape=system,fill=FD.metric),alpha = 0.8)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  ggrepel::geom_text_repel(data =count.ccf.absmax.dat, segment.size = 0,box.padding = 0.3, direction = "y", force = 0.3,
+            aes(x = state.metric, y = ref.y+0.1,label = paste("(",NSig,",",NxSig,")",sep = ""),group=FD.metric),
+            col= "black",size = 3,position = position_dodge(width = 0.75),segment.color = NA)+
+  facet_wrap(~troph)+
+  ylab("Cross correlation") + xlab("System state proxy")+
+  theme_bw() +
+  theme(axis.title.x=element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        plot.margin = margin(c(2, 2, 0, 2)))
+
+ccf.lag2 <- ggplot(filter(summary.ccf.mth1,measure %in% "t.absmax.ccf") %>% 
+         mutate(sig = as.factor(filter(summary.ccf.mth1,measure %in% "r0.ccf")$sig)),
+       aes(x=state.metric,y=obs.value,col = FD.metric))+
+  geom_hline(yintercept = 0,col="black")+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=2) +
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake",guide = "none")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(shape = c(21,21),fill = c(NA,"black"),alpha = c(1,1))))+
+  #scale_x_discrete(position = "top") +
+  scale_y_reverse()+
+  facet_wrap(~troph)+
+  ylab("Optimal lag") + xlab("System state proxy")+
+  theme_bw()+
+  theme(axis.text.x=element_blank(), 
+        axis.ticks.x=element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        plot.margin = margin(c(2, 2, 0, 2)))
+
+pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_absrmax.pdf",
+    width=10, height = 6)
+p1 <- ccf.lag1 + ccf.lag2 +plot_layout(nrow = 2,guides = "collect",heights = c(2, 1))
+p1
+dev.off()
+
+ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
+  #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
+  geom_boxplot(aes(fill = FD.metric),alpha = 0.2,size = 0.2)+
+  geom_point(position=position_dodge(width=0.75),aes(group=FD.metric,shape=system,fill=FD.metric),alpha = 0.8)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  geom_text(data =count.ccf.absmax.dat, 
+            aes(x = state.metric, y = ref.y+0.05,label = paste("(",NSig,",",NxSig,")",sep = ""),group=FD.metric),col= "black",size = 2,position = position_dodge(width = 0.8))+
+  facet_wrap(~troph)+
+  ylab("Cross correlation") + xlab("System state proxy")+
+  theme_bw()
 
 ###########################################################################
 ## Summary correlations (Lag1, Monthly) ##
