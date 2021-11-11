@@ -541,6 +541,7 @@ raw.ccf.mth1 <- rbind(kin.phytomth.diff.raw,kin.zoomth.diff.raw,mad.phytomth.dif
 write.csv(summary.ccf.mth1,file ="Results/ccf/raw_data/summary.ccf.mth.lag1.csv",row.names = F)
 save(raw.ccf.mth1,file = "Results/ccf/raw_data/raw.ccf.mth.lag1.RData") # RData required to reduce file size compared to .csv
 load(file = "Results/ccf/raw_data/raw.ccf.mth.lag1.RData")
+summary.ccf.mth1 <- read.csv("Results/ccf/raw_data/summary.ccf.mth.lag1.csv")
 
 pdf(file="Results/ccf/FD_perm_lag1_diffmth_absrmax.pdf",
     width=10, height = 8)
@@ -569,7 +570,6 @@ ggplot(raw.ccf.mth1,aes(x = state.metric, y =  r0, col = FD.metric,fill= FD.metr
              aes(x = state.metric, y = obs.value),position = position_dodge(width = 0.9),size=2) +
   geom_text(data = summary.ccf.mth1[summary.ccf.mth1$measure %in% "r0.ccf",], 
             aes(x = state.metric, y = 0.35,label = sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
-  #facet_wrap(~troph,nrow=2,strip.position = "right")+
   facet_grid(system~troph)+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
@@ -587,13 +587,19 @@ pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_r0.pdf",
     width=8, height = 4)
 ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
   #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
-  geom_boxplot(aes(fill = FD.metric),alpha = 0.3)+
-  geom_point(position=position_dodge(width=0.75),aes(group=FD.metric,shape=system,fill=FD.metric),alpha = 0.8)+
+  geom_hline(yintercept = 0,col="black",alpha = 0.3)+
+  geom_boxplot(aes(fill = FD.metric),alpha = 0.3,size=0.3)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=2) +
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
-  geom_text(data =count.ccf.r0.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
-            col= "black",size = 3, position = position_dodge(width = 0.9))+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(shape = c(21,21),fill = c(NA,"black"),alpha = c(1,1))))+
+  # geom_text(data =count.ccf.r0.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
+  #           col= "black",size = 3, position = position_dodge(width = 0.9))+
   facet_wrap(~troph)+
   ylab("Cross correlation") + xlab("System state proxy")+
   theme_bw()
@@ -607,17 +613,19 @@ count.ccf.absmax.dat <- filter(summary.ccf.mth1,measure %in% "absmax.ccf") %>%
                         ifelse(FD.metric %in% "FEve",0.65,0.6))) #significant count per group
 
 ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
-  #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
-  geom_boxplot(aes(fill = FD.metric),alpha = 0.3)+
-  geom_point(position=position_dodge(width=0.75),aes(group=FD.metric,shape=system,fill=FD.metric),alpha = 0.8)+
+  geom_hline(yintercept = 0,col="black",alpha = 0.3)+
+  geom_boxplot(aes(fill = FD.metric),alpha = 0.3,size=0.3)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=2) +
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
-  # ggrepel::geom_text_repel(data =count.ccf.absmax.dat, segment.size = 0,box.padding = 0.3, direction = "y", force = 0.3,
-  #           aes(x = state.metric, y = ref.y+0.1,label = paste("(",NSig,",",NxSig,")",sep = ""),group=FD.metric),
-  #           col= "black",size = 3,position = position_dodge(width = 0.75),segment.color = NA)+
-  geom_text(data =count.ccf.absmax.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
-            col= "black",size = 3, position = position_dodge(width = 0.9))+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(shape = c(21,21),fill = c(NA,"black"),alpha = c(1,1))))+
+  # geom_text(data =count.ccf.absmax.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
+  #           col= "black",size = 3, position = position_dodge(width = 0.9))+
   facet_wrap(~troph)+
   ylab("Cross correlation") + xlab("System state proxy")+
   theme_bw() +
@@ -628,7 +636,7 @@ ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=stat
 ccf.lag2 <- ggplot(filter(summary.ccf.mth1,measure %in% "t.absmax.ccf") %>% 
          mutate(sig = as.factor(filter(summary.ccf.mth1,measure %in% "absmax.ccf")$sig)),
        aes(x=state.metric,y=obs.value,col = FD.metric))+
-  geom_hline(yintercept = 0,col="black")+
+  geom_hline(yintercept = 0,col="black",alpha = 0.3)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
   geom_point(position=position_dodge(width=0.75),
@@ -688,7 +696,8 @@ obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
   mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
 write.csv(obs.cor.lag0.state.tab,file ="Results/ccf/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
-
+obs.cor.lag0.state.tab <- read.csv("Results/ccf/ccf_tables/cor.lag0.state.tab.csv")
+  
 obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
   filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
   pivot_wider(names_from = measure,values_from = obs.value)%>%
