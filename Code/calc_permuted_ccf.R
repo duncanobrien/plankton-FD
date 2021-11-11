@@ -622,7 +622,6 @@ ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=stat
   ylab("Cross correlation") + xlab("System state proxy")+
   theme_bw() +
   theme(axis.title.x=element_blank(),
-        panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         plot.margin = margin(c(2, 2, 0, 2)))
 
