@@ -591,14 +591,13 @@ ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.v
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
-  ggrepel::geom_text_repel(data =count.ccf.r0.dat, box.padding = 0.3, direction = "y", force = 0.25,
-                           aes(x = state.metric, y = ref.y+0.05,label = paste("(",NSig,",",NxSig,")",sep = ""),group=FD.metric),
-                           col= "black",size = 3,position = position_dodge(width = 0.8),segment.color = NA)+
+  geom_text(data =count.ccf.r0.dat,aes(x = state.metric, y = ref.y+0.05,label = paste("(",NSig,",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
+                           col= "black",size = 3, position = position_jitterdodge(jitter.height = 0.03,jitter.width = 0,
+                             dodge.width = 0.75,seed=13))+
   facet_wrap(~troph)+
   ylab("Cross correlation") + xlab("System state proxy")+
   theme_bw()
 dev.off()
-
 
 count.ccf.absmax.dat <- filter(summary.ccf.mth1,measure %in% "absmax.ccf") %>%
   group_by(state.metric,FD.metric,troph)%>%
@@ -613,9 +612,12 @@ ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=stat
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
-  ggrepel::geom_text_repel(data =count.ccf.absmax.dat, segment.size = 0,box.padding = 0.3, direction = "y", force = 0.3,
-            aes(x = state.metric, y = ref.y+0.1,label = paste("(",NSig,",",NxSig,")",sep = ""),group=FD.metric),
-            col= "black",size = 3,position = position_dodge(width = 0.75),segment.color = NA)+
+  # ggrepel::geom_text_repel(data =count.ccf.absmax.dat, segment.size = 0,box.padding = 0.3, direction = "y", force = 0.3,
+  #           aes(x = state.metric, y = ref.y+0.1,label = paste("(",NSig,",",NxSig,")",sep = ""),group=FD.metric),
+  #           col= "black",size = 3,position = position_dodge(width = 0.75),segment.color = NA)+
+  geom_text(data =count.ccf.absmax.dat,aes(x = state.metric, y = ref.y+0.06,label = paste("(",NSig,",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
+            col= "black",size = 3, position = position_jitterdodge(jitter.height = 0.03,jitter.width = 0,
+                                                                   dodge.width = 0.75,seed=25))+
   facet_wrap(~troph)+
   ylab("Cross correlation") + xlab("System state proxy")+
   theme_bw() +
