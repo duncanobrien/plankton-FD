@@ -627,7 +627,7 @@ ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=stat
         plot.margin = margin(c(2, 2, 0, 2)))
 
 ccf.lag2 <- ggplot(filter(summary.ccf.mth1,measure %in% "t.absmax.ccf") %>% 
-         mutate(sig = as.factor(filter(summary.ccf.mth1,measure %in% "r0.ccf")$sig)),
+         mutate(sig = as.factor(filter(summary.ccf.mth1,measure %in% "absmax.ccf")$sig)),
        aes(x=state.metric,y=obs.value,col = FD.metric))+
   geom_hline(yintercept = 0,col="black")+
   geom_point(position=position_dodge(width=0.75),
