@@ -140,8 +140,11 @@ kin.raw.ccm <- rbind(kin.phytomth.ccm.raw,kin.zoomth.ccm.raw)
 kin.lag.ccm <- rbind(kin.phytomth.ccm.lag,kin.zoomth.ccm.lag)
 
 write.csv(kin.summary.ccm,file ="Results/ccm/raw_data/kin_ccm_summary.csv",row.names = F)
+kin.summary.ccm <- read.csv(file ="Results/ccm/raw_data/kin_ccm_summary.csv")
 write.csv(kin.raw.ccm,file ="Results/ccm/raw_data/kin_ccm_raw.csv",row.names = F)
+kin.raw.ccm <- read.csv(file ="Results/ccm/raw_data/kin_ccm_raw.csv")
 write.csv(kin.lag.ccm,file ="Results/ccm/raw_data/kin_ccm_lag.csv",row.names = F)
+kin.lag.ccm <- read.csv(file ="Results/ccm/raw_data/kin_ccm_lag.csv")
 
 ## Mendota CCM ##
 
@@ -302,13 +305,12 @@ LZ.summary.ccm <- rbind(LZ.phytomth.ccm.summary,LZ.zoomth.ccm.summary)
 LZ.raw.ccm <- rbind(LZ.phytomth.ccm.raw,LZ.zoomth.ccm.raw)
 LZ.lag.ccm <- rbind(LZ.phytomth.ccm.lag,LZ.zoomth.ccm.lag)
 
-write.csv(LZ.summary.ccm,file ="/Users/duncanobrien/Desktop/LZ_ccm_summary.csv",row.names = F)
-write.csv(LZ.raw.ccm,file ="/Users/duncanobrien/Desktop/LZ_ccm_raw.csv",row.names = F)
-write.csv(LZ.lag.ccm,file ="/Users/duncanobrien/Desktop/LZ_ccm_lag.csv",row.names = F)
-
 write.csv(LZ.summary.ccm,file ="Results/ccm/raw_data/LZ_ccm_summary.csv",row.names = F)
+LZ.summary.ccm <- read.csv(file ="Results/ccm/raw_data/LZ_ccm_summary.csv")
 write.csv(LZ.raw.ccm,file ="Results/ccm/raw_data/LZ_ccm_raw.csv",row.names = F)
+LZ.raw.ccm <- read.csv(file ="Results/ccm/raw_data/LZ_ccm_raw.csv")
 write.csv(LZ.lag.ccm,file ="Results/ccm/raw_data/LZ_ccm_lag.csv",row.names = F)
+LZ.lag.ccm <- read.csv(file ="Results/ccm/raw_data/LZ_ccm_lag.csv")
 
 ## Windermere CCM ##
 
@@ -393,21 +395,6 @@ wind.raw.ccm <- read.csv(file ="Results/ccm/raw_data/wind_ccm_raw.csv")
 write.csv(wind.lag.ccm,file ="Results/ccm/raw_data/wind_ccm_lag.csv",row.names = F)
 wind.lag.ccm <- read.csv(file ="Results/ccm/raw_data/wind_ccm_lag.csv")
 
-ggplot(wind.raw.ccm,aes(x = state.metric, y =  y_x.skill, col = FD.metric,fill= FD.metric)) + 
-  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
-  theme_bw() + 
-  geom_point(data = wind.summary.ccm[wind.summary.ccm$measure %in% "max.skill",],
-             aes(x = state.metric, y = y_x.obs_value),position = position_dodge(width = 0.9),size=2) +
-  geom_text(data = wind.summary.ccm[wind.summary.ccm$measure %in% "max.skill",], 
-            aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
-  geom_text(data = wind.summary.ccm[wind.summary.ccm$measure %in% "t.max.skill",], 
-            aes(x = state.metric, y = 0.9,label = x_y.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
-  scale_y_continuous(breaks = c(0,0.5,1.0))+
-  facet_wrap(~troph,scales = "free")+
-  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state")
-
 ## Kasumigaura CCM ##
 
 kas.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
@@ -485,31 +472,22 @@ kas.raw.ccm <- rbind(kas.phytomth.ccm.raw,kas.zoomth.ccm.raw)
 kas.lag.ccm <- rbind(kas.phytomth.ccm.lag,kas.zoomth.ccm.lag)
 
 write.csv(kas.summary.ccm,file ="Results/ccm/raw_data/kas_ccm_summary.csv",row.names = F)
+kas.summary.ccm <- read.csv(file ="Results/ccm/raw_data/kas_ccm_summary.csv")
 write.csv(kas.raw.ccm,file ="Results/ccm/raw_data/kas_ccm_raw.csv",row.names = F)
+kas.raw.ccm <- read.csv(file ="Results/ccm/raw_data/kas_ccm_raw.csv")
 write.csv(kas.lag.ccm,file ="Results/ccm/raw_data/kas_ccm_lag.csv",row.names = F)
+kas.lag.ccm <- read.csv(file ="Results/ccm/raw_data/kas_ccm_lag.csv")
 
 ###########################################################################
 ## Save out ##
 ###########################################################################
-summary.ccm <- rbind(kin.phytomth.ccm.summary,kin.zoomth.ccm.summary,mad.phytomth.ccm.summary,mad.zoomth.ccm.summary,
-                          LZ.phytomth.ccm.summary,LZ.zoomth.ccm.summary,wind.phytomth.ccm.summary,wind.zoomth.ccm.summary,
-                          kas.phytomth.ccm.summary,kas.zoomth.ccm.summary)
-
 summary.ccm <- rbind(kin.summary.ccm,mad.summary.ccm,
                      LZ.summary.ccm,kas.summary.ccm,
                      wind.summary.ccm)
 
-raw.ccm <- rbind(kin.phytomth.ccm.raw,kin.zoomth.ccm.raw,mad.phytomth.ccm.raw,mad.zoomth.ccm.raw,
-                      LZ.phytomth.ccm.raw,LZ.zoomth.ccm.raw,wind.phytomth.ccm.raw,wind.zoomth.ccm.raw,
-                      kas.phytomth.ccm.raw,kas.zoomth.ccm.raw)
-
 raw.ccm <- rbind(kin.raw.ccm,mad.raw.ccm,
                      LZ.raw.ccm,kas.raw.ccm,
                      wind.raw.ccm)
-
-lag.ccm <- rbind(kin.phytomth.ccm.lag,kin.zoomth.ccm.lag,mad.phytomth.ccm.lag,mad.zoomth.ccm.lag,
-                 LZ.phytomth.ccm.lag,LZ.zoomth.ccm.lag,wind.phytomth.ccm.lag,wind.zoomth.ccm.lag,
-                 kas.phytomth.ccm.lag,kas.zoomth.ccm.lag)
 
 lag.ccm <- rbind(kin.lag.ccm,mad.lag.ccm,
                      LZ.lag.ccm,kas.lag.ccm,
@@ -608,6 +586,7 @@ count.ccmdf <- ccm.plot.df %>%
 pdf(file="Results/ccm/ccm_causality_spread.pdf",
     width=10, height = 7)
 ggplot(ccm.plot.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
+  geom_vline(xintercept = 0,alpha=0.6)+
   geom_boxplot(alpha = 0.8,size = 0.5)+
   geom_point(aes(x=lag,y=state.metric, group=causality.direc), alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
   #scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
@@ -623,7 +602,8 @@ dev.off()
 pdf(file="Results/ccm/ccm_causality_spread_alt.pdf",
     width=10, height = 7)
 ggplot(ccm.plot.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
-  geom_boxplot(alpha = 0.1,size = 0.1)+
+  geom_vline(xintercept = 0,alpha=0.6)+
+  geom_boxplot(alpha = 0.3,size = 0.1)+
   geom_point(aes(x=lag,y=state.metric, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.8, position = position_dodge(width=0.75),size = 3) + 
   geom_text(data = count.ccmdf,
             aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N),
