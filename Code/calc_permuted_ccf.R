@@ -614,7 +614,7 @@ count.ccf.absmax.dat <- filter(summary.ccf.mth1,measure %in% "absmax.ccf") %>%
 
 ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
-  geom_boxplot(aes(fill = FD.metric),alpha = 0.3,size=0.3)+
+  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
   geom_point(position=position_dodge(width=0.75),
@@ -623,12 +623,15 @@ ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=stat
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
   scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
-                     guide = guide_legend(override.aes = list(shape = c(21,21),fill = c(NA,"black"),alpha = c(1,1))))+
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
   # geom_text(data =count.ccf.absmax.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
   #           col= "black",size = 3, position = position_dodge(width = 0.9))+
   facet_wrap(~troph)+
   ylab("Cross correlation") + xlab("System state proxy")+
   theme_bw() +
+  guides(col = guide_legend(order = 1),
+         fill = guide_legend(order = 1),
+         shape = guide_legend(order = 2))+
   theme(axis.title.x=element_blank(),
         panel.background = element_blank(),
         plot.margin = margin(c(2, 2, 0, 2)))
@@ -645,12 +648,14 @@ ccf.lag2 <- ggplot(filter(summary.ccf.mth1,measure %in% "t.absmax.ccf") %>%
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none")+
   scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
-                     guide = guide_legend(override.aes = list(shape = c(21,21),fill = c(NA,"black"),alpha = c(1,1))))+
+                     #guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+                     guide = "none")+
   #scale_x_discrete(position = "top") +
   scale_y_reverse()+
   facet_wrap(~troph)+
   ylab("Optimal lag") + xlab("System state proxy")+
   theme_bw()+
+  #guides(shape = guide_legend(order = 1))+
   theme(axis.text.x=element_blank(), 
         axis.ticks.x=element_blank(), 
         panel.grid.minor = element_blank(),
@@ -697,7 +702,52 @@ obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
   mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
 write.csv(obs.cor.lag0.state.tab,file ="Results/ccf/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
 obs.cor.lag0.state.tab <- read.csv("Results/ccf/ccf_tables/cor.lag0.state.tab.csv")
-  
+
+pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_r0_alt.pdf",
+    width=8, height = 5)  
+pccf.lag0.1 <- ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
+  #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
+  #geom_hline(yintercept = 0,col="black",alpha = 0.3)+
+  geom_line(aes(linetype = system),position = position_dodge(width = 0.75), 
+            alpha = 0, show.legend = FALSE)+
+  facet_wrap(~troph)
+
+pccf.lag0.fin <- pccf.lag0.1 + geom_segment(data = layer_data(pccf.lag0.1, 1L),
+                  aes(x = xmin, xend=xmax, y = 0,yend=0, group = linetype),
+                  color = "black", size = 0.5)+
+  #geom_linerange(aes(xmin=state.metric,xmax=state.metric),position = position_dodge(width=0.75))+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=3.5)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=3.5)+
+  # geom_point(position=position_jitterdodge(jitter.width = 0.1, dodge.width=0.75,seed=15),
+  #            aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
+  # geom_point(position=position_jitterdodge(jitter.width = 0.1,dodge.width=0.75,seed=15),
+  #            aes(shape=system,fill=NULL,group=FD.metric),size=2)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  geom_point(data = obs.cor.lag0.state.tab,aes(x=state.metric,y=mean.cor,group=FD.metric,size="mean"),position=position_dodge(width=0.75),col="black",alpha=1,shape = 21,fill="black")+
+  #geom_segment(data = obs.cor.lag0.state.tab,aes(x=state.metric,y=0,xend=state.metric,yend=mean.cor,group=FD.metric),position=position_dodge(width=0.9),col="black")+
+  geom_linerange(data = obs.cor.lag0.state.tab,aes(x=state.metric,y = 0,ymin = 0,ymax=mean.cor,group=FD.metric),position=position_dodge(width=0.75),col="black",linetype = "solid")+
+  #geom_errorbar(data = obs.cor.lag0.state.tab,aes(x=state.metric,y = 0,ymin = 0,ymax=mean.cor,group=FD.metric), width=0.8,
+  #             position=position_dodge(0.75),col="black",size=0.5) +
+  # geom_text(data =count.ccf.r0.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
+  #           col= "black",size = 3, position = position_dodge(width = 0.9))+
+  scale_size_manual(values = c(2.5),breaks = c("mean"),name = NULL, labels = c("Mean cross\ncorrelation"),
+                    guide = guide_legend(override.aes = list(fill = c("black"),shape=c(21),size=c(3.5),alpha = c(1))))+
+  ylab("Cross correlation") + xlab("System state proxy")+
+  guides(size = guide_legend(order = 1), 
+         col = guide_legend(order = 2),
+         fill = guide_legend(order = 2),
+         shape = guide_legend(order = 3))+
+  theme_bw()
+
+pccf.lag0.fin
+dev.off()
+
 obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
   filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
   pivot_wider(names_from = measure,values_from = obs.value)%>%
@@ -758,6 +808,54 @@ lag0.lagx.comp <- left_join(obs.cor.lag0.state.tab,obs.cor.lagx.state.tab,
             prop.sig_lag0 = prop.sig_lag0,
             prop.sig_lagx =prop.sig_lagx,
             diff.prop.sig = (prop.sig_lagx-prop.sig_lag0))
+
+pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_absrmax_alt.pdf",
+    width=10, height = 6)
+pccf.lagx.1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
+  geom_line(aes(linetype = system),position = position_dodge(width = 0.75), 
+            alpha = 0, show.legend = FALSE)+
+  facet_wrap(~troph)
+
+pccf.lagx.2 <- pccf.lagx.1 +
+  geom_segment(data = layer_data(pccf.lagx.1, 1L),
+               aes(x = xmin, xend=xmax, y = 0,yend=0, group = linetype),
+               color = "black", size = 0.5)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=3.5)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=3.5)+
+  # geom_point(position=position_jitterdodge(jitter.width = 0.1, dodge.width=0.75,seed=15),
+  #            aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
+  # geom_point(position=position_jitterdodge(jitter.width = 0.1,dodge.width=0.75,seed=15),
+  #            aes(shape=system,fill=NULL,group=FD.metric),size=2)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  geom_point(data = obs.cor.lagx.state.tab,aes(x=state.metric,y=mean.cor,group=FD.metric,size="mean"),position=position_dodge(width=0.75),col="black",alpha=1,shape = 21,fill="black")+
+  #geom_segment(data = obs.cor.lag0.state.tab,aes(x=state.metric,y=0,xend=state.metric,yend=mean.cor,group=FD.metric),position=position_dodge(width=0.75),col="black")+
+  geom_linerange(data = obs.cor.lagx.state.tab,aes(x=state.metric,y = 0,ymin = 0,ymax=mean.cor,group=FD.metric),position=position_dodge(width=0.75),col="black",linetype = "solid")+
+  #geom_errorbar(data = cor.lagx.state.tab,aes(x=state.metric,y = 0,ymin = 0,ymax=mean.cor,group=FD.metric), width=0.8,
+  #position=position_dodge(0.75),col="black",size=0.5) +
+  # geom_text(data =count.ccf.r0.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
+  #           col= "black",size = 3, position = position_dodge(width = 0.9))+
+  scale_size_manual(values = c(2.5),breaks = c("mean"),name = NULL, labels = c("Mean cross\ncorrelation"),
+                    guide = guide_legend(override.aes = list(fill = c("black"),shape=c(21),size=c(3.5),alpha = c(1))))+
+  facet_wrap(~troph)+
+  ylab("Cross correlation") + xlab("System state proxy")+
+  theme_bw() +
+  guides(size = guide_legend(order = 1), 
+         col = guide_legend(order = 2),
+         fill = guide_legend(order = 2),
+         shape = guide_legend(order = 3))+
+  theme(axis.title.x=element_blank(),
+        panel.background = element_blank(),
+        plot.margin = margin(c(2, 2, 0, 2)))
+
+pccf.lagx.fin <- pccf.lagx.2 + ccf.lag2 +plot_layout(nrow = 2,guides = "collect",heights = c(2, 1))
+pccf.lagx.fin
+dev.off()
 
 ###########################################################################
 ## Estimate cross correlation and permute (Lag12, Monthly) ##
