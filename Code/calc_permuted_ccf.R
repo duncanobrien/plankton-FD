@@ -588,7 +588,7 @@ pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_r0.pdf",
 ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
   #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
-  geom_boxplot(aes(fill = FD.metric),alpha = 0.3,size=0.3)+
+  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
   geom_point(position=position_dodge(width=0.75),
@@ -614,7 +614,7 @@ count.ccf.absmax.dat <- filter(summary.ccf.mth1,measure %in% "absmax.ccf") %>%
 
 ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
-  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3)+
+  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
   geom_point(position=position_dodge(width=0.75),
