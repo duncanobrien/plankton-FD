@@ -751,23 +751,35 @@ dev.off()
 
 obs.ccm.y_x.lagx.state.tab <- summary.ccm %>%
   dplyr::select(!starts_with("x_y"))%>%
-  filter(measure == "max.skill")%>%
+  filter(measure %in% c("max.skill","t.max.skill"))%>%
+  pivot_wider(names_from = measure,values_from = y_x.obs_value)%>%
+  ungroup()%>%
+  mutate(t.max.skill=ifelse(is.numeric(max.skill) & !is.na(t.max.skill),t.max.skill,
+                            dplyr::lead(t.max.skill)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
+  na.omit() %>%#drop duplicate rows
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(y_x.obs_value),median.cor = median(y_x.obs_value),
-            cor.se = sd(y_x.obs_value)/n(),
-            nsig=sum(y_x.sig %in% "*"),prop.sig = sum(y_x.sig %in% "*")/length(y_x.sig)) %>%
-  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+  summarise(mean.cor = mean(max.skill),median.cor = median(max.skill),
+            cor.se = sd(max.skill)/n(),
+            median.lag = median(t.max.skill),lag.se = sd(t.max.skill)/n(), 
+            nsig=sum(y_x.sig %in% "*"),prop.sig = sum(y_x.sig %in% "*")/length(y_x.sig))%>%
+  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
 write.csv(obs.ccm.y_x.lagx.state.tab,file ="Results/ccm/ccm_tables/skill.y_x.lagx.state.tab.csv",row.names = F)
 obs.ccm.y_x.lagx.state.tab <- read.csv("Results/ccm/ccm_tables/skill.y_x.lagx.state.tab.csv")
 
 obs.ccm.x_y.lagx.state.tab <- summary.ccm %>%
   dplyr::select(!starts_with("y_x"))%>%
-  filter(measure == "max.skill")%>%
+  filter(measure %in% c("max.skill","t.max.skill"))%>%
+  pivot_wider(names_from = measure,values_from = x_y.obs_value)%>%
+  ungroup()%>%
+  mutate(t.max.skill=ifelse(is.numeric(max.skill) & !is.na(t.max.skill),t.max.skill,
+                            dplyr::lead(t.max.skill)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
+  na.omit() %>%#drop duplicate rows
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(x_y.obs_value),median.cor = median(x_y.obs_value),
-            cor.se = sd(x_y.obs_value)/n(),
-            nsig=sum(x_y.sig %in% "*"),prop.sig = sum(x_y.sig %in% "*")/length(x_y.sig)) %>%
-  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+  summarise(mean.cor = mean(max.skill),median.cor = median(max.skill),
+            cor.se = sd(max.skill)/n(),
+            median.lag = median(t.max.skill),lag.se = sd(t.max.skill)/n(), 
+            nsig=sum(x_y.sig %in% "*"),prop.sig = sum(x_y.sig %in% "*")/length(x_y.sig))%>%
+  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
 write.csv(obs.ccm.x_y.lagx.state.tab,file ="Results/ccm/ccm_tables/skill.x_y.lagx.state.tab.csv",row.names = F)
 obs.ccm.x_y.lagx.state.tab <- read.csv("Results/ccm/ccm_tables/skill.x_y.lagx.state.tab.csv")
 
