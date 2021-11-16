@@ -635,7 +635,7 @@ pdf(file="Results/ccm/ccm_lag_changes.pdf",
 ggpubr::ggarrange(
   ggplot(filter(ccm.lag.plot.df,troph %in% "Phytoplankton"),aes(x=tp,y=skill, col =causality.direc)) +
                     geom_path() + 
-                    ylab("Cross map skill") + xlab("Lag")+
+                    ylab("Cross map skill") + xlab("Lag (months)")+
                     ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
                     scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
                     #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
@@ -646,7 +646,7 @@ ggpubr::ggarrange(
                     theme_bw() + ggtitle("Phytoplankton"),
   ggplot(filter(ccm.lag.plot.df,troph %in% "Zooplankton"),aes(x=tp,y=skill, col =causality.direc)) +
     geom_path() + 
-    ylab("Cross map skill") + xlab("Lag")+
+    ylab("Cross map skill") + xlab("Lag (months)")+
     ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
     scale_x_continuous(breaks = c(-30,0,30))+
     scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
