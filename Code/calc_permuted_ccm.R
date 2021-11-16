@@ -665,19 +665,20 @@ summary.ccm <- read.csv(file ="Results/ccm/raw_data/ccm_summary.csv")
 
 pdf(file="Results/ccm/summary_ccm_r0.pdf",
     width=8, height = 5)  
-ggplot(filter(summary.ccm,measure %in% "r0.skill"),aes(x=state.metric,y=y_x.obs_value,col=FD.metric))+
+plag0.fin <- ggplot(filter(summary.ccm,measure %in% "r0.skill"),
+                    aes(x=state.metric,y=y_x.obs_value,col=FD.metric))+
   #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
-  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   geom_point(position=position_dodge(width=0.75),
-             aes(shape=system,alpha=y_x.sig,fill=FD.metric,group=FD.metric),size=2)+
+             aes(shape=system,alpha=y_x.sig,fill=FD.metric,group=FD.metric),size=3.5)+
   geom_point(position=position_dodge(width=0.75),
-             aes(shape=system,fill=NULL,group=FD.metric),size=2) +
+             aes(shape=system,fill=NULL,group=FD.metric),size=3.5) +
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
   scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
                      guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   ggtext::geom_richtext(data =ccm.lag0.comp,aes(x = state.metric, y =1.05,
               label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
                         alpha=0,size = 3, position = position_dodge(width = 0.75),angle = 90)+
@@ -689,6 +690,8 @@ ggplot(filter(summary.ccm,measure %in% "r0.skill"),aes(x=state.metric,y=y_x.obs_
          fill = guide_legend(order = 2),
          shape = guide_legend(order = 3))+
   theme_bw()
+
+plag0.fin
 dev.off()
 
 obs.ccm.y_x.lag0.state.tab <- summary.ccm %>%
@@ -857,7 +860,7 @@ pccm.lagx.3 <- ggplot(filter(summary.ccm,measure %in% "t.max.skill") %>%
         strip.text.x = element_blank(),
         plot.margin = margin(c(2, 2, 0, 2)))
 
-pccm.lagx.fin <- pccm.lagx.2 + pccm.lagx.3 +plot_layout(nrow = 2,guides = "collect",heights = c(2, 1))
+pccm.lagx.fin <- pccm.lagx.2 + pccm.lagx.3 + patchwork::plot_layout(nrow = 2,guides = "collect",heights = c(2, 1),tag_level = 'new') #tag level required for patchwork multiplots
 pccm.lagx.fin
 dev.off()
 

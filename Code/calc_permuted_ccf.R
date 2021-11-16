@@ -585,14 +585,14 @@ count.ccf.r0.dat <- filter(summary.ccf.mth1,measure %in% "r0.ccf") %>%
 
 pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_r0.pdf",
     width=8, height = 4)
-ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
+pccf.lag0.fin <- ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
   #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
   geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=3.5)+
   geom_point(position=position_dodge(width=0.75),
-             aes(shape=system,fill=NULL,group=FD.metric),size=2) +
+             aes(shape=system,fill=NULL,group=FD.metric),size=3.5) +
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
@@ -607,6 +607,7 @@ ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.v
          fill = guide_legend(order = 2),
          shape = guide_legend(order = 3))+
   theme_bw()
+pccf.lag0.fin
 dev.off()
 
 count.ccf.absmax.dat <- filter(summary.ccf.mth1,measure %in% "absmax.ccf") %>%
@@ -701,7 +702,7 @@ ccf.lag2 <- ggplot(filter(summary.ccf.mth1,measure %in% "t.absmax.ccf") %>%
 
 pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_absrmax.pdf",
     width=10, height = 6)
-p1 <- ccf.lag1 + ccf.lag2 +plot_layout(nrow = 2,guides = "collect",heights = c(2, 1))
+p1 <- ccf.lag1 + ccf.lag2 +plot_layout(nrow = 2,guides = "collect",heights = c(2, 1),tag_level = 'new')
 p1
 dev.off()
 
