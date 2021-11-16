@@ -588,7 +588,6 @@ pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_r0.pdf",
 pccf.lag0.fin <- ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
   #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
-  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=3.5)+
   geom_point(position=position_dodge(width=0.75),
@@ -600,6 +599,7 @@ pccf.lag0.fin <- ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=sta
                      guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
   # geom_text(data =count.ccf.r0.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
   #           col= "black",size = 3, position = position_dodge(width = 0.9))+
+  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   facet_wrap(~troph)+
   ylab("Cross correlation") + xlab("System state proxy")+
   guides(size = guide_legend(order = 1), 
