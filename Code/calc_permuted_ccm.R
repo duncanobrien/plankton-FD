@@ -701,6 +701,17 @@ obs.ccm.y_x.lag0.state.tab <- summary.ccm %>%
 write.csv(obs.ccm.y_x.lag0.state.tab,file ="Results/ccm/ccm_tables/skill.y_x.lag0.state.tab.csv",row.names = F)
 obs.ccm.y_x.lag0.state.tab <- read.csv("Results/ccm/ccm_tables/skill.y_x.lag0.state.tab.csv")
 
+obs.ccm.x_y.lag0.state.tab <- summary.ccm %>%
+  dplyr::select(!starts_with("y_x"))%>%
+  filter(measure == "r0.skill")%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(mean.cor = mean(x_y.obs_value),median.cor = median(x_y.obs_value),
+            cor.se = sd(x_y.obs_value)/n(),
+            nsig=sum(x_y.sig %in% "*"),prop.sig = sum(x_y.sig %in% "*")/length(x_y.sig)) %>%
+  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+write.csv(obs.ccm.x_y.lag0.state.tab,file ="Results/ccm/ccm_tables/skill.x_y.lag0.state.tab.csv",row.names = F)
+obs.ccm.x_y.lag0.state.tab <- read.csv("Results/ccm/ccm_tables/skill.x_y.lag0.state.tab.csv")
+
 pdf(file="Results/ccm/summary_ccm_r0_alt.pdf",
     width=8, height = 5)  
 plag0.1 <- ggplot(filter(summary.ccm,measure %in% "r0.skill"),aes(x=state.metric,y=y_x.obs_value,col=FD.metric))+
@@ -737,17 +748,6 @@ plag0.fin <- plag0.1 + geom_segment(data = layer_data(plag0.1, 1L),
 plag0.fin
 dev.off()
 
-obs.ccm.x_y.lag0.state.tab <- summary.ccm %>%
-  dplyr::select(!starts_with("y_x"))%>%
-  filter(measure == "r0.skill")%>%
-  group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(x_y.obs_value),median.cor = median(x_y.obs_value),
-            cor.se = sd(x_y.obs_value)/n(),
-            nsig=sum(x_y.sig %in% "*"),prop.sig = sum(x_y.sig %in% "*")/length(x_y.sig)) %>%
-  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
-write.csv(obs.ccm.x_y.lag0.state.tab,file ="Results/ccm/ccm_tables/skill.x_y.lag0.state.tab.csv",row.names = F)
-obs.ccm.x_y.lag0.state.tab <- read.csv("Results/ccm/ccm_tables/skill.x_y.lag0.state.tab.csv")
-
 obs.ccm.y_x.lagx.state.tab <- summary.ccm %>%
   dplyr::select(!starts_with("x_y"))%>%
   filter(measure == "max.skill")%>%
@@ -758,6 +758,17 @@ obs.ccm.y_x.lagx.state.tab <- summary.ccm %>%
   mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
 write.csv(obs.ccm.y_x.lagx.state.tab,file ="Results/ccm/ccm_tables/skill.y_x.lagx.state.tab.csv",row.names = F)
 obs.ccm.y_x.lagx.state.tab <- read.csv("Results/ccm/ccm_tables/skill.y_x.lagx.state.tab.csv")
+
+obs.ccm.x_y.lagx.state.tab <- summary.ccm %>%
+  dplyr::select(!starts_with("y_x"))%>%
+  filter(measure == "max.skill")%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(mean.cor = mean(x_y.obs_value),median.cor = median(x_y.obs_value),
+            cor.se = sd(x_y.obs_value)/n(),
+            nsig=sum(x_y.sig %in% "*"),prop.sig = sum(x_y.sig %in% "*")/length(x_y.sig)) %>%
+  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+write.csv(obs.ccm.x_y.lagx.state.tab,file ="Results/ccm/ccm_tables/skill.x_y.lagx.state.tab.csv",row.names = F)
+obs.ccm.x_y.lagx.state.tab <- read.csv("Results/ccm/ccm_tables/skill.x_y.lagx.state.tab.csv")
 
 pdf(file="Results/ccm/summary_ccm_lagx.pdf",
     width=10, height = 6)
@@ -915,6 +926,7 @@ pccm.lagx.fin <- pccm.lagx.2 + pccm.lagx.3 +plot_layout(nrow = 2,guides = "colle
 pccm.lagx.fin
 dev.off()
 
+## Proportion of forward vs reverse signficant cross maps ##
 ccm.lag0.comp <- summary.ccm %>%
   filter(measure == "r0.skill")%>%  
   mutate(forward = ifelse(y_x.sig == "*" & x_y.sig != "*",TRUE,FALSE),
@@ -927,12 +939,13 @@ ccm.lag0.comp <- summary.ccm %>%
             prop.reverse=sum(reverse == TRUE)/length(reverse),
             prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
             prop.none=sum(none == TRUE)/length(none),
-            mean.lag = mean(diff.lag)) %>%
-  mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
-                        ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
-  mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
-                          ifelse(FD.metric %in% "FEve",1.2,1.1)))
-
+             mean.lag = mean(diff.lag))
+  # mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
+  #                       ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
+  # mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
+  #                         ifelse(FD.metric %in% "FEve",1.2,1.1)))
+write.csv(ccm.lag0.comp,file ="Results/ccm/ccm_tables/skill.comp.lag0.state.tab.csv",row.names = F)
+ccm.lag0.comp <- read.csv("Results/ccm/ccm_tables/skill.comp.lag0.state.tab.csv")
 
 ccm.lagx.comp <- summary.ccm %>%
   filter(measure == "max.skill")%>%  
@@ -946,8 +959,25 @@ ccm.lagx.comp <- summary.ccm %>%
             prop.reverse=sum(reverse == TRUE)/length(reverse),
             prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
             prop.none=sum(none == TRUE)/length(none),
-            mean.lag = mean(diff.lag)) %>%
-  mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
-     ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
-  mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
-                        ifelse(FD.metric %in% "FEve",1.2,1.1)))
+            mean.lag = mean(diff.lag))
+  # mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
+  #    ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
+  # mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
+  #                       ifelse(FD.metric %in% "FEve",1.2,1.1)))
+write.csv(ccm.lagx.comp,file ="Results/ccm/ccm_tables/skill.comp.lagx.state.tab.csv",row.names = F)
+ccm.lagx.comp <- read.csv("Results/ccm/ccm_tables/skill.comp.lagx.state.tab.csv")
+
+ccm.lag0.lagx.comp <- left_join(obs.ccm.y_x.lag0.state.tab,obs.ccm.y_x.lagx.state.tab,
+                            by=c("troph","state.metric","FD.metric"),.groups = "rowwise",
+                            suffix = c("_lag0","_lagx")) %>%
+  dplyr::select(-c(mean.cor_lag0,mean.cor_lagx,cor.se_lag0,cor.se_lagx,nsig_lag0,nsig_lagx)) %>% 
+  group_by()%>% rowwise()%>%
+  dplyr::summarise(troph = troph,
+                   FD.metric = FD.metric,
+                   state.metric = state.metric,
+                   cor_lag0 = median.cor_lag0,
+                   cor_lagx =median.cor_lagx,
+                   diff.cor = (median.cor_lagx-median.cor_lag0),
+                   prop.sig_lag0 = prop.sig_lag0,
+                   prop.sig_lagx =prop.sig_lagx,
+                   diff.prop.sig = (prop.sig_lagx-prop.sig_lag0))

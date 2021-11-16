@@ -829,21 +829,6 @@ obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
   mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
 write.csv(obs.cor.lagx.state.tab,file ="Results/ccf/ccf_tables/cor.lagx.state.tab.csv",row.names = F)
 
-lag0.lagx.comp <- left_join(obs.cor.lag0.state.tab,obs.cor.lagx.state.tab,
-                by=c("troph","state.metric","FD.metric"),.groups = "rowwise",
-                suffix = c("_lag0","_lagx")) %>%
-  dplyr::select(-c(mean.cor_lag0,mean.cor_lagx,cor.se_lag0,cor.se_lagx,nsig_lag0,nsig_lagx)) %>% 
-  group_by()%>% rowwise()%>%
-  dplyr::summarise(troph = troph,
-                   FD.metric = FD.metric,
-                   state.metric = state.metric,
-            cor_lag0 = median.cor_lag0,
-            cor_lagx =median.cor_lagx,
-            diff.cor = (median.cor_lagx-median.cor_lag0),
-            prop.sig_lag0 = prop.sig_lag0,
-            prop.sig_lagx =prop.sig_lagx,
-            diff.prop.sig = (prop.sig_lagx-prop.sig_lag0))
-
 pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_absrmax_alt.pdf",
     width=10, height = 6)
 pccf.lagx.1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
@@ -891,6 +876,21 @@ pccf.lagx.2 <- pccf.lagx.1 +
 pccf.lagx.fin <- pccf.lagx.2 + ccf.lag2 +plot_layout(nrow = 2,guides = "collect",heights = c(2, 1))
 pccf.lagx.fin
 dev.off()
+
+lag0.lagx.comp <- left_join(obs.cor.lag0.state.tab,obs.cor.lagx.state.tab,
+                            by=c("troph","state.metric","FD.metric"),.groups = "rowwise",
+                            suffix = c("_lag0","_lagx")) %>%
+  dplyr::select(-c(mean.cor_lag0,mean.cor_lagx,cor.se_lag0,cor.se_lagx,nsig_lag0,nsig_lagx)) %>% 
+  group_by()%>% rowwise()%>%
+  dplyr::summarise(troph = troph,
+                   FD.metric = FD.metric,
+                   state.metric = state.metric,
+                   cor_lag0 = median.cor_lag0,
+                   cor_lagx =median.cor_lagx,
+                   diff.cor = (median.cor_lagx-median.cor_lag0),
+                   prop.sig_lag0 = prop.sig_lag0,
+                   prop.sig_lagx =prop.sig_lagx,
+                   diff.prop.sig = (prop.sig_lagx-prop.sig_lag0))
 
 ###########################################################################
 ## Estimate cross correlation and permute (Lag12, Monthly) ##
