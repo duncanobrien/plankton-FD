@@ -590,18 +590,22 @@ ggplot(filter(summary.ccf.mth1,measure %in% "r0.ccf"),aes(x=state.metric,y=obs.v
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
   geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   geom_point(position=position_dodge(width=0.75),
-             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
+             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=3.5)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,fill=NULL,group=FD.metric),size=2) +
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
   scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
-                     guide = guide_legend(override.aes = list(shape = c(21,21),fill = c(NA,"black"),alpha = c(1,1))))+
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
   # geom_text(data =count.ccf.r0.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
   #           col= "black",size = 3, position = position_dodge(width = 0.9))+
   facet_wrap(~troph)+
   ylab("Cross correlation") + xlab("System state proxy")+
+  guides(size = guide_legend(order = 1), 
+         col = guide_legend(order = 2),
+         fill = guide_legend(order = 2),
+         shape = guide_legend(order = 3))+
   theme_bw()
 dev.off()
 
@@ -612,13 +616,14 @@ count.ccf.absmax.dat <- filter(summary.ccf.mth1,measure %in% "absmax.ccf") %>%
   mutate(ref.y = ifelse(FD.metric %in% "FDis",0.7, 
                         ifelse(FD.metric %in% "FEve",0.65,0.6))) #significant count per group
 
-ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),aes(x=state.metric,y=obs.value,col=FD.metric))+
+ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),
+                   aes(x=state.metric,y=obs.value,col=FD.metric))+
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
   geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   geom_point(position=position_dodge(width=0.75),
-             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
+             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=3.5)+
   geom_point(position=position_dodge(width=0.75),
-             aes(shape=system,fill=NULL,group=FD.metric),size=2) +
+             aes(shape=system,fill=NULL,group=FD.metric),size=3.5) +
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
@@ -663,6 +668,36 @@ ccf.lag2 <- ggplot(filter(summary.ccf.mth1,measure %in% "t.absmax.ccf") %>%
         strip.background = element_blank(),
         strip.text.x = element_blank(),
         plot.margin = margin(c(2, 2, 0, 2)))
+
+ccf.lag2 <- ggplot(filter(summary.ccf.mth1,measure %in% "t.absmax.ccf") %>% 
+  mutate(sig = as.factor(filter(summary.ccf.mth1,measure %in% "absmax.ccf")$sig)),
+    aes(x=state.metric,y=obs.value,col = FD.metric)) + 
+  geom_hline(yintercept = 0,col="black",alpha = 0.3)+
+  scale_y_binned(breaks = c(seq(60,24,-12),12,seq(-12,-60,-12)),show.limits = T)+
+  geom_tile(data = expand_grid(c(seq(60,24,-12),12,seq(-12,-60,-12)),unique(summary.ccm$FD.metric),unique(summary.ccm$state.metric),unique(summary.ccm$troph)) %>%
+              magrittr::set_colnames(c("obs.value","FD.metric","state.metric","troph")),
+            aes(group = FD.metric),fill = "white",stat="identity",position = position_dodge(width = 0.75), col = "black", size = 0.3,width = 0.8, height = 0.9)+
+  geom_point(position=position_jitterdodge(dodge.width=0.75,jitter.height = 0.2,jitter.width = 0,seed = 5),
+             aes(y = obs.value,shape=system,alpha=sig,col = FD.metric,fill=FD.metric,group=FD.metric),size=1.5)+
+  geom_point(position=position_jitterdodge(dodge.width=0.75,jitter.height = 0.2,jitter.width = 0,seed = 5),
+             aes(y = obs.value,shape=system,col = FD.metric,fill=NULL,group=FD.metric),size=1.5)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake",guide = "none")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = "none")+
+  facet_wrap(~troph)+
+  #facet_grid(troph~FD.metric)+
+  ylab("Optimal lag (months)") + xlab("System state proxy")+
+  theme_bw()+
+  theme(axis.text.x=element_blank(), 
+        axis.ticks.x=element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        plot.margin = margin(c(2, 2, 0, 2)))
+
 
 pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_absrmax.pdf",
     width=10, height = 6)

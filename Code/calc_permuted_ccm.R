@@ -4,8 +4,9 @@
 require(tidyverse) # dplyr, ggplot etc.
 require(pbmcapply) # paralled lapply 
 require(data.table) # rbindlist function
+require(patchwork) # plot alignment
 
-source("Code/ccm_perm_fn.R")
+source("Code/ccm_perm_fn.R") # custom function
 
 ###########################################################################
 ## Read in Data ##
@@ -656,3 +657,297 @@ ggpubr::ggarrange(
     theme_bw() + ggtitle("Zooplankton"),
                   nrow=2,common.legend=T)
 dev.off()
+
+###########################################################################
+## Summary cross skills ##
+###########################################################################
+summary.ccm <- read.csv(file ="Results/ccm/raw_data/ccm_summary.csv")
+
+pdf(file="Results/ccm/summary_ccm_r0.pdf",
+    width=8, height = 5)  
+ggplot(filter(summary.ccm,measure %in% "r0.skill"),aes(x=state.metric,y=y_x.obs_value,col=FD.metric))+
+  #geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.025, 0.5, 0.975),scale = "width",alpha = 0.3)+
+  geom_hline(yintercept = 0,col="black",alpha = 0.3)+
+  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=y_x.sig,fill=FD.metric,group=FD.metric),size=2)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=2) +
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  ggtext::geom_richtext(data =ccm.lag0.comp,aes(x = state.metric, y =1.05,
+              label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
+                        alpha=0,size = 3, position = position_dodge(width = 0.9),angle = 90)+
+  facet_wrap(~troph)+
+  ylab("Cross skill") + xlab("System state proxy")+
+  guides(size = guide_legend(order = 1), 
+         col = guide_legend(order = 2),
+         fill = guide_legend(order = 2),
+         shape = guide_legend(order = 3))+
+  theme_bw()
+dev.off()
+
+obs.ccm.y_x.lag0.state.tab <- summary.ccm %>%
+  dplyr::select(!starts_with("x_y"))%>%
+  filter(measure == "r0.skill")%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(mean.cor = mean(y_x.obs_value),median.cor = median(y_x.obs_value),
+            cor.se = sd(y_x.obs_value)/n(),
+            nsig=sum(y_x.sig %in% "*"),prop.sig = sum(y_x.sig %in% "*")/length(y_x.sig)) %>%
+  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+write.csv(obs.ccm.y_x.lag0.state.tab,file ="Results/ccm/ccm_tables/skill.y_x.lag0.state.tab.csv",row.names = F)
+obs.ccm.y_x.lag0.state.tab <- read.csv("Results/ccm/ccm_tables/skill.y_x.lag0.state.tab.csv")
+
+pdf(file="Results/ccm/summary_ccm_r0_alt.pdf",
+    width=8, height = 5)  
+plag0.1 <- ggplot(filter(summary.ccm,measure %in% "r0.skill"),aes(x=state.metric,y=y_x.obs_value,col=FD.metric))+
+  geom_line(aes(linetype = system),position = position_dodge(width = 0.75), 
+            alpha = 0, show.legend = FALSE)+
+  facet_wrap(~troph)
+
+plag0.fin <- plag0.1 + geom_segment(data = layer_data(plag0.1, 1L),
+                  aes(x = xmin, xend=xmax, y = 0,yend=0, group = linetype),
+                  color = "black", size = 0.5)+
+  #geom_linerange(aes(xmin=state.metric,xmax=state.metric),position = position_dodge(width=0.75))+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=y_x.sig,fill=FD.metric,group=FD.metric),size=3.5)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=3.5)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  geom_point(data = obs.ccm.y_x.lag0.state.tab,aes(x=state.metric,y=mean.cor,group=FD.metric,size="mean"),position=position_dodge(width=0.75),col="black",alpha=1,shape = 21,fill="black")+
+  geom_linerange(data = obs.ccm.y_x.lag0.state.tab,aes(x=state.metric,y = 0,ymin = 0,ymax=mean.cor,group=FD.metric),position=position_dodge(width=0.75),col="black",linetype = "solid")+
+  # geom_text(data =count.ccf.r0.dat,aes(x = state.metric, y = ref.y,label = paste("(",NSig,"*",",",NxSig,")",sep = ""),fill=FD.metric,group = FD.metric),
+  #           col= "black",size = 3, position = position_dodge(width = 0.9))+
+  scale_size_manual(values = c(2.5),breaks = c("mean"),name = NULL, labels = c("Mean cross\ncorrelation"),
+                    guide = guide_legend(override.aes = list(fill = c("black"),shape=c(21),size=c(3.5),alpha = c(1))))+
+  ylab("Cross correlation") + xlab("System state proxy")+
+  guides(size = guide_legend(order = 1), 
+         col = guide_legend(order = 2),
+         fill = guide_legend(order = 2),
+         shape = guide_legend(order = 3))+
+  theme_bw()
+
+plag0.fin
+dev.off()
+
+obs.ccm.x_y.lag0.state.tab <- summary.ccm %>%
+  dplyr::select(!starts_with("y_x"))%>%
+  filter(measure == "r0.skill")%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(mean.cor = mean(x_y.obs_value),median.cor = median(x_y.obs_value),
+            cor.se = sd(x_y.obs_value)/n(),
+            nsig=sum(x_y.sig %in% "*"),prop.sig = sum(x_y.sig %in% "*")/length(x_y.sig)) %>%
+  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+write.csv(obs.ccm.x_y.lag0.state.tab,file ="Results/ccm/ccm_tables/skill.x_y.lag0.state.tab.csv",row.names = F)
+obs.ccm.x_y.lag0.state.tab <- read.csv("Results/ccm/ccm_tables/skill.x_y.lag0.state.tab.csv")
+
+obs.ccm.y_x.lagx.state.tab <- summary.ccm %>%
+  dplyr::select(!starts_with("x_y"))%>%
+  filter(measure == "max.skill")%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(mean.cor = mean(y_x.obs_value),median.cor = median(y_x.obs_value),
+            cor.se = sd(y_x.obs_value)/n(),
+            nsig=sum(y_x.sig %in% "*"),prop.sig = sum(y_x.sig %in% "*")/length(y_x.sig)) %>%
+  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+write.csv(obs.ccm.y_x.lagx.state.tab,file ="Results/ccm/ccm_tables/skill.y_x.lagx.state.tab.csv",row.names = F)
+obs.ccm.y_x.lagx.state.tab <- read.csv("Results/ccm/ccm_tables/skill.y_x.lagx.state.tab.csv")
+
+pdf(file="Results/ccm/summary_ccm_lagx.pdf",
+    width=10, height = 6)
+pccm.lagx.1 <- ggplot(filter(summary.ccm,measure %in% "max.skill") %>% 
+                        mutate(direc= ifelse(y_x.sig == "*" & x_y.sig != "*","x","y")),
+                      aes(x=state.metric,y=y_x.obs_value,col=FD.metric))+
+  geom_line(aes(linetype = system),position = position_dodge(width = 0.75), 
+            alpha = 0, show.legend = F)+
+  facet_wrap(~troph)
+
+pccm.lagx.2 <- pccm.lagx.1 +
+  # geom_segment(data = layer_data(plagx.1, 1L),
+  #              aes(x = xmin, xend=xmax, y = 0,yend=0, group = linetype),
+  #              color = "black", size = 0.5)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=y_x.sig,fill=FD.metric,group=FD.metric,col=FD.metric),size=3.5)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric,col=FD.metric),size=3.5)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  #geom_point(data = obs.ccm.y_x.lagx.state.tab,aes(x=state.metric,y=mean.cor,group=FD.metric,size="mean"),position=position_dodge(width=0.75),col="black",alpha=1,shape = 21,fill="black")+
+  #geom_linerange(data = obs.ccm.y_x.lagx.state.tab,aes(x=state.metric,y = 0,ymin = 0,ymax=mean.cor,group=FD.metric),position=position_dodge(width=0.75),col="black",linetype = "solid")+
+  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
+  #scale_size_manual(values = c(2.5),breaks = c("mean"),name = NULL, labels = c("Mean cross\ncorrelation"),
+   #                 guide = guide_legend(override.aes = list(fill = c("black"),shape=c(21),size=c(3.5),alpha = c(1))))+
+  ggtext::geom_richtext(data =ccm.lagx.comp,aes(x = state.metric, y =1.05,
+                                                label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
+                        alpha=0,size = 3, position = position_dodge(width = 0.9),angle = 90)+
+  geom_point(
+  #geom_blank(data = data.frame("state.metric" = filter(summary.ccm,measure %in% "max.skill")$state.metric,"y_x.obs_value" = seq(0,1,0.5)) %>% 
+             #  mutate(direc = ifelse(y_x.obs_value %% 2 ==0,"forward","bidirec")),
+             aes(size = as.character(direc)))+
+  scale_size_manual(values = c("a","b"),name = "Causality direction", breaks = c("forward","bidirec"),labels = c("Forward","Bidirectional"),
+                        guide = guide_legend(override.aes = list(shape=c(21,20),size=c(3.5),alpha = c(1,1),color = c("#DEC98C","black"))))+
+  scale_y_continuous(breaks = seq(0,1.0,0.25),limits = c(0,1.1))+
+  facet_wrap(~troph)+
+  #facet_grid(troph~FD.metric)+
+  ylab("Cross skill") + xlab("System state proxy")+
+  theme_bw() +
+  guides(size = guide_legend(order = 1), 
+         col = guide_legend(order = 2),
+         fill = guide_legend(order = 2),
+         shape = guide_legend(order = 3))+
+  theme(axis.title.x=element_blank(),
+        panel.background = element_blank(),
+        plot.margin = margin(c(2, 2, 0, 2)))
+
+pccm.lagx.3 <- ggplot(filter(summary.ccm,measure %in% "t.max.skill") %>% 
+                        mutate(sig = as.factor(filter(summary.ccm,measure %in% "max.skill")$y_x.sig)),
+                      aes(x=state.metric,y=y_x.obs_value,col = FD.metric))+
+  geom_hline(yintercept = 0,col="black",alpha = 0.3)+
+  scale_y_binned(breaks = c(seq(60,24,-12),12,seq(-12,-60,-12)),show.limits = T)+
+  geom_tile(data = expand_grid(c(seq(60,24,-12),12,seq(-12,-60,-12)),unique(summary.ccm$FD.metric),unique(summary.ccm$state.metric),unique(summary.ccm$troph)) %>%
+              magrittr::set_colnames(c("y_x.obs_value","FD.metric","state.metric","troph")),
+            aes(group = FD.metric),fill = "white",stat="identity",position = position_dodge(width = 0.75), col = "black", size = 0.3,width = 0.8, height = 0.9)+
+  geom_point(position=position_jitterdodge(dodge.width=0.75,jitter.height = 0.2,jitter.width = 0,seed = 5),
+             aes(y = y_x.obs_value,shape=system,alpha=sig,col = FD.metric,fill=FD.metric,group=FD.metric),size=1.5)+
+  geom_point(position=position_jitterdodge(dodge.width=0.75,jitter.height = 0.2,jitter.width = 0,seed = 5),
+             aes(y = y_x.obs_value,shape=system,col = FD.metric,fill=NULL,group=FD.metric),size=1.5)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake",guide = "none")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = "none")+
+  facet_wrap(~troph)+
+  #facet_grid(troph~FD.metric)+
+  ylab("Optimal lag (months)") + xlab("System state proxy")+
+  theme_bw()+
+  theme(axis.text.x=element_blank(), 
+        axis.ticks.x=element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        plot.margin = margin(c(2, 2, 0, 2)))
+
+pccm.lagx.fin <- pccm.lagx.2 + pccm.lagx.3 +plot_layout(nrow = 2,guides = "collect",heights = c(2, 1))
+pccm.lagx.fin
+dev.off()
+
+pdf(file="Results/ccm/summary_ccm_lagx_alt.pdf",
+    width=10, height = 6)
+pccm.lagx.1 <- ggplot(filter(summary.ccm,measure %in% "max.skill"),aes(x=state.metric,y=y_x.obs_value,col=FD.metric))+
+  geom_line(aes(linetype = system),position = position_dodge(width = 0.75), 
+            alpha = 0, show.legend = FALSE)+
+  facet_wrap(~troph)
+
+pccm.lagx.2 <- pccm.lagx.1 +
+  geom_segment(data = layer_data(plagx.1, 1L),
+                aes(x = xmin, xend=xmax, y = 0,yend=0, group = linetype),
+                color = "black", size = 0.5)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=y_x.sig,fill=FD.metric,group=FD.metric),size=3.5)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=3.5)+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  geom_point(data = obs.ccm.y_x.lagx.state.tab,aes(x=state.metric,y=mean.cor,group=FD.metric,size="mean"),position=position_dodge(width=0.75),col="black",alpha=1,shape = 21,fill="black")+
+  geom_linerange(data = obs.ccm.y_x.lagx.state.tab,aes(x=state.metric,y = 0,ymin = 0,ymax=mean.cor,group=FD.metric),position=position_dodge(width=0.75),col="black",linetype = "solid")+
+  #geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
+  scale_size_manual(values = c(2.5),breaks = c("mean"),name = NULL, labels = c("Mean cross\ncorrelation"),
+                    guide = guide_legend(override.aes = list(fill = c("black"),shape=c(21),size=c(3.5),alpha = c(1))))+
+  # geom_text(data =ccm.lagx.comp,aes(x = state.metric, y =ref.y,label = paste("(",prop.forward,",",prop.bidirec,",",prop.reverse,")",sep = ""),group = FD.metric),
+  #           col= "black",size = 3, position = position_dodge(width = 0.9),angle=45)+
+  ggtext::geom_richtext(data =ccm.lagx.comp,aes(x = state.metric, y =ref.y,
+          label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",prop.forward,"</span>","<span style='color:black'>",",",prop.bidirec,",","</span>","<span style='color:#A1B4FE'>",prop.reverse,"</span>","<span style='color:black'>",")","</span>",sep = "")),
+    alpha=0,size = 3, position = position_dodge(width = 0.9))+
+  scale_y_continuous(breaks = seq(0,1.0,0.25))+
+  facet_wrap(~troph)+
+  #facet_grid(troph~FD.metric)+
+  ylab("Cross skill") + xlab("System state proxy")+
+  theme_bw() +
+  guides(size = guide_legend(order = 1), 
+         col = guide_legend(order = 2),
+         fill = guide_legend(order = 2),
+         shape = guide_legend(order = 3))+
+  theme(axis.title.x=element_blank(),
+        panel.background = element_blank(),
+        plot.margin = margin(c(2, 2, 0, 2)))
+
+pccm.lagx.3 <- ggplot(filter(summary.ccm,measure %in% "t.max.skill") %>% 
+                     mutate(sig = as.factor(filter(summary.ccm,measure %in% "max.skill")$y_x.sig)),
+                   aes(x=state.metric,y=y_x.obs_value,col = FD.metric))+
+  geom_hline(yintercept = 0,col="black",alpha = 0.3)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=2)+
+  geom_point(position=position_dodge(width=0.75),
+             aes(shape=system,fill=NULL,group=FD.metric),size=2) +
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake",guide = "none")+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric",guide = "none")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = "none")+
+  #scale_x_discrete(position = "top") +
+  scale_y_reverse()+
+  facet_wrap(~troph)+
+  #facet_grid(troph~FD.metric)+
+  ylab("Optimal lag") + xlab("System state proxy")+
+  theme_bw()+
+  theme(axis.text.x=element_blank(), 
+        axis.ticks.x=element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        plot.margin = margin(c(2, 2, 0, 2)))
+
+pccm.lagx.fin <- pccm.lagx.2 + pccm.lagx.3 +plot_layout(nrow = 2,guides = "collect",heights = c(2, 1))
+pccm.lagx.fin
+dev.off()
+
+ccm.lag0.comp <- summary.ccm %>%
+  filter(measure == "r0.skill")%>%  
+  mutate(forward = ifelse(y_x.sig == "*" & x_y.sig != "*",TRUE,FALSE),
+         reverse = ifelse(x_y.sig == "*" & y_x.sig != "*",TRUE,FALSE),
+         bidirec =  ifelse(x_y.sig == "*" & y_x.sig == "*",TRUE,FALSE),
+         none =  ifelse(x_y.sig != "*" & y_x.sig != "*",TRUE,FALSE),
+         diff.lag = filter(summary.ccm,measure == "t.max.skill")$x_y.obs_value - filter(summary.ccm,measure == "t.max.skill")$y_x.obs_value)%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(prop.forward=sum(forward == TRUE)/length(forward),
+            prop.reverse=sum(reverse == TRUE)/length(reverse),
+            prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
+            prop.none=sum(none == TRUE)/length(none),
+            mean.lag = mean(diff.lag)) %>%
+  mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
+                        ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
+  mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
+                          ifelse(FD.metric %in% "FEve",1.2,1.1)))
+
+
+ccm.lagx.comp <- summary.ccm %>%
+  filter(measure == "max.skill")%>%  
+  mutate(forward = ifelse(y_x.sig == "*" & x_y.sig != "*",TRUE,FALSE),
+         reverse = ifelse(x_y.sig == "*" & y_x.sig != "*",TRUE,FALSE),
+         bidirec =  ifelse(x_y.sig == "*" & y_x.sig == "*",TRUE,FALSE),
+         none =  ifelse(x_y.sig != "*" & y_x.sig != "*",TRUE,FALSE),
+         diff.lag = filter(summary.ccm,measure == "t.max.skill")$x_y.obs_value - filter(summary.ccm,measure == "t.max.skill")$y_x.obs_value)%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(prop.forward=sum(forward == TRUE)/length(forward),
+            prop.reverse=sum(reverse == TRUE)/length(reverse),
+            prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
+            prop.none=sum(none == TRUE)/length(none),
+            mean.lag = mean(diff.lag)) %>%
+  mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
+     ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
+  mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
+                        ifelse(FD.metric %in% "FEve",1.2,1.1)))
