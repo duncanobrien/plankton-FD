@@ -681,6 +681,7 @@ ggplot(filter(summary.ccm,measure %in% "r0.skill"),aes(x=state.metric,y=y_x.obs_
   ggtext::geom_richtext(data =ccm.lag0.comp,aes(x = state.metric, y =1.05,
               label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
                         alpha=0,size = 3, position = position_dodge(width = 0.9),angle = 90)+
+  scale_y_continuous(breaks = seq(0,1.0,0.25),limits = c(-0.1,1.1))+
   facet_wrap(~troph)+
   ylab("Cross skill") + xlab("System state proxy")+
   guides(size = guide_legend(order = 1), 
@@ -800,10 +801,6 @@ pccm.lagx.2 <- pccm.lagx.1 +
   ggtext::geom_richtext(data =ccm.lagx.comp,aes(x = state.metric, y =1.05,
                                                 label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
                         alpha=0,size = 3, position = position_dodge(width = 0.9),angle = 90)+
-  geom_point(
-  #geom_blank(data = data.frame("state.metric" = filter(summary.ccm,measure %in% "max.skill")$state.metric,"y_x.obs_value" = seq(0,1,0.5)) %>% 
-             #  mutate(direc = ifelse(y_x.obs_value %% 2 ==0,"forward","bidirec")),
-             aes(size = as.character(direc)))+
   scale_size_manual(values = c("a","b"),name = "Causality direction", breaks = c("forward","bidirec"),labels = c("Forward","Bidirectional"),
                         guide = guide_legend(override.aes = list(shape=c(21,20),size=c(3.5),alpha = c(1,1),color = c("#DEC98C","black"))))+
   scale_y_continuous(breaks = seq(0,1.0,0.25),limits = c(0,1.1))+
