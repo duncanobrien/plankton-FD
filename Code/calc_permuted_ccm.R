@@ -680,7 +680,7 @@ ggplot(filter(summary.ccm,measure %in% "r0.skill"),aes(x=state.metric,y=y_x.obs_
                      guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
   ggtext::geom_richtext(data =ccm.lag0.comp,aes(x = state.metric, y =1.05,
               label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
-                        alpha=0,size = 3, position = position_dodge(width = 0.9),angle = 90)+
+                        alpha=0,size = 3, position = position_dodge(width = 0.75),angle = 90)+
   scale_y_continuous(breaks = seq(0,1.0,0.25),limits = c(-0.1,1.1))+
   facet_wrap(~troph)+
   ylab("Cross skill") + xlab("System state proxy")+
@@ -812,7 +812,7 @@ pccm.lagx.2 <- pccm.lagx.1 +
    #                 guide = guide_legend(override.aes = list(fill = c("black"),shape=c(21),size=c(3.5),alpha = c(1))))+
   ggtext::geom_richtext(data =ccm.lagx.comp,aes(x = state.metric, y =1.05,
                                                 label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
-                        alpha=0,size = 3, position = position_dodge(width = 0.9),angle = 90)+
+                        alpha=0,size = 3, position = position_dodge(width = 0.75),angle = 90)+
   scale_size_manual(values = c("a","b"),name = "Causality direction", breaks = c("forward","bidirec"),labels = c("Forward","Bidirectional"),
                         guide = guide_legend(override.aes = list(shape=c(21,20),size=c(3.5),alpha = c(1,1),color = c("#DEC98C","black"))))+
   scale_y_continuous(breaks = seq(0,1.0,0.25),limits = c(0,1.1))+
