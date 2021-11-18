@@ -706,6 +706,14 @@ p1 <- ccf.lag1 + ccf.lag2 +plot_layout(nrow = 2,guides = "collect",heights = c(2
 p1
 dev.off()
 
+pdf(file="Results/ccf/summary_FD_perm_lag1_diffmth_combo.pdf",
+    width=15, height = 6)  
+pccf.lag0.fin + p1 + 
+  patchwork::plot_layout(ncol = 2,nrow = 1, guides = "collect") +
+  plot_annotation(tag_levels = c('a',1)) & 
+  theme(plot.tag = element_text(face = "bold"))
+dev.off()
+
 ###########################################################################
 ## Summary correlations (Lag1, Monthly) ##
 ###########################################################################

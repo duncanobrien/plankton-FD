@@ -663,6 +663,64 @@ dev.off()
 ###########################################################################
 summary.ccm <- read.csv(file ="Results/ccm/raw_data/ccm_summary.csv")
 
+## Proportion of forward vs reverse signficant cross maps ##
+ccm.lag0.comp <- summary.ccm %>%
+  filter(measure == "r0.skill")%>%  
+  mutate(forward = ifelse(y_x.sig == "*" & x_y.sig != "*",TRUE,FALSE),
+         reverse = ifelse(x_y.sig == "*" & y_x.sig != "*",TRUE,FALSE),
+         bidirec =  ifelse(x_y.sig == "*" & y_x.sig == "*",TRUE,FALSE),
+         none =  ifelse(x_y.sig != "*" & y_x.sig != "*",TRUE,FALSE),
+         diff.lag = filter(summary.ccm,measure == "t.max.skill")$x_y.obs_value - filter(summary.ccm,measure == "t.max.skill")$y_x.obs_value)%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(prop.forward=sum(forward == TRUE)/length(forward),
+            prop.reverse=sum(reverse == TRUE)/length(reverse),
+            prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
+            prop.none=sum(none == TRUE)/length(none),
+            mean.lag = mean(diff.lag))
+# mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
+#                       ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
+# mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
+#                         ifelse(FD.metric %in% "FEve",1.2,1.1)))
+write.csv(ccm.lag0.comp,file ="Results/ccm/ccm_tables/skill.comp.lag0.state.tab.csv",row.names = F)
+ccm.lag0.comp <- read.csv("Results/ccm/ccm_tables/skill.comp.lag0.state.tab.csv")
+
+ccm.lagx.comp <- summary.ccm %>%
+  filter(measure == "max.skill")%>%  
+  mutate(forward = ifelse(y_x.sig == "*" & x_y.sig != "*",TRUE,FALSE),
+         reverse = ifelse(x_y.sig == "*" & y_x.sig != "*",TRUE,FALSE),
+         bidirec =  ifelse(x_y.sig == "*" & y_x.sig == "*",TRUE,FALSE),
+         none =  ifelse(x_y.sig != "*" & y_x.sig != "*",TRUE,FALSE),
+         diff.lag = filter(summary.ccm,measure == "t.max.skill")$x_y.obs_value - filter(summary.ccm,measure == "t.max.skill")$y_x.obs_value)%>%
+  group_by(troph,FD.metric,state.metric) %>%
+  summarise(prop.forward=sum(forward == TRUE)/length(forward),
+            prop.reverse=sum(reverse == TRUE)/length(reverse),
+            prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
+            prop.none=sum(none == TRUE)/length(none),
+            mean.lag = mean(diff.lag))
+# mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
+#    ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
+# mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
+#                       ifelse(FD.metric %in% "FEve",1.2,1.1)))
+write.csv(ccm.lagx.comp,file ="Results/ccm/ccm_tables/skill.comp.lagx.state.tab.csv",row.names = F)
+ccm.lagx.comp <- read.csv("Results/ccm/ccm_tables/skill.comp.lagx.state.tab.csv")
+
+ccm.lag0.lagx.comp <- left_join(obs.ccm.y_x.lag0.state.tab,obs.ccm.y_x.lagx.state.tab,
+                                by=c("troph","state.metric","FD.metric"),.groups = "rowwise",
+                                suffix = c("_lag0","_lagx")) %>%
+  dplyr::select(-c(mean.cor_lag0,mean.cor_lagx,cor.se_lag0,cor.se_lagx,nsig_lag0,nsig_lagx)) %>% 
+  group_by()%>% rowwise()%>%
+  dplyr::summarise(troph = troph,
+                   FD.metric = FD.metric,
+                   state.metric = state.metric,
+                   cor_lag0 = median.cor_lag0,
+                   cor_lagx =median.cor_lagx,
+                   diff.cor = (median.cor_lagx-median.cor_lag0),
+                   prop.sig_lag0 = prop.sig_lag0,
+                   prop.sig_lagx =prop.sig_lagx,
+                   diff.prop.sig = (prop.sig_lagx-prop.sig_lag0))
+
+## Plots ##
+
 pdf(file="Results/ccm/summary_ccm_r0.pdf",
     width=8, height = 5)  
 plag0.fin <- ggplot(filter(summary.ccm,measure %in% "r0.skill"),
@@ -938,58 +996,12 @@ pccm.lagx.fin <- pccm.lagx.2 + pccm.lagx.3 +plot_layout(nrow = 2,guides = "colle
 pccm.lagx.fin
 dev.off()
 
-## Proportion of forward vs reverse signficant cross maps ##
-ccm.lag0.comp <- summary.ccm %>%
-  filter(measure == "r0.skill")%>%  
-  mutate(forward = ifelse(y_x.sig == "*" & x_y.sig != "*",TRUE,FALSE),
-         reverse = ifelse(x_y.sig == "*" & y_x.sig != "*",TRUE,FALSE),
-         bidirec =  ifelse(x_y.sig == "*" & y_x.sig == "*",TRUE,FALSE),
-         none =  ifelse(x_y.sig != "*" & y_x.sig != "*",TRUE,FALSE),
-         diff.lag = filter(summary.ccm,measure == "t.max.skill")$x_y.obs_value - filter(summary.ccm,measure == "t.max.skill")$y_x.obs_value)%>%
-  group_by(troph,FD.metric,state.metric) %>%
-  summarise(prop.forward=sum(forward == TRUE)/length(forward),
-            prop.reverse=sum(reverse == TRUE)/length(reverse),
-            prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
-            prop.none=sum(none == TRUE)/length(none),
-             mean.lag = mean(diff.lag))
-  # mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
-  #                       ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
-  # mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
-  #                         ifelse(FD.metric %in% "FEve",1.2,1.1)))
-write.csv(ccm.lag0.comp,file ="Results/ccm/ccm_tables/skill.comp.lag0.state.tab.csv",row.names = F)
-ccm.lag0.comp <- read.csv("Results/ccm/ccm_tables/skill.comp.lag0.state.tab.csv")
+## Combo summary figure ##
+pdf(file="Results/ccm/summary_ccm_combo.pdf",
+    width=15, height = 6)  
+plag0.fin + pccm.lagx.fin + 
+  patchwork::plot_layout(ncol = 2,nrow = 1, guides = "collect") +
+  plot_annotation(tag_levels = c('a',1)) & 
+  theme(plot.tag = element_text(face = "bold"))
+dev.off()
 
-ccm.lagx.comp <- summary.ccm %>%
-  filter(measure == "max.skill")%>%  
-  mutate(forward = ifelse(y_x.sig == "*" & x_y.sig != "*",TRUE,FALSE),
-         reverse = ifelse(x_y.sig == "*" & y_x.sig != "*",TRUE,FALSE),
-         bidirec =  ifelse(x_y.sig == "*" & y_x.sig == "*",TRUE,FALSE),
-         none =  ifelse(x_y.sig != "*" & y_x.sig != "*",TRUE,FALSE),
-         diff.lag = filter(summary.ccm,measure == "t.max.skill")$x_y.obs_value - filter(summary.ccm,measure == "t.max.skill")$y_x.obs_value)%>%
-  group_by(troph,FD.metric,state.metric) %>%
-  summarise(prop.forward=sum(forward == TRUE)/length(forward),
-            prop.reverse=sum(reverse == TRUE)/length(reverse),
-            prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
-            prop.none=sum(none == TRUE)/length(none),
-            mean.lag = mean(diff.lag))
-  # mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
-  #    ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
-  # mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
-  #                       ifelse(FD.metric %in% "FEve",1.2,1.1)))
-write.csv(ccm.lagx.comp,file ="Results/ccm/ccm_tables/skill.comp.lagx.state.tab.csv",row.names = F)
-ccm.lagx.comp <- read.csv("Results/ccm/ccm_tables/skill.comp.lagx.state.tab.csv")
-
-ccm.lag0.lagx.comp <- left_join(obs.ccm.y_x.lag0.state.tab,obs.ccm.y_x.lagx.state.tab,
-                            by=c("troph","state.metric","FD.metric"),.groups = "rowwise",
-                            suffix = c("_lag0","_lagx")) %>%
-  dplyr::select(-c(mean.cor_lag0,mean.cor_lagx,cor.se_lag0,cor.se_lagx,nsig_lag0,nsig_lagx)) %>% 
-  group_by()%>% rowwise()%>%
-  dplyr::summarise(troph = troph,
-                   FD.metric = FD.metric,
-                   state.metric = state.metric,
-                   cor_lag0 = median.cor_lag0,
-                   cor_lagx =median.cor_lagx,
-                   diff.cor = (median.cor_lagx-median.cor_lag0),
-                   prop.sig_lag0 = prop.sig_lag0,
-                   prop.sig_lagx =prop.sig_lagx,
-                   diff.prop.sig = (prop.sig_lagx-prop.sig_lag0))
