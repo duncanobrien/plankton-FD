@@ -66,7 +66,7 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
     rEDM::ccm(sub.dat[,c(2,3)], E = simplex_use, lib_sizes = floor(nrow(sub.dat)*0.75),  # single library size containing maximum information (as much of timeseries as possible)
         random_libs = FALSE, lib_column = paste(obs.params$lib_column[kk]), # lib_column = hypothesised causal variable
         target_column = paste(obs.params$target_column[kk]), # target_column = hypothesised response variable
-        tp = obs.params$tp[kk], silent = TRUE,	num_sample=1,RNGseed = 123)}) %>% # tp = lags to iterate over, num_sample for no repeats and RNGseed for reproducibility
+        exclusion_radius = 0,tp = obs.params$tp[kk], silent = TRUE,	num_sample=1,RNGseed = 123)}) %>% # tp = lags to iterate over, num_sample for no repeats and RNGseed for reproducibility
     data.table::rbindlist(use.names=FALSE)%>%
     rename("x_y" = 2, "y_x" = 3) # rename columns to generic x_y/y_x for downstream wrangling
   
@@ -106,7 +106,7 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F){
       rEDM::ccm(perm.df[,c(paste(c("perm",r),collapse = "_"),colnames(sub.dat)[3])], 
                 E = simplex_use, lib_sizes = floor(nrow(sub.dat)*0.75), 
           random_libs = FALSE, lib_column = paste(perm.params$lib_column[kk]), 
-          target_column = paste(perm.params$target_column[kk]), 
+          target_column = paste(perm.params$target_column[kk]), exclusion_radius = 0,
           tp = perm.params$tp[kk], silent = TRUE, num_sample=1,RNGseed = 123)}) %>%
       data.table::rbindlist(use.names=FALSE)%>%
       rename("x_y" = 2, "y_x" = 3) 

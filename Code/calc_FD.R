@@ -86,7 +86,7 @@ phyto.wind.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx
   mutate(across(c(lgth_1:col_T,n_fix:fila_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
-zoo.wind.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 2) %>%
+zoo.wind.traits.dat <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 2) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
@@ -94,7 +94,7 @@ zoo.wind.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 2)
   mutate(across(c(lgth_1:omniherb),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(rv_mech,f_mode),as.factor))
 
-phyto.kas.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 8) %>%
+phyto.kas.traits.dat <- readxl::read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet = 8)[,c(1:21)] %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   select(-c(Notes)) %>%
@@ -102,7 +102,7 @@ phyto.kas.traits.dat <- read_xlsx("Data/fuzzy_phytoplankton_traits.xlsx",sheet =
   mutate(across(c(lgth_1:col_T,n_fix:fila_T),as.numeric)) %>% #ensure numeric and not character
   mutate(across(c(mob,troph),as.factor))
 
-zoo.kas.traits.dat <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 5) %>%
+zoo.kas.traits.dat <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 5) %>%
   slice(-c(1)) %>%
   janitor::row_to_names(row_number = 1) %>%
   dplyr::select(-c(Notes)) %>%
@@ -153,13 +153,11 @@ phyto.wind.fuzFDs.mth <-tidyFD(phyto_env.windmthdata[,4:20], phyto.wind.traits.d
                                traittype = "fuzzy", method = FD_metrics, correction="cailliez")
 phyto.wind.fuzFDs.mth <- cbind(date = as.numeric(phyto_env.windmthdata$Date),phyto.wind.fuzFDs.mth)
 write.csv(phyto.wind.fuzFDs.mth,"Data/raw_FD/FD_wind_phyto_mth_raw.csv",row.names = FALSE)
-phyto.wind.fuzFDs.mth <- read.csv("Data/raw_FD/FD_wind_phyto_mth_raw.csv")
 
 phyto.wind.fuzFDs.yr <-tidyFD(phyto_env.windyrdata[,2:18], phyto.wind.traits.dat, trophic.lvl = "phyto",
                               traittype = "fuzzy", method = FD_metrics, correction="cailliez")
 phyto.wind.fuzFDs.yr <- cbind(date = as.numeric(phyto_env.windyrdata$Date),phyto.wind.fuzFDs.yr)
 write.csv(phyto.wind.fuzFDs.yr,"Data/raw_FD/FD_wind_phyto_yr_raw.csv",row.names = FALSE)
-phyto.wind.fuzFDs.yr <- read.csv("Data/raw_FD/FD_wind_phyto_yr_raw.csv")
 
 # Kasumigaura #
 

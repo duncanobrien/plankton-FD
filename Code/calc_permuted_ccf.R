@@ -620,11 +620,11 @@ count.ccf.absmax.dat <- filter(summary.ccf.mth1,measure %in% "absmax.ccf") %>%
 ccf.lag1 <- ggplot(filter(summary.ccf.mth1,measure %in% "absmax.ccf"),
                    aes(x=state.metric,y=obs.value,col=FD.metric))+
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
-  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,alpha=sig,fill=FD.metric,group=FD.metric),size=3.5)+
   geom_point(position=position_dodge(width=0.75),
              aes(shape=system,fill=NULL,group=FD.metric),size=3.5) +
+  geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric")+
@@ -675,7 +675,7 @@ ccf.lag2 <- ggplot(filter(summary.ccf.mth1,measure %in% "t.absmax.ccf") %>%
     aes(x=state.metric,y=obs.value,col = FD.metric)) + 
   geom_hline(yintercept = 0,col="black",alpha = 0.3)+
   scale_y_binned(breaks = c(seq(60,24,-12),12,seq(-12,-60,-12)),show.limits = T)+
-  geom_tile(data = expand_grid(c(seq(60,24,-12),12,seq(-12,-60,-12)),unique(summary.ccm$FD.metric),unique(summary.ccm$state.metric),unique(summary.ccm$troph)) %>%
+  geom_tile(data = expand_grid(c(seq(60,24,-12),12,seq(-12,-60,-12)),unique(summary.ccf.mth1$FD.metric),unique(summary.ccf.mth1$state.metric),unique(summary.ccf.mth1$troph)) %>%
               magrittr::set_colnames(c("obs.value","FD.metric","state.metric","troph")),
             aes(group = FD.metric),fill = "white",stat="identity",position = position_dodge(width = 0.75), col = "black", size = 0.3,width = 0.8, height = 0.9)+
   geom_point(position=position_jitterdodge(dodge.width=0.75,jitter.height = 0.2,jitter.width = 0,seed = 5),
@@ -719,23 +719,23 @@ dev.off()
 ###########################################################################
 summary.ccf.mth1 <- read.csv("Results/ccf/raw_data/summary.ccf.mth.lag1.csv")
 
-obs.cor.lag0.lake.tab <- summary.ccf.mth1 %>%
-            filter(measure %in% "r0.ccf")%>%
-            group_by(system,troph) %>%
-            summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
-                      cor.se = sd(obs.value)/n(),
-              nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-            mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
-write.csv(obs.cor.lag0.lake.tab,file ="Results/ccf/ccf_tables/cor.lag0.lake.tab.csv",row.names = F)
-
-obs.cor.lag0.FD.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% "r0.ccf")%>%
-  group_by(troph,FD.metric) %>% 
-  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
-            cor.se = sd(obs.value)/n(),
-            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
-write.csv(obs.cor.lag0.FD.tab,file ="Results/ccf/ccf_tables/cor.lag0.FD.tab.csv",row.names = F)
+# obs.cor.lag0.lake.tab <- summary.ccf.mth1 %>%
+#             filter(measure %in% "r0.ccf")%>%
+#             group_by(system,troph) %>%
+#             summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+#                       cor.se = sd(obs.value)/n(),
+#               nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+#             mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+# write.csv(obs.cor.lag0.lake.tab,file ="Results/ccf/ccf_tables/cor.lag0.lake.tab.csv",row.names = F)
+# 
+# obs.cor.lag0.FD.tab <- summary.ccf.mth1 %>%
+#   filter(measure %in% "r0.ccf")%>%
+#   group_by(troph,FD.metric) %>% 
+#   summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+#             cor.se = sd(obs.value)/n(),
+#             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+#   mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+# write.csv(obs.cor.lag0.FD.tab,file ="Results/ccf/ccf_tables/cor.lag0.FD.tab.csv",row.names = F)
 
 obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
   filter(measure %in% "r0.ccf")%>%
@@ -792,35 +792,35 @@ pccf.lag0.fin <- pccf.lag0.1 + geom_segment(data = layer_data(pccf.lag0.1, 1L),
 pccf.lag0.fin
 dev.off()
 
-obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
-  pivot_wider(names_from = measure,values_from = obs.value)%>%
-  ungroup()%>%
-  mutate(t.absmax.ccf=ifelse(is.numeric(absmax.ccf) & !is.na(t.absmax.ccf),t.absmax.ccf,
-                             dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
-  na.omit() %>%#drop duplicate rows
-  group_by(system,troph) %>%
-  summarise(mean.cor = mean(absmax.ccf),median.cor = median(absmax.ccf),
-            cor.se = sd(absmax.ccf)/n(), 
-            median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
-            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
-write.csv(obs.cor.lagx.lake.tab,file ="Results/ccf/ccf_tables/cor.lagx.lake.tab.csv",row.names = F)
-
-obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
-  filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
-  pivot_wider(names_from = measure,values_from = obs.value)%>%
-  ungroup()%>%
-  mutate(t.absmax.ccf=ifelse(is.numeric(absmax.ccf) & !is.na(t.absmax.ccf),t.absmax.ccf,
-                             dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
-  na.omit() %>%#drop duplicate rows
-  group_by(system,troph,FD.metric) %>%
-  summarise(mean.cor = mean(absmax.ccf),median.cor = median(absmax.ccf),
-            cor.se = sd(absmax.ccf)/n(), 
-            median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
-            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
-write.csv(obs.cor.lagx.FD.tab,file ="Results/ccf/ccf_tables/cor.lagx.FD.tab.csv",row.names = F)
+# obs.cor.lagx.lake.tab <- summary.ccf.mth1 %>%
+#   filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
+#   pivot_wider(names_from = measure,values_from = obs.value)%>%
+#   ungroup()%>%
+#   mutate(t.absmax.ccf=ifelse(is.numeric(absmax.ccf) & !is.na(t.absmax.ccf),t.absmax.ccf,
+#                              dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
+#   na.omit() %>%#drop duplicate rows
+#   group_by(system,troph) %>%
+#   summarise(mean.cor = mean(absmax.ccf),median.cor = median(absmax.ccf),
+#             cor.se = sd(absmax.ccf)/n(), 
+#             median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
+#             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+#   mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
+# write.csv(obs.cor.lagx.lake.tab,file ="Results/ccf/ccf_tables/cor.lagx.lake.tab.csv",row.names = F)
+# 
+# obs.cor.lagx.FD.tab <- summary.ccf.mth1 %>%
+#   filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
+#   pivot_wider(names_from = measure,values_from = obs.value)%>%
+#   ungroup()%>%
+#   mutate(t.absmax.ccf=ifelse(is.numeric(absmax.ccf) & !is.na(t.absmax.ccf),t.absmax.ccf,
+#                              dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
+#   na.omit() %>%#drop duplicate rows
+#   group_by(system,troph,FD.metric) %>%
+#   summarise(mean.cor = mean(absmax.ccf),median.cor = median(absmax.ccf),
+#             cor.se = sd(absmax.ccf)/n(), 
+#             median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
+#             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
+#   mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
+# write.csv(obs.cor.lagx.FD.tab,file ="Results/ccf/ccf_tables/cor.lagx.FD.tab.csv",row.names = F)
 
 obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
   dplyr::select(!c(quantile,median.perm.value,obs.difference,res))%>%
@@ -1805,6 +1805,53 @@ wind.phytomth.summary <- lapply(wind.phytomth, `[[`, 'summary')%>%
 wind.phytomth.raw <- lapply(wind.phytomth, `[[`, 'perm.dens')%>%
   data.table::rbindlist(idcol = "FD.metric")%>%
   mutate(system = "Windermere", res = "Month",troph = "Phytoplankton")
+
+wind.zoomth<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
+  pc <- suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
+                                       timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
+                                       iter = 10000,perm.method = "red.noise", lag=1,
+                                       diff=F,scale = T, normalise = F,span =12*5,identical.t = F,
+                                       comp.ts = all.system.states$wind.mth$community))
+  bio <-  suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "red.noise",lag=1,
+                                         diff=F,scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = log(all.system.states$wind.mth$density)))
+  fi <-  suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
+                                        timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
+                                        iter = 10000,perm.method = "red.noise",lag=1,
+                                        diff=F,scale = T, normalise = F,span =12*5,identical.t = F,
+                                        comp.ts = all.system.states$wind.mth$FI[12:288],
+                                        comp.ts.timedat = seq_along(all.system.states$wind.mth$date[12:288]),                                        
+                                        pre.diff = F))
+  mvi <-  suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
+                                         timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
+                                         iter = 10000,perm.method = "red.noise",lag=1,
+                                         diff=F,scale = T, normalise = F,span =12*5,identical.t = F,
+                                         comp.ts = all.system.states$wind.mth$mvi[12:288],
+                                         comp.ts.timedat =  seq_along(all.system.states$wind.mth$date)[12:288],
+                                         pre.diff  =F))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
+                                              timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
+                                              iter = 10000,perm.method = "red.noise",lag=1,
+                                              diff=F, scale = T, normalise = F,span =12*5,identical.t = F,
+                                              comp.ts = log(all.system.states$wind.mth$zp.ratio)))
+  
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
+  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
+                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  out <- list("summary" = out.val,"perm.dens" = out.dens) 
+  return(out)
+},mc.cores = 1)
+names(wind.zoomth) <- c("FDis","FEve","FRic")
+wind.zoomth.summary <- lapply(wind.zoomth, `[[`, 'summary')%>%
+  data.table::rbindlist(idcol = "FD.metric") %>% 
+  mutate(system = "Windermere", res = "Month",troph = "Zooplankton") %>%
+  mutate(sig = ifelse(is.na(obs.value) | obs.value == "NaN" | obs.difference == 0,"",
+                      ifelse(quantile >= 0.975 | quantile <= 0.025,"*","")))
+wind.zoomth.raw <- lapply(wind.zoomth, `[[`, 'perm.dens')%>%
+  data.table::rbindlist(idcol = "FD.metric")%>%
+  mutate(system = "Windermere", res = "Month",troph = "Zooplankton")
 
 ###########################################################################
 ## Save out (undiff) ##
