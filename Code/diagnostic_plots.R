@@ -43,6 +43,11 @@ kin.diff12 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.st
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>% # first difference for monthly data (xt = xt - xt-12)
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
+kin.resid <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
+  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+  
 mad.tot <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
@@ -60,6 +65,11 @@ mad.diff12 <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.st
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
+
+mad.resid <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
+  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
 
 LZ.tot <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
@@ -79,10 +89,15 @@ LZ.diff12 <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.stat
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
+LZ.resid <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
+  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+
 wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.wind.fuzFDs.mth[,"FDis"],zooFEve = zoo.wind.fuzFDs.mth[,"FEve"],zooFRic = zoo.wind.fuzFDs.mth[,"FRic"])%>%
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  # mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
+  #mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=1)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
 wind.diff1 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(9)])%>%
@@ -96,6 +111,11 @@ wind.diff12 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.s
   mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
+
+wind.resid <- cbind(phyto.wind.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.wind.fuzFDs.mth[,"FDis"],zooFEve = zoo.wind.fuzFDs.mth[,"FEve"],zooFRic = zoo.wind.fuzFDs.mth[,"FRic"])%>%
+  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
 
 kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
@@ -115,6 +135,10 @@ kas.diff12 <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.st
   mutate(across(-c(date,data.source,res),function(x){x - dplyr::lag(x,n=12)}))%>%
   mutate(across(-c(date,data.source,res),~scale(.x)))
 
+kas.resid <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
+  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
 
 # Merge lakes #
 all.lakes.gam <- rbind(kin.tot,LZ.tot,mad.tot,wind.tot,kas.tot)%>%
@@ -132,6 +156,13 @@ all.lakes.diff1 <- rbind(kin.diff1,LZ.diff1,mad.diff1,wind.diff1,kas.diff1)%>%
          metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD","Stress")))
 
 all.lakes.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12,kas.diff12)%>%
+  pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
+  mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
+                              ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD",
+                                     ifelse(metric %in% c("env"),"Stress", "State Metric"))),
+         metric.type = factor(metric.type,levels = c("State Metric","Phytoplankton FD","Zooplankton FD","Stress")))
+
+all.lakes.resid <- rbind(kin.resid,mad.resid,LZ.resid,wind.resid,kas.resid)%>%
   pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
   mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
                               ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD",
@@ -158,9 +189,14 @@ hist.undiff <- ggplot(all.lakes.gam %>% filter(metric.type != "State Metric" & m
   geom_histogram(bins = 50) + facet_grid(data.source~metric) + theme_bw() + 
   xlab("Scaled functional diversity value") + ylab("Count") + ggtitle("Undifferenced time series")
 
+hist.resid <- ggplot(all.lakes.resid %>% filter(metric.type != "State Metric" & metric.type != "Stress"),
+                      aes(x=value)) +  coord_cartesian(ylim= c(0,100))+
+  geom_histogram(bins = 50) + facet_grid(data.source~metric) + theme_bw() + 
+  xlab("Scaled functional diversity value") + ylab("Count") + ggtitle("Time series standardised residuals")
+
 pdf(file="Results/raw_visualisations/differenced_histograms.pdf",
     width=11, height = 7)
-ggpubr::ggarrange(hist.undiff,hist.diff1,hist.diff12,labels = c("a","b","c"))
+ggpubr::ggarrange(hist.undiff,hist.diff1,hist.diff12,hist.resid,labels = c("a","b","c","d"))
 dev.off()
 
 # Autocorrelation #
@@ -182,6 +218,14 @@ acf.diff1 <- rbind(kin.diff1,LZ.diff1,mad.diff1,wind.diff1,kas.diff1) %>%
   pivot_longer(-c(data.source,lag,ciline), names_to = "metric",values_to = "acf")
 
 acf.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12,kas.diff12) %>%
+  group_by(data.source) %>%
+  summarise(across(c(FDis:FRic,zooFDis:zooFRic), ~ acf(na.omit(.x),plot = F)$acf))%>%
+  #group_by(data.source) %>%
+  mutate(lag = seq_along(1:n()))%>% 
+  mutate(ciline = qnorm((1 - 0.95)/2)/sqrt(n())) %>%
+  pivot_longer(-c(data.source,lag,ciline), names_to = "metric",values_to = "acf")
+
+acf.resid <- rbind(kin.resid,mad.resid,LZ.resid,wind.resid,kas.resid) %>%
   group_by(data.source) %>%
   summarise(across(c(FDis:FRic,zooFDis:zooFRic), ~ acf(na.omit(.x),plot = F)$acf))%>%
   #group_by(data.source) %>%
@@ -215,8 +259,17 @@ acf.diff12.plot <- ggplot(acf.diff12,
     geom_hline(aes(yintercept = -ciline), linetype = 2, color = 'darkblue') +
   facet_grid(data.source~metric) + theme_bw() + 
     xlab("Lag") + ylab("ACF") + ggtitle("Twelfth differenced time series ACF")
-  
+
+acf.resid.plot <- ggplot(acf.resid,
+                          aes(x=lag,y=acf)) +  #coord_cartesian(ylim= c(0,100))+
+  geom_hline(aes(yintercept = 0)) +
+  geom_segment(mapping = aes(xend = lag, yend = 0))+
+  geom_hline(aes(yintercept = ciline), linetype = 2, color = 'darkblue') + 
+  geom_hline(aes(yintercept = -ciline), linetype = 2, color = 'darkblue') +
+  facet_grid(data.source~metric) + theme_bw() + 
+  xlab("Lag") + ylab("ACF") + ggtitle("Time series standardised residuals ACF")
+
 pdf(file="Results/raw_visualisations/differenced_autocorrelation.pdf",
     width=11, height = 7)
-ggpubr::ggarrange(acf.undiff.plot,acf.diff1.plot,acf.diff12.plot,labels = c("a","b","c"))
+ggpubr::ggarrange(acf.undiff.plot,acf.diff1.plot,acf.diff12.plot,acf.resid.plot,labels = c("a","b","c","d"))
 dev.off()

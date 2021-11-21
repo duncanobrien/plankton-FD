@@ -1,31 +1,27 @@
 ###########################################################################################
 ### diff.perm.ccf function ###
 ###########################################################################################
-#@ts = vector of functional diversity values
-#@timedat = vector of dates/time index
-#@span = number of time points to cross correlate and/or spatial permute across
+#@dat = matrix of data inputs. dat[,1] must be a numeric date vector,
+# dat[,2] is the hypothesised causal variable,
+# dat[,3] is the response variable of interest.
 #@iter = number of permutations
-#@comp.ts = vector of values to cross correlate against
-#@comp.ts.timedat = vector of dates/time index for the comparative time series
-#@diff = should both ts and comp.ts be differenced
-#@lag = how many time points should the differencing take place across
-#@pre.diff = is the comp.ts pre differenced?
+#@span = number of lag time points to cross map across
+#@return.raw = whether each cross skill at each lag should be returned
+#@detrend.method = "none", "diff" (differenced), "lm" (standardised residuals of a lm between causal variable and time)
+#@lag = if 'diff' detrending method selected, how many lags to difference over
 #@perm.method = which pseudo-randmomisation technique should be used:
-              # "spatial" (shuffling within temporal span),
-              # "arima" (residuals of ARIMA model),
-              # "red.noise" (red noise process using data mean, variance and autocorrelation coef) 
-              # or "replacement" (sample with replacement)
-#@scale = should both ts and comp.ts be centered to mean 0 and scaled to unit variance
-#@normalise = should both ts and comp.ts be normalised by ranking observations by their distribution
+# "spatial" (shuffling of observed data within temporal span),
+# "arima" (sampled from predictions of an ARIMA model),
+# "red.noise" (red noise process using data mean, variance and autocorrelation coef) 
+# or "replacement" (sampled from observed data with replacement)
 #@identical.t = for cross correlation, should the permuted correlation coefs be taken from the same optimal 
-              #lag as the observed (identical.t = T) or from the optimal lag of the permuted ts (identical.t = F)
+#lag as the observed (identical.t = T) or from the optimal lag of the permuted ts (identical.t = F)
 
 
-diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
-                          comp.ts,comp.ts.timedat = NULL,diff = T, 
-                          lag=12,pre.diff = F,
+diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
+                          lag=0, detrend.method = c("none","diff","lm"),
                           perm.method = c("spatial","arima","red.noise","replacement"),
-                          scale = F,normalise = F,identical.t = F){
+                          identical.t = F){
   
   require(fgpt) # spatial permutation
   require(foreach) # parallelable 'for' function
@@ -37,10 +33,6 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
   set.seed(123) 
   
   ## Necessary custom functions ##
-  comb <- function(...) {
-    mapply('rbind', ..., SIMPLIFY=FALSE)
-  } #combination function for 'foreach'
-  
   red.noise.ts <- function(ts,lag,length){
     x  <- rep(NA, length)
     ts <- rnorm(length,mean = mean(ts,na.rm=T),sd=sd(ts,na.rm=T))
@@ -58,59 +50,31 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
   
   perm.meth <- match.arg(perm.method)
   
-  if(any(is.na(ts))){
+  if(any(is.na(dat[,2]))){
     print("Warning: ts has missing values. NAs have been interpolated")
-    ts <- zoo::na.approx(ts,na.rm=F)
+    dat[,2] <- zoo::na.approx(dat[,2],na.rm=F)
   }
-  if(any(is.na(comp.ts))){
+  if(any(is.na(dat[,3]))){
     print("Warning: comp.ts has missing values. NAs have been interpolated")
-    comp.ts <- zoo::na.approx(comp.ts,na.rm=F)
+    dat[,3] <- zoo::na.approx(dat[,3],na.rm=F)
   }
   
-  if(isTRUE(diff)){
-    if(isFALSE(pre.diff)){
-      ts.diff <- diff(ts, lag = lag)
-      comp.diff <- diff(comp.ts, lag = lag)
-      
-    }else{
-      ts.diff <- diff(ts, lag = lag)
-      comp.diff <- comp.ts
-    }
+  if(detrend.method == "diff"){
+    sub.dat <- dat[(1+lag):nrow(dat),]
+    sub.dat[,2] <- base::diff(dat[,2], lag = lag)
+    sub.dat[,3] <- base::diff(dat[,3], lag = lag)
+  }else if(detrend.method == "lm"){
+    sub.dat <- dat
+    sub.dat[,2] <- residuals(lm(sub.dat[,2] ~ as.numeric(sub.dat[,1]),na.action=na.exclude))
+    sub.dat[,3] <- residuals(lm(sub.dat[,3] ~ as.numeric(sub.dat[,1]),na.action=na.exclude))
   }else{
-    ts.diff <- ts
-    comp.diff <- comp.ts
+    sub.dat <- dat
   }
-  ##normalise derivatives via quantiles
-  if(isTRUE(normalise)){
-    ts.diff.ecdf <- ecdf(ts.diff)
-    ts.diff <- ts.diff.ecdf(ts.diff)
-    comp.diff.ecdf <- ecdf(comp.diff)
-    comp.diff <- comp.diff.ecdf(comp.diff)
-  }else{
-    ts.diff <- ts.diff
-    comp.diff <- comp.diff
-  }
-  
-  
-  ##scale derivatives to mean zero and equal SD
-  if(isTRUE(scale)){
-    ts.diff <- c(scale(ts.diff))
-    comp.diff <- c(scale(comp.diff))
-  }else{
-    ts.diff <- ts.diff
-    comp.diff <- comp.diff
-  }
-  
-  #match timedat if not 1:1 (& drop comp.ts dates X in FD data)
-  if(!is.null(comp.ts.timedat)){
-    #ts.diff <- na.omit(ts.diff[(comp.ts.timedat-lag)])
-    ts.diff <- na.omit(ts.diff[(comp.ts.timedat)])
-  }
+  sub.dat <- na.omit(sub.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
   
   #calculate observed correlation
-  ccf.tmp <- ccf(ts.diff,comp.diff,lag.max = span,plot = F)
+  ccf.tmp <- ccf(sub.dat[,2],sub.dat[,3],lag.max = span,plot = F)
   ccf.tmp <- data.frame("lag" = ccf.tmp$lag,"acf" = ccf.tmp$acf)
-  
   
   ccf.obs <- data.frame("tmin" = ccf.tmp$lag[ccf.tmp$acf == min(ccf.tmp$acf,na.rm=TRUE)])
   ccf.obs$rmin <-  ccf.tmp$acf[ccf.tmp$lag == ccf.obs$tmin]
@@ -123,42 +87,31 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
   ## spatial autocorrelation based permutation
   if(perm.meth == "spatial"){
     ## Create permutation order
-    xy <- cbind(timedat,timedat) #temporal 'grid references' for spatial permutation
+    xy <- cbind(dat[,1],dat[,1]) #temporal 'grid references' for spatial permutation
     
-    perm.df <- fgpt::fgperm(xy,marks=ts, scale=span,  iter=iter, ratio=1, FUN=fgpt::fyshuffle, 
+    perm.df <- fgpt::fgperm(xy,marks=dat[,2], scale=span,  iter=iter, ratio=1, FUN=fgpt::fyshuffle, 
                             bootstrap = F, add.obs=F, as.matrix=F) #create semi-random order of indices
     
     ##loop through each permutation to cross correlate and extract optimal lag
-    tmp <- foreach::foreach(i = c(1:iter),.combine = "comb",.multicombine = T, .packages = c("mgcv","gratia","dplyr")) %dopar%{
+    tmp <- foreach::foreach(i = c(1:iter),.combine = "rbind",.multicombine = T, .packages = c("mgcv","gratia","dplyr")) %dopar%{
       
-      if(isTRUE(diff)){
-        ts.diff.perm <- diff(ts[perm.df[[i]]], lag = lag)
+      if(detrend.method == "diff"){
+        perm.dat <- dat[(1+lag):nrow(dat),]
+        perm.dat[,2] <- base::diff(dat[perm.df[[i]],2], lag = lag)
+        perm.dat[,3] <- base::diff(dat[,3], lag = lag)
+      }else if(detrend.method == "lm"){
+        perm.dat <- dat
+        perm.dat[,2] <- residuals(lm(perm.dat[perm.df[[i]],2] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
       }else{
-        ts.diff.perm <- ts[perm.df[[i]]]
+        perm.dat <- dat
+        perm.dat[,2] <- dat[perm.df[[i]],2]
       }
+      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
       
-      ##normalise derivatives via quantiles
-      if(isTRUE(normalise)){
-        ts.diff.perm.ecdf <- ecdf(ts.diff.perm)
-        ts.diff.perm <- ts.diff.perm.ecdf(ts.diff.perm)
-      }else{
-        ts.diff.perm <- ts.diff.perm
-      }
-      ##scale derivatives to mean zero and equal SD
-      if(isTRUE(scale)){
-        ts.diff.perm <- c(scale(ts.diff.perm))
-      }else{
-        ts.diff.perm <- ts.diff.perm
-      }
-      
-      
-      #match timedat if not 1:1
-      if(!is.null(comp.ts.timedat)){
-        ts.diff.perm <- na.omit(ts.diff.perm[(comp.ts.timedat)])
-      }
       
       #calculate observed correlation
-      ccf.perm.tmp <- ccf(ts.diff.perm,comp.diff,lag.max = span,plot = F)
+      ccf.perm.tmp <- ccf(perm.dat[,2],perm.dat[,3],lag.max = span,plot = F)
       ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
       
       
@@ -187,11 +140,13 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
   ## ARIMA based permutation
   if(perm.meth == "arima"){
     ## Create permutation order
-    fit <- forecast::auto.arima(stats::as.ts(ts),allowdrift =TRUE,seasonal = T)
-    perm.df <- data.frame(date = timedat[,1],
-                          pred = fitted(fit),
-                          upr = fitted(fit) + 1.96*sqrt(fit$sigma2),
-                          lwr = fitted(fit) - 1.96*sqrt(fit$sigma2))
+    fit <- forecast::auto.arima(stats::as.ts(dat[,2]),allowdrift =TRUE,seasonal = T)
+    perm.df <- data.frame("date" = as.numeric(dat[,1]),
+                          "pred" = fitted(fit),
+                          "upr" = fitted(fit) + 1.96*sqrt(fit$sigma2),
+                          "lwr" = fitted(fit) - 1.96*sqrt(fit$sigma2)) %>%
+      stats::setNames(c("date","pred","upr","lwr"))
+    
     for (perm in c(1:iter)) { # for each permutation randomly sample from confidence interval at each time point
       new_col_name <- paste0("perm_", perm) # new column and colname for each permutation
       perm.df <- perm.df %>% 
@@ -201,36 +156,26 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
     }
     
     ##loop through each permutation to cross correlate and extract optimal lag
-    tmp <- foreach::foreach(i = 1:iter,.combine = "comb",.multicombine = T, .packages = c("dplyr")) %dopar%{     
-      if(span>=12){ # first difference (seasonal)
-        ts.diff.perm <- as.numeric(base::diff(as.ts(perm.df[,paste("perm",i,sep = "_")]), lag = 12)) #as.ts required due to finicky tibble interactions with diff
-      }else{ #first difference (yearly)
-        ts.diff.perm <- as.numeric(diff(as.ts(perm.df[,paste("perm",i,sep = "_")]), lag = 1))
-      }
+    tmp <- foreach::foreach(i = 1:iter,.combine = "rbind",.multicombine = T, .packages = c("dplyr")) %dopar%{     
       
-      ##normalise derivatives via quantiles
-      if(isTRUE(normalise)){
-        ts.diff.perm.ecdf <- ecdf(ts.diff.perm)
-        ts.diff.perm <- ts.diff.perm.ecdf(ts.diff.perm)
+      if(detrend.method == "diff"){
+        perm.dat <- dat[(1+lag):nrow(dat),]
+        perm.dat[,2] <- base::diff(perm.df[,paste("perm",i,sep = "_")], lag = lag)
+        perm.dat[,3] <- base::diff(dat[,3], lag = lag)
+      }else if(detrend.method == "lm"){
+        perm.dat <- dat
+        perm.dat[,2] <- residuals(lm(perm.df[,paste("perm",i,sep = "_")] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
       }else{
-        ts.diff.perm <- ts.diff.perm
+        perm.dat <- dat
+        perm.dat[,2] <- perm.df[,paste("perm",i,sep = "_")]
       }
-      ##scale derivatives to mean zero and equal SD
-      if(isTRUE(scale)){
-        ts.diff.perm <- c(scale(ts.diff.perm))
-      }else{
-        ts.diff.perm <- ts.diff.perm
-      }
+      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
+      
       
       #calculate observed correlation
-      if(monthly == T){
-        ccf.perm.tmp <- ccf(ts.diff.perm,comp.diff,lag.max = 12*5,plot = F)
-        ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
-        
-      }else{
-        ccf.perm.tmp <- ccf(ts.diff.perm,comp.diff,lag.max = 5,plot = F)
-        ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
-      }
+      ccf.perm.tmp <- ccf(perm.dat[,2],perm.dat[,3],lag.max = span,plot = F)
+      ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
       
       ccf.perm.obs <- data.frame("tmin" =ccf.obs$tmin) #match observed tmin/tmax for comparison
       ccf.perm.obs$rmin <-  ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$tmin]
@@ -249,47 +194,38 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
     ## Create permutation order
     # fit ar1 model to ts and extract autocorrelation coefficient
     if(span>=12){
-      d1.ar1 <- stats::arima(stats::as.ts(ts), order = c(1, 0, 0),
+      d1.ar1 <- stats::arima(stats::as.ts(dat[,2]), order = c(1, 0, 0),
                              seasonal = list(order = c(1, 0, 0), period = 12),
                              optim.control = list(maxit = 1000),method="ML")$coef[1]
     }else{
-      d1.ar1 <- stats::arima(stats::as.ts(ts), order = c(1, 0, 0),optim.control = list(maxit = 1000),method="ML")$coef[1]
+      d1.ar1 <- stats::arima(stats::as.ts(dat[,2]), order = c(1, 0, 0),optim.control = list(maxit = 1000),method="ML")$coef[1]
     }
     
-    perm.df <- matrix(NA,nrow=length(timedat),ncol=iter)
+    perm.df <- matrix(NA,nrow=length(dat[,3]),ncol=iter)
     
     for (r in seq_len(iter)) {
-      perm.df[,r] <- red.noise.ts(ts,lag=d1.ar1,length=length(timedat)) #permuted autocorrelated surrogates
+      perm.df[,r] <- red.noise.ts(dat[,2],lag=d1.ar1,length=nrow(dat)) #permuted autocorrelated surrogates
     }  
     
     ##loop through each permutation to cross correlate and extract optimal lag
-    tmp <- foreach::foreach(i = 1:iter,.combine = "comb",.multicombine = T, .packages = c("dplyr")) %dopar%{
-      if(isTRUE(diff)){
-        ts.diff.perm <- diff(perm.df[,i], lag = lag)
-      }else{
-        ts.diff.perm <- perm.df[,i]
-      }
-      ##normalise derivatives via quantiles
-      if(isTRUE(normalise)){
-        ts.diff.perm.ecdf <- ecdf(ts.diff.perm)
-        ts.diff.perm <- ts.diff.perm.ecdf(ts.diff.perm)
-      }else{
-        ts.diff.perm <- ts.diff.perm
-      }
-      ##scale derivatives to mean zero and equal SD
-      if(isTRUE(scale)){
-        ts.diff.perm <- c(scale(ts.diff.perm))
-      }else{
-        ts.diff.perm <- ts.diff.perm
-      }
+    tmp <- foreach::foreach(i = 1:iter,.combine = "rbind",.multicombine = T, .packages = c("dplyr")) %dopar%{
       
-      #match timedat if not 1:1
-      if(!is.null(comp.ts.timedat)){
-        ts.diff.perm <- na.omit(ts.diff.perm[(comp.ts.timedat)])
+      if(detrend.method == "diff"){
+        perm.dat <- dat[(1+lag):nrow(dat),]
+        perm.dat[,2] <- base::diff(perm.df[,i], lag = lag)
+        perm.dat[,3] <- base::diff(dat[,3], lag = lag)
+      }else if(detrend.method == "lm"){
+        perm.dat <- dat
+        perm.dat[,2] <- residuals(lm(perm.df[,i] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+      }else{
+        perm.dat <- dat
+        perm.dat[,2] <- perm.df[,i]
       }
+      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
       
       #calculate observed correlation
-      ccf.perm.tmp <- ccf(ts.diff.perm,comp.diff,lag.max = span,plot = F)
+      ccf.perm.tmp <- ccf(perm.dat[,2],perm.dat[,3],lag.max = span,plot = F)
       ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
       
       if(isTRUE(identical.t)){
@@ -317,43 +253,32 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
   ## resample with replacement
   if(perm.meth == "replacement"){
     ## Create permutation order
-    perm.df <- data.frame(date = timedat,
-                          ts=ts)
+    perm.df <- data.frame(date = dat[,1],
+                          ts=dat[,2])
     for (perm in c(1:iter)) { # for each permutation randomly sample from ts with replacement at each time point
       new_col_name <- paste0("perm_", perm) # new column and colname for each permutation
       perm.df <- perm.df %>% 
-        mutate(!!sym(new_col_name) :=sample(x = ts,replace = TRUE,size = length(ts)))
+        mutate(!!sym(new_col_name) :=sample(x = dat[,2],replace = TRUE,size = nrow(dat)))
     }
-    tmp <- foreach::foreach(i = 1:iter,.combine = "comb",.multicombine = T, .packages = c("dplyr")) %dopar%{     
+    
+    tmp <- foreach::foreach(i = 1:iter,.combine = "rbind",.multicombine = T, .packages = c("dplyr")) %dopar%{     
       
-      if(isTRUE(diff)){ 
-        ts.diff.perm <- diff(perm.df[,paste("perm",i,sep = "_")], lag = lag)
-      }else{ 
-        ts.diff.perm <- perm.df[,paste("perm",i,sep = "_")]
-      }
-      
-      ##normalise derivatives via quantiles
-      if(isTRUE(normalise)){
-        ts.diff.perm.ecdf <- ecdf(ts.diff.perm)
-        ts.diff.perm <- ts.diff.perm.ecdf(ts.diff.perm)
+      if(detrend.method == "diff"){
+        perm.dat <- dat[(1+lag):nrow(dat),]
+        perm.dat[,2] <- base::diff(perm.df[,paste("perm",i,sep = "_")], lag = lag)
+        perm.dat[,3] <- base::diff(dat[,3], lag = lag)
+      }else if(detrend.method == "lm"){
+        perm.dat <- dat
+        perm.dat[,2] <- residuals(lm(perm.df[,paste("perm",i,sep = "_")] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
       }else{
-        ts.diff.perm <- ts.diff.perm
+        perm.dat <- dat
+        perm.dat[,2] <- perm.df[,paste("perm",i,sep = "_")]
       }
-      ##scale derivatives to mean zero and equal SD
-      if(isTRUE(scale)){
-        ts.diff.perm <- c(scale(ts.diff.perm))
-      }else{
-        ts.diff.perm <- ts.diff.perm
-      }
+      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
       
-      
-      #match timedat if not 1:1
-      if(!is.null(comp.ts.timedat)){
-        ts.diff.perm <- na.omit(ts.diff.perm[(comp.ts.timedat)])
-      }
-      
-      #calculate observed correlation
-      ccf.perm.tmp <- ccf(ts.diff.perm,comp.diff,lag.max = span,plot = F)
+      #calculate permuted correlation
+      ccf.perm.tmp <- ccf(perm.dat[,2],perm.dat[,3],lag.max = span,plot = F)
       ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
       
       if(isTRUE(identical.t)){
@@ -378,6 +303,7 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
       return(ccf.perm.obs)
     }
   }
+  
   parallel::stopCluster(cl)
   
   out <- matrix(NA,nrow = 7,ncol=5) #using permuted metrics, estimate permuted median and quantile of observed data
@@ -389,8 +315,6 @@ diff.perm.ccf <- function(ts, timedat, span = 12*5, iter = 999,
   out[5,] <- c("r0.ccf",ecdf(tmp$r0)(ccf.obs$r0),ccf.obs$r0,median(tmp$r0),ccf.obs$r0 - median(tmp$r0))
   out[6,] <- c("absmax.ccf",ecdf(tmp$abs.rmax)(ccf.obs$abs.rmax),ccf.obs$abs.rmax,median(tmp$abs.rmax),ccf.obs$abs.rmax - median(tmp$abs.rmax))
   out[7,] <- c("t.absmax.ccf",ecdf(tmp$t.absmax)(ccf.obs$t.absmax),ccf.obs$t.absmax,median(tmp$t.absmax),ccf.obs$t.absmax - median(tmp$t.absmax))
-  
-  
   
   out <- data.frame(out) %>% 
     stats::setNames(c("measure","quantile","obs.value","median.perm.value","obs.difference")) %>%

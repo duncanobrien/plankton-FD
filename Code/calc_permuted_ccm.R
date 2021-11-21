@@ -61,16 +61,21 @@ kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.state
 ## Kinneret CCM ##
 
 kin.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
-                                       iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"community")],
-                                    iter = 500,span =12*5,return.raw = T))
+  bio <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
+                                       iter = 500,span =12*5,return.raw = T,
+                                       detrend.method = "none"))
+  pc <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"community")],
+                                    iter = 500,span =12*5,return.raw = T,
+                                    detrend.method = "lm"))
   fi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"FI")],
-                                   iter = 500,span =12*5,return.raw = T))
+                                   iter = 500,span =12*5,return.raw = T,
+                                   detrend.method = "lm"))
   mvi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"mvi")],
-                                    iter = 500,span =12*5,return.raw = T))
+                                    iter = 500,span =12*5,return.raw = T,
+                                    detrend.method = "lm"))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
-                                         iter = 500,span =12*5,return.raw = T))
+                                         iter = 500,span =12*5,return.raw = T,
+                                         detrend.method = "lm"))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   # extract the observed correlation coefs for FD vs each system state
@@ -101,9 +106,9 @@ kin.phytomth.ccm.lag <- lapply(kin.phytomth.ccm, `[[`, 'raw.obs')%>% # extract s
   mutate(system = "Kinneret", res = "Month",troph = "Phytoplankton")# specify metadata for future plotting
 
 kin.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))
@@ -150,9 +155,9 @@ kin.lag.ccm <- read.csv(file ="Results/ccm/raw_data/kin_ccm_lag.csv")
 ## Mendota CCM ##
 
 mad.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))
@@ -185,9 +190,9 @@ mad.phytomth.ccm.lag <- lapply(mad.phytomth.ccm, `[[`, 'raw.obs')%>%
   mutate(system = "Mendota", res = "Month",troph = "Phytoplankton")
 
 mad.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))
@@ -233,9 +238,9 @@ mad.lag.ccm <- read.csv(file ="Results/ccm/raw_data/mad_ccm_lag.csv")
 ## Lower Zurich CCM ##
 
 LZ.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))
@@ -268,9 +273,9 @@ LZ.phytomth.ccm.lag <- lapply(LZ.phytomth.ccm, `[[`, 'raw.obs')%>%
   mutate(system = "Lower Zurich", res = "Month",troph = "Phytoplankton")
 
 LZ.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))
@@ -316,9 +321,9 @@ LZ.lag.ccm <- read.csv(file ="Results/ccm/raw_data/LZ_ccm_lag.csv")
 ## Windermere CCM ##
 
 wind.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))
@@ -351,9 +356,9 @@ wind.phytomth.ccm.lag <- lapply(wind.phytomth.ccm, `[[`, 'raw.obs')%>%
   mutate(system = "Windermere", res = "Month",troph = "Phytoplankton")
 
 wind.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))
@@ -399,9 +404,9 @@ wind.lag.ccm <- read.csv(file ="Results/ccm/raw_data/wind_ccm_lag.csv")
 ## Kasumigaura CCM ##
 
 kas.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))
@@ -434,9 +439,9 @@ kas.phytomth.ccm.lag <- lapply(kas.phytomth.ccm, `[[`, 'raw.obs')%>%
   mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton")
 
 kas.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
-  pc <- suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"density")],
+  bio <- suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"density")],
                                   iter = 500,span =12*5,return.raw = T))
-  bio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"community")],
+  pc <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"FI")],
                                    iter = 500,span =12*5,return.raw = T))

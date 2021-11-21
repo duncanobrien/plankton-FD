@@ -24,13 +24,40 @@ zoo.kas.fuzFDs.mth <- read.csv("Data/raw_FD/FD_kas_zoo_mth_raw.csv")
 load("Data/all.system.states.RData")
 
 ###########################################################################
+## Raw FD Prep ##
+###########################################################################
+
+kin.tot <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>% # log density, mvi and zo.ration to linearise
+  mutate(across(-c(date,data.source,res),~scale(.x))) # center and scale to unit variance for plotting
+
+mad.tot <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+LZ.tot <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.wind.fuzFDs.mth[,"FDis"],zooFEve = zoo.wind.fuzFDs.mth[,"FEve"],zooFRic = zoo.wind.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
+  mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x)))
+
+
+###########################################################################
 ## Estimate cross correlation and permute (Lag1, Monthly) ##
 ###########################################################################
 # repeated 'diff.perm.ccf' function specified as @iter = 10000, @perm.method = "red.noise",
-# @scale = T, @normalise = F, @span =12*5, @identical.t = F, @diff=T and 
-# @lag=1.
-# If @comp.ts = FI or mvi, these comp.ts are pre-differenced due to the rolling window 
-# approach complicating the generic nature of the 'diff.perm.ccf' function
+# @detrend.method = "diff", @span =12*5, @identical.t = F, and @lag=1.
 # Results in two dataframes:
 # $summary = observed absolute max correlation coef and the corresponding lag, observed correlation at lag0 and summary statistics
 # $perm.dens = all permutations absolute max correlation coef and the corresponding lag plus the correlation at lag0
@@ -38,50 +65,36 @@ load("Data/all.system.states.RData")
 # Kinneret Phytoplankton and Zooplankton #
 
 kin.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = phyto.kin.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(phyto.kin.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", 
-                                       scale = T, normalise = F,span =12*5, identical.t = F,
-                                       diff=T,lag=1,
-                                       comp.ts = all.system.states$kin.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = phyto.kin.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.kin.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         diff=T,lag=1,
-                                         comp.ts = log(all.system.states$kin.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = phyto.kin.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(phyto.kin.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        diff=T,lag=1,
-                                        comp.ts = base::diff(all.system.states$kin.mth$FI[12:552],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$kin.mth$maxt[13:552]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.kin.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.kin.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         diff=T,lag=1,
-                                         comp.ts = base::diff(log(all.system.states$kin.mth$mvi)[12:552],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$kin.mth$maxt[13:552]),
-                                         pre.diff =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.kin.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(phyto.kin.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              diff=T,lag=1,
-                                              comp.ts = log(all.system.states$kin.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
+  pc <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   # extract the observed correlation coefs for FD vs each system state
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   # extract all permuted correlation coefs for FD vs each system state
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1) 
-# only single core specified as 'diff.perm.ccf' already paralled within the function. 
+# only single core specified as 'ccm.perm' already paralled within the function. 
 # Provides opportunity for further parallelisation if desired
 names(kin.phytomth.diff) <- c("FDis","FEve","FRic") # name list elements
 kin.phytomth.diff.summary <- lapply(kin.phytomth.diff, `[[`, 'summary')%>% # extract second level list elements (i.e. 'summary')
@@ -93,40 +106,31 @@ kin.phytomth.diff.raw <- lapply(kin.phytomth.diff, `[[`, 'perm.dens')%>% # extra
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Phytoplankton") # specify metadata for future plotting
 
-kin.zoomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = zoo.kin.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(zoo.kin.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$kin.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = zoo.kin.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.kin.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$kin.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = zoo.kin.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(zoo.kin.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$kin.mth$FI[12:552],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$kin.mth$maxt[13:552]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = zoo.kin.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.kin.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$kin.mth$mvi)[12:552],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$kin.mth$maxt[13:552]),
-                                         pre.diff =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = zoo.kin.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(zoo.kin.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$kin.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+kin.zoomth.diff<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
@@ -143,39 +147,30 @@ kin.zoomth.diff.raw <- lapply(kin.zoomth.diff, `[[`, 'perm.dens')%>%
 # Mendota Phytoplankton and Zooplankton #
 
 mad.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = phyto.mad.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(phyto.mad.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$mad.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = phyto.mad.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.mad.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$mad.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = phyto.mad.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(phyto.mad.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$mad.mth$FI,lag=1)[12:283],
-                                        comp.ts.timedat = seq_along(all.system.states$mad.mth$maxt[13:283]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.mad.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.mad.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$mad.mth$mvi),lag=1)[12:283],
-                                         comp.ts.timedat = seq_along(all.system.states$mad.mth$maxt[13:283]),
-                                         pre.diff  =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.mad.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(phyto.mad.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$mad.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  pc <-  suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
@@ -189,40 +184,31 @@ mad.phytomth.diff.raw <- lapply(mad.phytomth.diff, `[[`, 'perm.dens')%>%
   data.table::rbindlist(idcol = "FD.metric")%>%
   mutate(system = "Mendota", res = "Month",troph = "Phytoplankton")
 
-mad.zoomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = zoo.mad.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(zoo.mad.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$mad.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = zoo.mad.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.mad.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$mad.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = zoo.mad.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(zoo.mad.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$mad.mth$FI[12:283],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$mad.mth$maxt[13:283]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = zoo.mad.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.mad.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$mad.mth$mvi)[12:283],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$mad.mth$maxt[13:283]),
-                                         pre.diff =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = zoo.mad.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(zoo.mad.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$mad.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+mad.zoomth.diff<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <-  suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
@@ -239,39 +225,30 @@ mad.zoomth.diff.raw <- lapply(mad.zoomth.diff, `[[`, 'perm.dens')%>%
 # Lower Zurich Phytoplankton and Zooplankton #
 
 LZ.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = phyto.LZ.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(phyto.LZ.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$LZ.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = phyto.LZ.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.LZ.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$LZ.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = phyto.LZ.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(phyto.LZ.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$LZ.mth$FI[12:391],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$LZ.mth$maxt[13:391]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.LZ.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.LZ.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$LZ.mth$mvi)[12:391],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[13:391]),
-                                         pre.diff  =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.LZ.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(phyto.LZ.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$wind.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  pc <-  suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
@@ -285,40 +262,31 @@ LZ.phytomth.diff.raw <- lapply(LZ.phytomth.diff, `[[`, 'perm.dens')%>%
   data.table::rbindlist(idcol = "FD.metric")%>%
   mutate(system = "Lower Zurich", res = "Month",troph = "Phytoplankton")
 
-LZ.zoomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = zoo.LZ.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(zoo.LZ.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$LZ.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = zoo.LZ.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.LZ.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$LZ.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = zoo.LZ.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(zoo.LZ.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$LZ.mth$FI[12:391],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$LZ.mth$maxt[13:391]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = zoo.LZ.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.LZ.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$LZ.mth$mvi)[12:391],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$LZ.mth$maxt[13:391]),
-                                         pre.diff =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = zoo.LZ.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(zoo.LZ.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$LZ.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+LZ.zoomth.diff<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <-  suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = LZ.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
@@ -335,39 +303,30 @@ LZ.zoomth.diff.raw <- lapply(LZ.zoomth.diff, `[[`, 'perm.dens')%>%
 # Windermere Phytoplankton #
 
 wind.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$wind.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$wind.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$wind.mth$FI[12:288],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[13:288]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$wind.mth$mvi)[12:288],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[13:288]),
-                                         pre.diff  =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.wind.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(phyto.wind.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$wind.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  pc <-  suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
@@ -383,40 +342,31 @@ wind.phytomth.diff.raw <- lapply(wind.phytomth.diff, `[[`, 'perm.dens')%>%
 
 # Windermere Zooplankton #
 
-wind.zoomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$wind.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$wind.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$wind.mth$FI[12:288],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[13:288]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$wind.mth$mvi)[12:288],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$wind.mth$maxt[13:288]),
-                                         pre.diff  =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = zoo.wind.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(zoo.wind.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$wind.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+wind.zoomth.diff<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <-  suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = wind.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
@@ -433,39 +383,30 @@ wind.zoomth.diff.raw <- lapply(wind.zoomth.diff, `[[`, 'perm.dens')%>%
 # Kasumigaura Phytoplankton #
 
 kas.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$kas.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$kas.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$kas.mth$FI[12:452],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[13:452]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$kas.mth$mvi)[12:452],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[13:452]),
-                                         pre.diff  =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = phyto.kas.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(phyto.kas.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$kas.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+  pc <-  suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
@@ -481,40 +422,31 @@ kas.phytomth.diff.raw <- lapply(kas.phytomth.diff, `[[`, 'perm.dens')%>%
 
 # Kasumigaura Zooplankton #
 
-kas.zoomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
-  pc <- suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
-                                       timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
-                                       iter = 10000,perm.method = "red.noise", lag=1,
-                                       scale = T, normalise = F,span =12*5,identical.t = F,
-                                       comp.ts = all.system.states$kas.mth$community))
-  bio <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = log(all.system.states$kas.mth$density)))
-  fi <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
-                                        timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
-                                        iter = 10000,perm.method = "red.noise",lag=1,
-                                        scale = T, normalise = F,span =12*5,identical.t = F,
-                                        comp.ts = base::diff(all.system.states$kas.mth$FI[12:452],lag=1),
-                                        comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[13:452]),
-                                        pre.diff =T))
-  mvi <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
-                                         timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
-                                         iter = 10000,perm.method = "red.noise",lag=1,
-                                         scale = T, normalise = F,span =12*5,identical.t = F,
-                                         comp.ts = base::diff(log(all.system.states$kas.mth$mvi)[12:452],lag=1),
-                                         comp.ts.timedat = seq_along(all.system.states$kas.mth$maxt[13:452]),
-                                         pre.diff  =T))
-  zp.ratio <-  suppressWarnings(diff.perm.ccf(ts = zoo.kas.fuzFDs.mth[,paste(x)], 
-                                              timedat = as.numeric(zoo.kas.fuzFDs.mth$date),
-                                              iter = 10000,perm.method = "red.noise",lag=1,
-                                              scale = T, normalise = F,span =12*5,identical.t = F,
-                                              comp.ts = log(all.system.states$kas.mth$zp.ratio)))
-  
-  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),"state.metric" = c(rep("Community",7),rep("Density",7),rep("FI",7),rep("MVI",7),rep("Z_P.ratio",7)))
-  out.dens <- data.frame(rbind(as.data.frame(pc$perm.dens),as.data.frame(bio$perm.dens),as.data.frame(fi$perm.dens),as.data.frame(mvi$perm.dens),as.data.frame(zp.ratio$perm.dens)),
-                         "state.metric" = c(rep("Community",10000),rep("Density",10000),rep("FI",10000),rep("MVI",10000),rep("Z_P.ratio",10000)))
+kas.zoomth.diff<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
+  pc <-  suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"community")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  bio <- suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"density")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  fi <-  suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"FI")],
+                                        iter = 10000,span =12*5,lag=1,
+                                        perm.method = "red.noise",identical.t = F,
+                                        detrend.method = "lm"))
+  mvi <-  suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"mvi")],
+                                         iter = 10000,span =12*5,lag=1,
+                                         perm.method = "red.noise",identical.t = F,
+                                         detrend.method = "lm"))
+  zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = kas.tot[,c("date",paste(x),"zp.ratio")],
+                                              iter = 10000,span =12*5,lag=1,
+                                              perm.method = "red.noise",identical.t = F,
+                                              detrend.method = "lm"))
+  out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
+                        "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
+  out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
+                         "state.metric" = c(rep("Community",nrow(pc$perm.dens)),rep("Density",nrow(bio$perm.dens)),rep("FI",nrow(fi$perm.dens)),rep("MVI",nrow(mvi$perm.dens)),rep("Z_P.ratio",nrow(zp.ratio$perm.dens))))
   out <- list("summary" = out.val,"perm.dens" = out.dens) 
   return(out)
 },mc.cores = 1)
