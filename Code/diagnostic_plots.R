@@ -167,8 +167,7 @@ kas.resid <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.sta
    # mutate(across(-c(date,data.source,res),function(.x){
    #   as.numeric(residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)) - 
    #     decompose(ts(.x,frequency = 12))$seasonal)})) #standardised residuals
-  mutate(across(-c(date,data.source,res),function(.x){
-               as.numeric(decompose(ts(.x,frequency = 12))$seasonal)}))
+  
  #mutate(across(-c(date,data.source,res),~pracma::detrend(.x))) #pracma linear detrend
 
 plot(decompose(ts(kin.tot$FDis,frequency = 12)))
