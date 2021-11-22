@@ -104,9 +104,9 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
       }else if(detrend.method == "lm"){
         perm.dat <- dat
         perm.dat[,2] <- residuals(lm(perm.dat[perm.df[[i]],2] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
-         decompose(ts(perm.dat[perm.df[[i]],2],frequency = 12))$seasonal
+         decompose(ts(perm.dat[perm.df[[i]],2],frequency = 12))$seasonal #extract linear model residuals and subtract seasonal component
         perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
-          decompose(ts(perm.dat[,3],frequency = 12))$seasonal
+          decompose(ts(perm.dat[,3],frequency = 12))$seasonal #extract linear model residuals and subtract seasonal component
       }else{
         perm.dat <- dat
         perm.dat[,2] <- dat[perm.df[[i]],2]
