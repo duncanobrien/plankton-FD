@@ -45,8 +45,13 @@ kin.diff12 <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.st
 
 kin.resid <- cbind(phyto.kin.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kin.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.kin.fuzFDs.mth[,"FDis"],zooFEve = zoo.kin.fuzFDs.mth[,"FEve"],zooFRic = zoo.kin.fuzFDs.mth[,"FRic"])%>%
-  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~scale(.x))) %>%
+  #mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+   mutate(across(-c(date,data.source,res),function(.x){
+     as.numeric(residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)) - 
+                  decompose(ts(.x,frequency = 12))$seasonal)})) #standardised residuals
+  #mutate(across(-c(date,data.source,res),~pracma::detrend(.x))) #pracma linear detrend
   
 mad.tot <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
@@ -68,8 +73,14 @@ mad.diff12 <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.st
 
 mad.resid <- cbind(phyto.mad.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$mad.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.mad.fuzFDs.mth[,"FDis"],zooFEve = zoo.mad.fuzFDs.mth[,"FEve"],zooFRic = zoo.mad.fuzFDs.mth[,"FRic"])%>%
-  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~zoo::na.approx(.x,na.rm=F)))%>% #internal missing values
+  mutate(across(-c(date,data.source,res),~scale(.x))) %>%
+  #mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+   mutate(across(-c(date,data.source,res),function(.x){
+     as.numeric(residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)) - 
+                  decompose(ts(.x,frequency = 12))$seasonal)})) #standardised residuals  
+  #mutate(across(-c(date,data.source,res),~pracma::detrend(.x))) #pracma linear detrend
 
 LZ.tot <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
@@ -91,8 +102,14 @@ LZ.diff12 <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.stat
 
 LZ.resid <- cbind(phyto.LZ.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$LZ.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.LZ.fuzFDs.mth[,"FDis"],zooFEve = zoo.LZ.fuzFDs.mth[,"FEve"],zooFRic = zoo.LZ.fuzFDs.mth[,"FRic"])%>%
-  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~zoo::na.approx(.x,na.rm=F)))%>% #internal missing values
+  mutate(across(-c(date,data.source,res),~scale(.x))) %>%
+  #mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+   mutate(across(-c(date,data.source,res),function(.x){
+     as.numeric(residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)) - 
+                  decompose(ts(.x,frequency = 12))$seasonal)})) #standardised residuals
+  #mutate(across(-c(date,data.source,res),~pracma::detrend(.x))) #pracma linear detrend
 
 wind.tot <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.wind.fuzFDs.mth[,"FDis"],zooFEve = zoo.wind.fuzFDs.mth[,"FEve"],zooFRic = zoo.wind.fuzFDs.mth[,"FRic"])%>%
@@ -114,8 +131,14 @@ wind.diff12 <- cbind(phyto.wind.fuzFDs.mth[c("FDis","FEve","FRic")],all.system.s
 
 wind.resid <- cbind(phyto.wind.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$wind.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.wind.fuzFDs.mth[,"FDis"],zooFEve = zoo.wind.fuzFDs.mth[,"FEve"],zooFRic = zoo.wind.fuzFDs.mth[,"FRic"])%>%
-  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~zoo::na.approx(.x,na.rm=F)))%>% #internal missing values
+  mutate(across(-c(date,data.source,res),~scale(.x))) %>%
+  #mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+   mutate(across(-c(date,data.source,res),function(.x){
+     as.numeric(residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)) - 
+                  decompose(ts(.x,frequency = 12))$seasonal)})) #standardised residuals
+ #mutate(across(-c(date,data.source,res),~pracma::detrend(.x))) #pracma linear detrend
 
 kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
@@ -137,9 +160,18 @@ kas.diff12 <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.st
 
 kas.resid <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.states$kas.mth[,-c(9)])%>%
   mutate(zooFDis =  zoo.kas.fuzFDs.mth[,"FDis"],zooFEve = zoo.kas.fuzFDs.mth[,"FEve"],zooFRic = zoo.kas.fuzFDs.mth[,"FRic"])%>%
-  #mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
-  mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+  mutate(across(c(density,mvi,zp.ratio),~log(.x)))%>%
+  mutate(across(-c(date,data.source,res),~zoo::na.approx(.x,na.rm=F)))%>% #internal missing values
+  mutate(across(-c(date,data.source,res),~scale(.x))) %>%
+  #mutate(across(-c(date,data.source,res),~residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)))) #standardised residuals
+   # mutate(across(-c(date,data.source,res),function(.x){
+   #   as.numeric(residuals(lm(.x ~ as.numeric(date),na.action=na.exclude)) - 
+   #     decompose(ts(.x,frequency = 12))$seasonal)})) #standardised residuals
+  mutate(across(-c(date,data.source,res),function(.x){
+               as.numeric(decompose(ts(.x,frequency = 12))$seasonal)}))
+ #mutate(across(-c(date,data.source,res),~pracma::detrend(.x))) #pracma linear detrend
 
+plot(decompose(ts(kin.tot$FDis,frequency = 12)))
 # Merge lakes #
 all.lakes.gam <- rbind(kin.tot,LZ.tot,mad.tot,wind.tot,kas.tot)%>%
   pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
@@ -202,36 +234,44 @@ dev.off()
 # Autocorrelation #
 
 acf.undiff <-  rbind(kin.tot,LZ.tot,mad.tot,wind.tot,kas.tot) %>%
+  dplyr::select(c(data.source,FDis,FEve,FRic,zooFDis,zooFEve,zooFRic))%>%
   group_by(data.source) %>%
-  summarise(across(c(FDis:FRic,zooFDis:zooFRic), ~ acf(na.omit(.x),plot = F)$acf))%>%
-  #group_by(data.source) %>%
+  pivot_longer(-c(data.source), names_to = "metric",values_to ="value")%>%
+  group_by(data.source,metric) %>%
+  summarise(acf = acf(na.omit(value),plot = F)$acf,
+            length =acf(na.omit(value),plot = F)$n.used)%>%
   mutate(lag = seq_along(1:n()))%>% 
-  mutate(ciline = qnorm((1 - 0.95)/2)/sqrt(n())) %>%
-  pivot_longer(-c(data.source,lag,ciline), names_to = "metric",values_to = "acf")
+  mutate(ciline = qnorm((1 + 0.95)/2) / sqrt(length))
 
 acf.diff1 <- rbind(kin.diff1,LZ.diff1,mad.diff1,wind.diff1,kas.diff1) %>%
+  dplyr::select(c(data.source,FDis,FEve,FRic,zooFDis,zooFEve,zooFRic))%>%
   group_by(data.source) %>%
-  summarise(across(c(FDis:FRic,zooFDis:zooFRic), ~ acf(na.omit(.x),plot = F)$acf))%>%
-  #group_by(data.source) %>%
+  pivot_longer(-c(data.source), names_to = "metric",values_to ="value")%>%
+  group_by(data.source,metric) %>%
+  summarise(acf = acf(na.omit(value),plot = F)$acf,
+            length =acf(na.omit(value),plot = F)$n.used)%>%
   mutate(lag = seq_along(1:n()))%>% 
-  mutate(ciline = qnorm((1 - 0.95)/2)/sqrt(n())) %>%
-  pivot_longer(-c(data.source,lag,ciline), names_to = "metric",values_to = "acf")
+  mutate(ciline = qnorm((1 + 0.95)/2) / sqrt(length))
 
 acf.diff12 <- rbind(kin.diff12,LZ.diff12,mad.diff12,wind.diff12,kas.diff12) %>%
+  dplyr::select(c(data.source,FDis,FEve,FRic,zooFDis,zooFEve,zooFRic))%>%
   group_by(data.source) %>%
-  summarise(across(c(FDis:FRic,zooFDis:zooFRic), ~ acf(na.omit(.x),plot = F)$acf))%>%
-  #group_by(data.source) %>%
+  pivot_longer(-c(data.source), names_to = "metric",values_to ="value")%>%
+  group_by(data.source,metric) %>%
+  summarise(acf = acf(na.omit(value),plot = F)$acf,
+           length =acf(na.omit(value),plot = F)$n.used)%>%
   mutate(lag = seq_along(1:n()))%>% 
-  mutate(ciline = qnorm((1 - 0.95)/2)/sqrt(n())) %>%
-  pivot_longer(-c(data.source,lag,ciline), names_to = "metric",values_to = "acf")
-
+  mutate(ciline = qnorm((1 + 0.95)/2) / sqrt(length))
+  
 acf.resid <- rbind(kin.resid,mad.resid,LZ.resid,wind.resid,kas.resid) %>%
+  dplyr::select(c(data.source,FDis,FEve,FRic,zooFDis,zooFEve,zooFRic))%>%
   group_by(data.source) %>%
-  summarise(across(c(FDis:FRic,zooFDis:zooFRic), ~ acf(na.omit(.x),plot = F)$acf))%>%
-  #group_by(data.source) %>%
+  pivot_longer(-c(data.source), names_to = "metric",values_to ="value")%>%
+  group_by(data.source,metric) %>%
+  summarise(acf = acf(na.omit(value),plot = F)$acf,
+            length =acf(na.omit(value),plot = F)$n.used)%>%
   mutate(lag = seq_along(1:n()))%>% 
-  mutate(ciline = qnorm((1 - 0.95)/2)/sqrt(n())) %>%
-  pivot_longer(-c(data.source,lag,ciline), names_to = "metric",values_to = "acf")
+  mutate(ciline = qnorm((1 + 0.95)/2) / sqrt(length))
 
 acf.undiff.plot <- ggplot(acf.undiff,
                          aes(x=lag,y=acf)) +  #coord_cartesian(ylim= c(0,100))+

@@ -65,8 +65,10 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
     sub.dat[,3] <- base::diff(dat[,3], lag = lag)
   }else if(detrend.method == "lm"){
     sub.dat <- dat
-    sub.dat[,2] <- residuals(lm(sub.dat[,2] ~ as.numeric(sub.dat[,1]),na.action=na.exclude))
-    sub.dat[,3] <- residuals(lm(sub.dat[,3] ~ as.numeric(sub.dat[,1]),na.action=na.exclude))
+    sub.dat[,2] <- residuals(lm(sub.dat[,2] ~ as.numeric(sub.dat[,1]),na.action=na.exclude))- 
+      decompose(ts(sub.dat[,2],frequency = 12))$seasonal
+    sub.dat[,3] <- residuals(lm(sub.dat[,3] ~ as.numeric(sub.dat[,1]),na.action=na.exclude))- 
+      decompose(ts(sub.dat[,3],frequency = 12))$seasonal
   }else{
     sub.dat <- dat
   }
@@ -101,8 +103,10 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
         perm.dat[,3] <- base::diff(dat[,3], lag = lag)
       }else if(detrend.method == "lm"){
         perm.dat <- dat
-        perm.dat[,2] <- residuals(lm(perm.dat[perm.df[[i]],2] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
-        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+        perm.dat[,2] <- residuals(lm(perm.dat[perm.df[[i]],2] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
+         decompose(ts(perm.dat[perm.df[[i]],2],frequency = 12))$seasonal
+        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
+          decompose(ts(perm.dat[,3],frequency = 12))$seasonal
       }else{
         perm.dat <- dat
         perm.dat[,2] <- dat[perm.df[[i]],2]
@@ -152,7 +156,8 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
       perm.df <- perm.df %>% 
         rowwise()%>%
         mutate(!!sym(new_col_name) := sample(x = seq(from = lwr, to = upr,by = 0.0001),size = 1))%>%
-        ungroup()
+        ungroup()%>%
+        as.data.frame()
     }
     
     ##loop through each permutation to cross correlate and extract optimal lag
@@ -164,27 +169,33 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
         perm.dat[,3] <- base::diff(dat[,3], lag = lag)
       }else if(detrend.method == "lm"){
         perm.dat <- dat
-        perm.dat[,2] <- residuals(lm(perm.df[,paste("perm",i,sep = "_")] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
-        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+        perm.dat[,2] <- residuals(lm(perm.df[,paste("perm",i,sep = "_")] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
+          decompose(ts(perm.df[,paste("perm",i,sep = "_")],frequency = 12))$seasonal
+        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
+          decompose(ts(perm.dat[,3],frequency = 12))$seasonal
       }else{
         perm.dat <- dat
         perm.dat[,2] <- perm.df[,paste("perm",i,sep = "_")]
       }
       perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
       
-      
-      #calculate observed correlation
-      ccf.perm.tmp <- ccf(perm.dat[,2],perm.dat[,3],lag.max = span,plot = F)
-      ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
-      
-      ccf.perm.obs <- data.frame("tmin" =ccf.obs$tmin) #match observed tmin/tmax for comparison
-      ccf.perm.obs$rmin <-  ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$tmin]
-      ccf.perm.obs$tmax <- ccf.obs$tmax
-      ccf.perm.obs$rmax <-  ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$tmax]
-      ccf.perm.obs$r0 <- ccf.perm.tmp$acf[ccf.perm.tmp$lag == 0]
-      ccf.perm.obs$t.absmax <- ccf.obs$t.absmax
-      ccf.perm.obs$abs.rmax <- ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$t.absmax]
-      
+      if(isTRUE(identical.t)){
+        ccf.perm.obs <- data.frame("tmin" =ccf.obs$tmin) #match observed tmin/tmax for comparison
+        ccf.perm.obs$rmin <-  ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$tmin]
+        ccf.perm.obs$tmax <- ccf.obs$tmax
+        ccf.perm.obs$rmax <-  ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$tmax]
+        ccf.perm.obs$r0 <- ccf.perm.tmp$acf[ccf.perm.tmp$lag == 0]
+        ccf.perm.obs$t.absmax <- ccf.obs$t.absmax
+        ccf.perm.obs$abs.rmax <- ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$t.absmax]
+      }else{
+        ccf.perm.obs <- data.frame("tmin" = ccf.perm.tmp$lag[ccf.perm.tmp$acf == min(ccf.perm.tmp$acf,na.rm=TRUE)])
+        ccf.perm.obs$rmin <-  ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$tmin]
+        ccf.perm.obs$tmax <- ccf.perm.tmp$lag[ccf.perm.tmp$acf == max(ccf.perm.tmp$acf,na.rm=TRUE)]
+        ccf.perm.obs$rmax <-  ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$tmax]
+        ccf.perm.obs$r0 <- ccf.perm.tmp$acf[ccf.perm.tmp$lag == 0]
+        ccf.perm.obs$t.absmax <- ccf.perm.tmp$lag[abs(ccf.perm.tmp$acf) == max(abs(ccf.perm.tmp$acf),na.rm=TRUE)]
+        ccf.perm.obs$abs.rmax <- ccf.perm.tmp$acf[ccf.perm.tmp$lag == ccf.perm.obs$t.absmax]
+      }
       return(ccf.perm.obs)
     }
   }
@@ -216,8 +227,10 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
         perm.dat[,3] <- base::diff(dat[,3], lag = lag)
       }else if(detrend.method == "lm"){
         perm.dat <- dat
-        perm.dat[,2] <- residuals(lm(perm.df[,i] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
-        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+        perm.dat[,2] <- residuals(lm(perm.df[,i] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
+          decompose(ts(perm.df[,i],frequency = 12))$seasonal
+        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
+          decompose(ts(perm.dat[,3],frequency = 12))$seasonal
       }else{
         perm.dat <- dat
         perm.dat[,2] <- perm.df[,i]
@@ -269,8 +282,10 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
         perm.dat[,3] <- base::diff(dat[,3], lag = lag)
       }else if(detrend.method == "lm"){
         perm.dat <- dat
-        perm.dat[,2] <- residuals(lm(perm.df[,paste("perm",i,sep = "_")] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
-        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))
+        perm.dat[,2] <- residuals(lm(perm.df[,paste("perm",i,sep = "_")] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))- 
+          decompose(ts(perm.df[,paste("perm",i,sep = "_")],frequency = 12))$seasonal
+        perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))- 
+          decompose(ts(perm.dat[,3],frequency = 12))$seasonal
       }else{
         perm.dat <- dat
         perm.dat[,2] <- perm.df[,paste("perm",i,sep = "_")]
