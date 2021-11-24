@@ -66,16 +66,17 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
   }else if(detrend.method == "lm"){
     sub.dat <- dat
     sub.dat[,2] <- residuals(lm(sub.dat[,2] ~ as.numeric(sub.dat[,1]),na.action=na.exclude))- 
-      decompose(ts(sub.dat[,2],frequency = 12))$seasonal
+      c(decompose(ts(sub.dat[,2],frequency = 12),type = "additive")$seasonal)
     sub.dat[,3] <- residuals(lm(sub.dat[,3] ~ as.numeric(sub.dat[,1]),na.action=na.exclude))- 
-      decompose(ts(sub.dat[,3],frequency = 12))$seasonal
+      c(decompose(ts(sub.dat[,3],frequency = 12),type = "additive")$seasonal)
   }else{
     sub.dat <- dat
   }
-  sub.dat <- na.omit(sub.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
+  sub.dat <- na.omit(sub.dat) %>% mutate(across(everything(),~as.numeric(.))) %>% #drop lead/lag NAs and ensure all columns are numeric
+    mutate(across(everything(),~scale(.)))
   
   #calculate observed correlation
-  ccf.tmp <- ccf(sub.dat[,2],sub.dat[,3],lag.max = span,plot = F)
+  ccf.tmp <- ccf(c(sub.dat[,2]),c(sub.dat[,3]),lag.max = span,plot = F)
   ccf.tmp <- data.frame("lag" = ccf.tmp$lag,"acf" = ccf.tmp$acf)
   
   ccf.obs <- data.frame("tmin" = ccf.tmp$lag[ccf.tmp$acf == min(ccf.tmp$acf,na.rm=TRUE)])
@@ -104,18 +105,18 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
       }else if(detrend.method == "lm"){
         perm.dat <- dat
         perm.dat[,2] <- residuals(lm(perm.dat[perm.df[[i]],2] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
-         decompose(ts(perm.dat[perm.df[[i]],2],frequency = 12))$seasonal #extract linear model residuals and subtract seasonal component
+          c(decompose(ts(perm.dat[perm.df[[i]],2],frequency = 12),type = "additive")$seasonal) #extract linear model residuals and subtract seasonal component
         perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
-          decompose(ts(perm.dat[,3],frequency = 12))$seasonal #extract linear model residuals and subtract seasonal component
+          c(decompose(ts(perm.dat[,3],frequency = 12),type = "additive")$seasonal) #extract linear model residuals and subtract seasonal component
       }else{
         perm.dat <- dat
         perm.dat[,2] <- dat[perm.df[[i]],2]
       }
-      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
-      
+      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) %>% #drop lead/lag NAs and ensure all columns are numeric
+        mutate(across(everything(),~scale(.)))
       
       #calculate observed correlation
-      ccf.perm.tmp <- ccf(perm.dat[,2],perm.dat[,3],lag.max = span,plot = F)
+      ccf.perm.tmp <- ccf(c(perm.dat[,2]),c(perm.dat[,3]),lag.max = span,plot = F)
       ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
       
       
@@ -170,9 +171,9 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
       }else if(detrend.method == "lm"){
         perm.dat <- dat
         perm.dat[,2] <- residuals(lm(perm.df[,paste("perm",i,sep = "_")] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
-          decompose(ts(perm.df[,paste("perm",i,sep = "_")],frequency = 12))$seasonal
+          c(decompose(ts(perm.df[,paste("perm",i,sep = "_")],frequency = 12),type = "additive")$seasonal)
         perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
-          decompose(ts(perm.dat[,3],frequency = 12))$seasonal
+          c(decompose(ts(perm.dat[,3],frequency = 12),type = "additive")$seasonal)
       }else{
         perm.dat <- dat
         perm.dat[,2] <- perm.df[,paste("perm",i,sep = "_")]
@@ -228,17 +229,18 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
       }else if(detrend.method == "lm"){
         perm.dat <- dat
         perm.dat[,2] <- residuals(lm(perm.df[,i] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
-          decompose(ts(perm.df[,i],frequency = 12))$seasonal
+          c(decompose(ts(perm.df[,i],frequency = 12),type = "additive")$seasonal)
         perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude)) - 
-          decompose(ts(perm.dat[,3],frequency = 12))$seasonal
+          c(decompose(ts(perm.dat[,3],frequency = 12),type = "additive")$seasonal)
       }else{
         perm.dat <- dat
         perm.dat[,2] <- perm.df[,i]
       }
-      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
+      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) %>% #drop lead/lag NAs and ensure all columns are numeric
+        mutate(across(everything(),~scale(.)))
       
       #calculate observed correlation
-      ccf.perm.tmp <- ccf(perm.dat[,2],perm.dat[,3],lag.max = span,plot = F)
+      ccf.perm.tmp <- ccf(c(perm.dat[,2]),c(perm.dat[,3]),lag.max = span,plot = F)
       ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
       
       if(isTRUE(identical.t)){
@@ -283,17 +285,18 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
       }else if(detrend.method == "lm"){
         perm.dat <- dat
         perm.dat[,2] <- residuals(lm(perm.df[,paste("perm",i,sep = "_")] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))- 
-          decompose(ts(perm.df[,paste("perm",i,sep = "_")],frequency = 12))$seasonal
+          c(decompose(ts(perm.df[,paste("perm",i,sep = "_")],frequency = 12),type = "additive")$seasonal)
         perm.dat[,3] <- residuals(lm(perm.dat[,3] ~ as.numeric(perm.dat[,1]),na.action=na.exclude))- 
-          decompose(ts(perm.dat[,3],frequency = 12))$seasonal
+          c(decompose(ts(perm.dat[,3],frequency = 12),type = "additive")$seasonal)
       }else{
         perm.dat <- dat
         perm.dat[,2] <- perm.df[,paste("perm",i,sep = "_")]
       }
-      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
+      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) %>%#drop lead/lag NAs and ensure all columns are numeric
+      mutate(across(everything(),~scale(.)))
       
       #calculate permuted correlation
-      ccf.perm.tmp <- ccf(perm.dat[,2],perm.dat[,3],lag.max = span,plot = F)
+      ccf.perm.tmp <- ccf(c(perm.dat[,2]),c(perm.dat[,3]),lag.max = span,plot = F)
       ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
       
       if(isTRUE(identical.t)){
