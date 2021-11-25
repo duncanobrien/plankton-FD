@@ -107,14 +107,19 @@ kin.phytomth.ccm.lag <- lapply(kin.phytomth.ccm, `[[`, 'raw.obs')%>% # extract s
 
 kin.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
@@ -156,14 +161,19 @@ kin.lag.ccm <- read.csv(file ="Results/ccm/raw_data/kin_ccm_lag.csv")
 
 mad.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
@@ -191,14 +201,19 @@ mad.phytomth.ccm.lag <- lapply(mad.phytomth.ccm, `[[`, 'raw.obs')%>%
 
 mad.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
@@ -239,14 +254,19 @@ mad.lag.ccm <- read.csv(file ="Results/ccm/raw_data/mad_ccm_lag.csv")
 
 LZ.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
@@ -274,14 +294,19 @@ LZ.phytomth.ccm.lag <- lapply(LZ.phytomth.ccm, `[[`, 'raw.obs')%>%
 
 LZ.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = LZ.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
@@ -322,14 +347,19 @@ LZ.lag.ccm <- read.csv(file ="Results/ccm/raw_data/LZ_ccm_lag.csv")
 
 wind.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
@@ -357,14 +387,19 @@ wind.phytomth.ccm.lag <- lapply(wind.phytomth.ccm, `[[`, 'raw.obs')%>%
 
 wind.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = wind.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
@@ -405,14 +440,19 @@ wind.lag.ccm <- read.csv(file ="Results/ccm/raw_data/wind_ccm_lag.csv")
 
 kas.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
@@ -440,14 +480,19 @@ kas.phytomth.ccm.lag <- lapply(kas.phytomth.ccm, `[[`, 'raw.obs')%>%
 
 kas.zoomth.ccm<- pbmcapply::pbmclapply(c("zooFDis","zooFEve","zooFRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"density")],
+                                   detrend.method = "lm",
                                   iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"community")],
+                                   detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"FI")],
+                                   detrend.method = "lm",
                                    iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"mvi")],
+                                    detrend.method = "lm",
                                     iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = kas.tot[,c("date",paste(x),"zp.ratio")],
+                                         detrend.method = "lm",
                                          iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
