@@ -572,7 +572,7 @@ ggplot(raw.ccm,aes(x = state.metric, y =  y_x.skill, col = FD.metric,fill= FD.me
   facet_grid(system~troph,scales = "free")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted cross skill of system state mapping FD")
+  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of system state mapping FD")
 dev.off()
 
 pdf(file="Results/ccm/FD_perm_x_y.pdf",
@@ -590,7 +590,7 @@ ggplot(raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.me
   facet_grid(system~troph,scales = "free")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross correlation") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state")
+  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state")
 dev.off()
 
 ## Optimal lag ##
