@@ -50,13 +50,14 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F,
   }else if(detrend.method == "lm"){
     sub.dat <- dat
     sub.dat[,2] <- residuals(lm(sub.dat[,2] ~ as.numeric(sub.dat[,1]),na.action=na.exclude)) - 
-      decompose(ts(sub.dat[,2],frequency = 12))$seasonal
+      c(decompose(ts(sub.dat[,2],frequency = 12),type="additive")$seasonal)
     sub.dat[,3] <- residuals(lm(sub.dat[,3] ~ as.numeric(sub.dat[,1]),na.action=na.exclude)) - 
-      decompose(ts(sub.dat[,3],frequency = 12))$seasonal
+      c(decompose(ts(sub.dat[,3],frequency = 12),type="additive")$seasonal)
   }else{
     sub.dat <- dat
   }
-  sub.dat <- na.omit(sub.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
+  sub.dat <- na.omit(sub.dat) %>% mutate(across(everything(),~as.numeric(.))) %>% #drop lead/lag NAs and ensure all columns are numeric
+    mutate(across(everything(),~scale(.)))
   
   ### Observed CCM ###
   simplex_FD <- rEDM::simplex(sub.dat[, c(1,2)], # identify optimal embedding dimension for FD i.e. when maximum info (rho) contained
@@ -115,16 +116,16 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F,
   if(detrend.method == "diff"){
     perm.df <- perm.df %>%
       mutate(across(everything(), function(x){x - dplyr::lag(x,n=lag)})) %>%
-      na.omit()
+      na.omit() %>% mutate(across(everything(),~scale(.)))
   }else if(detrend.method == "lm"){
     perm.df <- perm.df %>%
       mutate(across(everything(),function(.x){
         as.numeric(residuals(lm(.x ~ as.numeric(dat[,1]),na.action=na.exclude)) - 
-                     decompose(ts(.x,frequency = 12))$seasonal)})) %>%#standardised residuals
+                     c(decompose(ts(.x,frequency = 12),type="additive")$seasonal))})) %>%#standardised residuals
       #mutate(across(everything(),~rstandard(lm(.x ~ as.numeric(dat[,1]),na.action=na.exclude))))%>%
-      na.omit()
+      na.omit() %>% mutate(across(everything(),~scale(.)))
   }else{
-    perm.df <- perm.df
+    perm.df <- perm.df %>% na.omit() %>% mutate(across(everything(),~scale(.)))
   }
   
   perm.tmp <- foreach::foreach(r = 1:iter,.combine = "rbind",.multicombine = F, .packages = c("dplyr","rEDM")) %dopar%{
