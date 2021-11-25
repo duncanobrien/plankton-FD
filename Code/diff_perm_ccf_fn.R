@@ -51,11 +51,11 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
   perm.meth <- match.arg(perm.method)
   
   if(any(is.na(dat[,2]))){
-    print("Warning: ts has missing values. NAs have been interpolated")
+    warning("Explanatory variable has missing values. NAs have been interpolated")
     dat[,2] <- zoo::na.approx(dat[,2],na.rm=F)
   }
   if(any(is.na(dat[,3]))){
-    print("Warning: comp.ts has missing values. NAs have been interpolated")
+    warning("Response variable has missing values. NAs have been interpolated")
     dat[,3] <- zoo::na.approx(dat[,3],na.rm=F)
   }
   
@@ -96,7 +96,7 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
                             bootstrap = F, add.obs=F, as.matrix=F) #create semi-random order of indices
     
     ##loop through each permutation to cross correlate and extract optimal lag
-    tmp <- foreach::foreach(i = c(1:iter),.combine = "rbind",.multicombine = T, .packages = c("mgcv","gratia","dplyr")) %dopar%{
+    tmp <- foreach::foreach(i = c(1:iter),.combine = "rbind",.multicombine = T, .packages = c("dplyr")) %dopar%{
       
       if(detrend.method == "diff"){
         perm.dat <- dat[(1+lag):nrow(dat),]
