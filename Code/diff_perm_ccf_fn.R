@@ -96,7 +96,7 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
                             bootstrap = F, add.obs=F, as.matrix=F) #create semi-random order of indices
     
     ##loop through each permutation to cross correlate and extract optimal lag
-    tmp <- foreach::foreach(i = c(1:iter),.combine = "rbind",.multicombine = T, .packages = c("mgcv","gratia","dplyr")) %dopar%{
+    tmp <- foreach::foreach(i = c(1:iter),.combine = "rbind",.multicombine = T, .packages = c("dplyr")) %dopar%{
       
       if(detrend.method == "diff"){
         perm.dat <- dat[(1+lag):nrow(dat),]
