@@ -51,11 +51,11 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
   perm.meth <- match.arg(perm.method)
   
   if(any(is.na(dat[,2]))){
-    print("Warning: ts has missing values. NAs have been interpolated")
+    warning("predictor variable has missing values. NAs have been interpolated")
     dat[,2] <- zoo::na.approx(dat[,2],na.rm=F)
   }
   if(any(is.na(dat[,3]))){
-    print("Warning: comp.ts has missing values. NAs have been interpolated")
+    warning("response variable has missing values. NAs have been interpolated")
     dat[,3] <- zoo::na.approx(dat[,3],na.rm=F)
   }
   
@@ -178,7 +178,12 @@ diff.perm.ccf <- function(dat, span = 12*5, iter = 999,
         perm.dat <- dat
         perm.dat[,2] <- perm.df[,paste("perm",i,sep = "_")]
       }
-      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) #drop lead/lag NAs and ensure all columns are numeric
+      perm.dat <- na.omit(perm.dat) %>% mutate(across(everything(),~as.numeric(.))) %>% #drop lead/lag NAs and ensure all columns are numeric
+            mutate(across(everything(),~scale(.)))
+      
+      #calculate observed correlation
+      ccf.perm.tmp <- ccf(c(perm.dat[,2]),c(perm.dat[,3]),lag.max = span,plot = F)
+      ccf.perm.tmp <- data.frame("lag" = ccf.perm.tmp$lag,"acf" = ccf.perm.tmp$acf)
       
       if(isTRUE(identical.t)){
         ccf.perm.obs <- data.frame("tmin" =ccf.obs$tmin) #match observed tmin/tmax for comparison

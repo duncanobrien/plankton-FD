@@ -626,11 +626,12 @@ ccm.plot.df <- summary.ccm %>%
       #therefore is causative)
   mutate(across(quantile:lag, ~as.numeric(.))) %>% #ensure values are numeric
   mutate(lag = -1*lag) %>% #for plotting purpose convert lags from negative to positive 
-  filter(sig == "*")%>% #only keep significant relationships
+  #filter(sig == "*")%>% #only keep significant relationships
   #mutate(FD.metric = ifelse(troph == "Zooplankton", paste("zoo",FD.metric,sep = ""),FD.metric))%>%
   ungroup()
 
 count.ccmdf <- ccm.plot.df %>%
+  filter(sig == "*")%>% #only keep significant relationships
   group_by(state.metric,causality.direc,FD.metric,troph)%>%
   summarise(N = n()) #significant count per group
 
@@ -652,20 +653,25 @@ dev.off()
 
 pdf(file="Results/ccm/ccm_causality_spread_alt.pdf",
     width=10, height = 7)
-ggplot(ccm.plot.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
+ggplot(ccm.plot.df,aes(x=lag,y= state.metric)) + 
   geom_vline(xintercept = 0,alpha=0.6)+
-  geom_boxplot(alpha = 0.3,size = 0.1)+
-  geom_point(aes(x=lag,y=state.metric, group=causality.direc,fill=causality.direc,shape = system),  alpha = 0.8, position = position_dodge(width=0.75),size = 3) + 
+  geom_point(aes(group=causality.direc,fill=causality.direc,shape = system,alpha = as.factor(sig),col= causality.direc), 
+             position = position_dodge(width=0.75),size = 3) + 
+  geom_point(aes(group=causality.direc,shape = system,fill=NULL,col= causality.direc), 
+             position = position_dodge(width=0.75),size = 3) +
+  geom_boxplot(aes(fill = causality.direc),alpha = 0.1,size = 0.2,col="black",outlier.shape = NA)+
   geom_text(data = count.ccmdf,
-            aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N),
-            position = position_dodge(width = 0.8))+
-  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
-  #scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
+            aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N,group =causality.direc ),
+            col="black", position = position_dodge(width = 0.8))+
   scale_fill_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
+  scale_color_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+  
   facet_grid(troph~FD.metric) +
   ylab("State metric") + xlab("Optimum lag (months)")+
   #guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
-  guides(fill = guide_legend(override.aes = list(col = c("#A1B4FE","#FFE7A1"))))+
+  #guides(fill = guide_legend(override.aes = list(col = c("#A1B4FE","#FFE7A1"))))+
   theme_bw()
 dev.off()
 
@@ -980,7 +986,7 @@ pccm.lagx.1 <- ggplot(filter(summary.ccm,measure %in% "max.skill"),aes(x=state.m
   facet_wrap(~troph)
 
 pccm.lagx.2 <- pccm.lagx.1 +
-  geom_segment(data = layer_data(plagx.1, 1L),
+  geom_segment(data = layer_data(pccm.lagx.1, 1L),
                 aes(x = xmin, xend=xmax, y = 0,yend=0, group = linetype),
                 color = "black", size = 0.5)+
   geom_point(position=position_dodge(width=0.75),
