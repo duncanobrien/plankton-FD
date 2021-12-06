@@ -195,8 +195,14 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
   geom_point(aes(col=metric),alpha = 0.3,pch =21)+
   geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "tp",k=15),method.args = list(method = "REML"),alpha=1,fill="grey") +
   #geom_path(aes(col=metric))+
+  # ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
+  #                     labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
+  #                     space="free_x" ) +
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
-                      labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
+                      labeller = label_value,
+                      strip = ggh4x::strip_nested(size="constant",bleed=T, 
+                            background_y =elem_list_rect(fill = c("#919191","#B5B5B5","#B5B5B5","white", rep("#DEDEDE",12))),
+                            by_layer_y = F),
                       space="free_x" ) +
   scale_colour_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
   scale_fill_manual(values = c("#7b3294","#c2a5cf","black","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+

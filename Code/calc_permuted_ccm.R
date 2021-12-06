@@ -5,6 +5,7 @@ require(tidyverse) # dplyr, ggplot etc.
 require(pbmcapply) # paralled lapply 
 require(data.table) # rbindlist function
 require(patchwork) # plot alignment
+require(ggpubr) # plot alignment
 
 source("Code/ccm_perm_fn.R") # custom function
 
@@ -572,7 +573,7 @@ ggplot(raw.ccm,aes(x = state.metric, y =  y_x.skill, col = FD.metric,fill= FD.me
   facet_grid(system~troph,scales = "free")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of system state mapping FD")
+  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of system state mapping FD (forward)")
 dev.off()
 
 pdf(file="Results/ccm/FD_perm_x_y.pdf",
@@ -590,129 +591,9 @@ ggplot(raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.me
   facet_grid(system~troph,scales = "free")+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
-  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state")
+  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state (reverse)")
 dev.off()
 
-## Optimal lag ##
-
-ccm.plot.df <- summary.ccm %>%
-  filter(measure != "r0.skill")%>% # keep absolute highest cross map skill
-  group_by(FD.metric,system,state.metric) %>%
-  select(-c(x_y.median_perm_value,y_x.median_perm_value))%>% #drop unnecessary variables
-  nest(x_y = c(measure:x_y.obs_value,x_y.sig), y_x =  c(measure,y_x.quantile:y_x.obs_value,y_x.sig))%>% #nest into x_y and y_x for ease of manipulation
-  mutate(x_y = map(x_y, ~.x %>% 
-          pivot_longer(cols = c(x_y.quantile:x_y.obs_value), #
-                       names_to = c(".value"), names_prefix = "x_y.",
-                       names_repair = "unique", values_to = "value") %>% #pivot just x_y
-                     mutate(lag = obs_value[2])%>% #add lag from t.absmax.skill row
-                     slice(-2) %>% #drop t.absmax.skill row
-                     rename(sig = x_y.sig) %>% #remove excess prefix
-                     setNames(paste0('x_y.', names(.))))) %>% #add prefix for downstream wrangling
-  mutate(y_x = map(y_x, ~.x %>% 
-          pivot_longer(cols = c(y_x.quantile:y_x.obs_value), #repeat process for y_x
-                        names_to = c(".value"),names_prefix = "y_x.",
-                        names_repair = "unique", values_to = "value") %>%
-                     mutate(lag = obs_value[2])%>%
-                     slice(-2) %>%
-                     rename(sig = y_x.sig) %>%
-                     setNames(paste0('y_x.', names(.))))) %>%
-  unnest(cols = c(x_y, y_x),names_repair = "unique") %>% #unnest
-  pivot_longer(c(x_y.measure:y_x.lag), #pivot using prefix as reference
-               names_to = c("direc",".value"),
-               names_pattern = "(.*)\\.(.*)" ) %>%
-  mutate(causality.direc = ifelse(grepl("^x_y",direc),"FD map State","State map FD"))%>% 
-      #classify directions. Is counterintuitive as here x_y represents x map y, 
-      #which if significant implies y causes x (x contains information on y and 
-      #therefore is causative)
-  mutate(across(quantile:lag, ~as.numeric(.))) %>% #ensure values are numeric
-  mutate(lag = -1*lag) %>% #for plotting purpose convert lags from negative to positive 
-  #filter(sig == "*")%>% #only keep significant relationships
-  #mutate(FD.metric = ifelse(troph == "Zooplankton", paste("zoo",FD.metric,sep = ""),FD.metric))%>%
-  ungroup()
-
-count.ccmdf <- ccm.plot.df %>%
-  filter(sig == "*")%>% #only keep significant relationships
-  group_by(state.metric,causality.direc,FD.metric,troph)%>%
-  summarise(N = n()) #significant count per group
-
-pdf(file="Results/ccm/ccm_causality_spread.pdf",
-    width=10, height = 7)
-ggplot(ccm.plot.df,aes(x=lag,y= state.metric,fill= causality.direc)) + 
-  geom_vline(xintercept = 0,alpha=0.6)+
-  geom_boxplot(alpha = 0.8,size = 0.5)+
-  geom_point(aes(x=lag,y=state.metric, group=causality.direc), alpha = 0.5, position = position_dodge(width=0.75),size = 1.3) + 
-  #scale_fill_manual(values = c("#FFE7A1","#A1B4FE"),name = "Causality\ndirection",labels = c("Forward", "Reverse"))+
-  scale_fill_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
-  geom_text(data = count.ccmdf,
-            aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N),
-            position = position_dodge(width = 0.8))+
-  facet_grid(troph~FD.metric) +
-  ylab("State metric") + xlab("Optimum lag (months)")+
-  theme_bw()
-dev.off()
-
-pdf(file="Results/ccm/ccm_causality_spread_alt.pdf",
-    width=10, height = 7)
-ggplot(ccm.plot.df,aes(x=lag,y= state.metric)) + 
-  geom_vline(xintercept = 0,alpha=0.6)+
-  geom_point(aes(group=causality.direc,fill=causality.direc,shape = system,alpha = as.factor(sig),col= causality.direc), 
-             position = position_dodge(width=0.75),size = 3) + 
-  geom_point(aes(group=causality.direc,shape = system,fill=NULL,col= causality.direc), 
-             position = position_dodge(width=0.75),size = 3) +
-  geom_boxplot(aes(fill = causality.direc),alpha = 0.1,size = 0.2,col="black",outlier.shape = NA)+
-  geom_text(data = count.ccmdf,
-            aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N,group =causality.direc ),
-            col="black", position = position_dodge(width = 0.8))+
-  scale_fill_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
-  scale_color_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
-  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
-  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
-                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+  
-  facet_grid(troph~FD.metric) +
-  ylab("State metric") + xlab("Optimum lag (months)")+
-  #guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
-  #guides(fill = guide_legend(override.aes = list(col = c("#A1B4FE","#FFE7A1"))))+
-  theme_bw()
-dev.off()
-
-
-## Cross skill changes with lag ##
-
-lag.ccm <- read.csv(file ="Results/ccm/raw_data/ccm_lag.csv")
-
-ccm.lag.plot.df <- lag.ccm %>%
-  group_by(FD.metric,state.metric,troph)%>%
-  pivot_longer(c(x_y,y_x),
-               names_to = "direc", values_to = "skill")%>%
-mutate(causality.direc = ifelse(grepl("^x_y",direc),"FD map State","State map FD"))
-  
-pdf(file="Results/ccm/ccm_lag_changes.pdf",
-    width=12, height = 10,onefile = F)
-ggpubr::ggarrange(
-  ggplot(filter(ccm.lag.plot.df,troph %in% "Phytoplankton"),aes(x=tp,y=skill, col =causality.direc)) +
-                    geom_path() + 
-                    ylab("Cross map skill") + xlab("Lag (months)")+
-                    ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
-                    scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
-                    #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
-                    scale_x_continuous(breaks = c(-30,0,30))+
-                    scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
-                    guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
-                    geom_vline(xintercept = 0,colour="black")+
-                    theme_bw() + ggtitle("Phytoplankton"),
-  ggplot(filter(ccm.lag.plot.df,troph %in% "Zooplankton"),aes(x=tp,y=skill, col =causality.direc)) +
-    geom_path() + 
-    ylab("Cross map skill") + xlab("Lag (months)")+
-    ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
-    scale_x_continuous(breaks = c(-30,0,30))+
-    scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
-    scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
-    #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
-    guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
-    geom_vline(xintercept = 0,colour="black")+
-    theme_bw() + ggtitle("Zooplankton"),
-                  nrow=2,common.legend=T)
-dev.off()
 
 ###########################################################################
 ## Summary cross skills ##
@@ -794,7 +675,7 @@ plag0.fin <- ggplot(filter(summary.ccm,measure %in% "r0.skill"),
                      guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
   geom_boxplot(aes(fill=FD.metric),alpha=0.1,col="black",size=0.3,outlier.shape = NA)+
   ggtext::geom_richtext(data =ccm.lag0.comp,aes(x = state.metric, y =1.05,
-              label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
+              label = paste("<span style='color:black'>","(","</span>","<span style='color:#91845C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
                         alpha=0,size = 3, position = position_dodge(width = 0.75),angle = 90)+
   scale_y_continuous(breaks = seq(0,1.0,0.25),limits = c(-0.1,1.1))+
   facet_wrap(~troph)+
@@ -928,7 +809,7 @@ pccm.lagx.2 <- pccm.lagx.1 +
   #scale_size_manual(values = c(2.5),breaks = c("mean"),name = NULL, labels = c("Mean cross\ncorrelation"),
    #                 guide = guide_legend(override.aes = list(fill = c("black"),shape=c(21),size=c(3.5),alpha = c(1))))+
   ggtext::geom_richtext(data =ccm.lagx.comp,aes(x = state.metric, y =1.05,
-                                                label = paste("<span style='color:black'>","(","</span>","<span style='color:#DEC98C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
+                                                label = paste("<span style='color:black'>","(","</span>","<span style='color:#91845C'>",base::format(prop.forward,digits = 2),"</span>","<span style='color:black'>",",",base::format(prop.bidirec,digits =2),")","</span>",sep = "")),
                         alpha=0,size = 3, position = position_dodge(width = 0.75),angle = 90)+
   scale_size_manual(values = c("a","b"),name = "Causality direction", breaks = c("forward","bidirec"),labels = c("Forward","Bidirectional"),
                         guide = guide_legend(override.aes = list(shape=c(21,20),size=c(3.5),alpha = c(1,1),color = c("#DEC98C","black"))))+
@@ -942,6 +823,7 @@ pccm.lagx.2 <- pccm.lagx.1 +
          fill = guide_legend(order = 2),
          shape = guide_legend(order = 3))+
   theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(), 
         panel.background = element_blank(),
         plot.margin = margin(c(2, 2, 0, 2)))
 
@@ -953,6 +835,9 @@ pccm.lagx.3 <- ggplot(filter(summary.ccm,measure %in% "t.max.skill") %>%
   geom_tile(data = expand_grid(c(seq(60,24,-12),12,seq(-12,-60,-12)),unique(summary.ccm$FD.metric),unique(summary.ccm$state.metric),unique(summary.ccm$troph)) %>%
               magrittr::set_colnames(c("y_x.obs_value","FD.metric","state.metric","troph")),
             aes(group = FD.metric),fill = "white",stat="identity",position = position_dodge(width = 0.75), col = "black", size = 0.3,width = 0.8, height = 0.9)+
+  geom_tile(data = expand_grid(c(12),unique(summary.ccf.mth1$FD.metric),unique(summary.ccf.mth1$state.metric),unique(summary.ccf.mth1$troph)) %>%
+              magrittr::set_colnames(c("y_x.obs_value","FD.metric","state.metric","troph")),
+            aes(group = FD.metric),fill = "#E5E0FF",stat="identity",position = position_dodge(width = 0.75), col = "black", size = 0.3,width = 0.8, height = 0.9)+
   geom_point(position=position_jitterdodge(dodge.width=0.75,jitter.height = 0.2,jitter.width = 0,seed = 5),
              aes(y = y_x.obs_value,shape=system,alpha=sig,col = FD.metric,fill=FD.metric,group=FD.metric),size=1.5)+
   geom_point(position=position_jitterdodge(dodge.width=0.75,jitter.height = 0.2,jitter.width = 0,seed = 5),
@@ -966,9 +851,7 @@ pccm.lagx.3 <- ggplot(filter(summary.ccm,measure %in% "t.max.skill") %>%
   #facet_grid(troph~FD.metric)+
   ylab("Optimal lag (months)") + xlab("System state proxy")+
   theme_bw()+
-  theme(axis.text.x=element_blank(), 
-        axis.ticks.x=element_blank(), 
-        panel.grid.minor = element_blank(),
+  theme(panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         strip.background = element_blank(),
         strip.text.x = element_blank(),
@@ -1061,3 +944,195 @@ plag0.fin + pccm.lagx.fin +
   theme(plot.tag = element_text(face = "bold"))
 dev.off()
 
+###########################################################################
+## Lag Direction plots ##
+###########################################################################
+
+## Optimal lag ##
+
+ccm.plot.df <- summary.ccm %>%
+  filter(measure != "r0.skill")%>% # keep absolute highest cross map skill
+  group_by(FD.metric,system,state.metric) %>%
+  select(-c(x_y.median_perm_value,y_x.median_perm_value))%>% #drop unnecessary variables
+  nest(x_y = c(measure:x_y.obs_value,x_y.sig), y_x =  c(measure,y_x.quantile:y_x.obs_value,y_x.sig))%>% #nest into x_y and y_x for ease of manipulation
+  mutate(x_y = map(x_y, ~.x %>% 
+                     pivot_longer(cols = c(x_y.quantile:x_y.obs_value), #
+                                  names_to = c(".value"), names_prefix = "x_y.",
+                                  names_repair = "unique", values_to = "value") %>% #pivot just x_y
+                     mutate(lag = obs_value[2])%>% #add lag from t.absmax.skill row
+                     slice(-2) %>% #drop t.absmax.skill row
+                     rename(sig = x_y.sig) %>% #remove excess prefix
+                     setNames(paste0('x_y.', names(.))))) %>% #add prefix for downstream wrangling
+  mutate(y_x = map(y_x, ~.x %>% 
+                     pivot_longer(cols = c(y_x.quantile:y_x.obs_value), #repeat process for y_x
+                                  names_to = c(".value"),names_prefix = "y_x.",
+                                  names_repair = "unique", values_to = "value") %>%
+                     mutate(lag = obs_value[2])%>%
+                     slice(-2) %>%
+                     rename(sig = y_x.sig) %>%
+                     setNames(paste0('y_x.', names(.))))) %>%
+  unnest(cols = c(x_y, y_x),names_repair = "unique") %>% #unnest
+  pivot_longer(c(x_y.measure:y_x.lag), #pivot using prefix as reference
+               names_to = c("direc",".value"),
+               names_pattern = "(.*)\\.(.*)" ) %>%
+  mutate(causality.direc = ifelse(grepl("^x_y",direc),"FD map State","State map FD"))%>% 
+  #classify directions. Is counterintuitive as here x_y represents x map y, 
+  #which if significant implies y causes x (x contains information on y and 
+  #therefore is causative)
+  mutate(across(quantile:lag, ~as.numeric(.))) %>% #ensure values are numeric
+  mutate(lag = -1*lag) %>% #for plotting purpose convert lags from negative to positive 
+  #filter(sig == "*")%>% #only keep significant relationships
+  #mutate(FD.metric = ifelse(troph == "Zooplankton", paste("zoo",FD.metric,sep = ""),FD.metric))%>%
+  ungroup()
+
+count.ccmdf <- ccm.plot.df %>%
+  filter(sig == "*")%>% #only keep significant relationships
+  group_by(state.metric,causality.direc,FD.metric,troph)%>%
+  summarise(N = n()) #significant count per group
+
+pdf(file="Results/ccm/ccm_causality_spread.pdf",
+    width=10, height = 7)
+
+
+pdf(file="Results/ccm/ccm_causality_spread_alt.pdf",
+    width=10, height = 7)
+ggplot(ccm.plot.df,aes(x=lag,y= state.metric)) + 
+  geom_vline(xintercept = 0,alpha=0.6)+
+  geom_point(aes(group=causality.direc,fill=causality.direc,shape = system,alpha = as.factor(sig),col= causality.direc), 
+             position = position_dodge(width=0.75),size = 3) + 
+  geom_point(aes(group=causality.direc,shape = system,fill=NULL,col= causality.direc), 
+             position = position_dodge(width=0.75),size = 3) +
+  geom_boxplot(aes(fill = causality.direc),alpha = 0.1,size = 0.2,col="black",outlier.shape = NA)+
+  geom_text(data = count.ccmdf,
+            aes(x = (max(ccm.plot.df$lag)+5),y=state.metric, label = N,group =causality.direc ),
+            col="black", position = position_dodge(width = 0.8))+
+  scale_fill_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
+  scale_color_manual(values = c("#A1B4FE","#FFE7A1"),name = "Causality\ndirection")+
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+  
+  facet_grid(troph~FD.metric) +
+  ylab("State metric") + xlab("Optimum lag (months)")+
+  #guides(fill = guide_legend(override.aes = list(col = c("#FFE7A1","#A1B4FE"))))+
+  #guides(fill = guide_legend(override.aes = list(col = c("#A1B4FE","#FFE7A1"))))+
+  theme_bw()
+dev.off()
+
+
+## Cross skill changes with lag ##
+
+lag.ccm <- read.csv(file ="Results/ccm/raw_data/ccm_lag.csv")
+
+ccm.lag.plot.df <- lag.ccm %>%
+  group_by(FD.metric,state.metric,troph)%>%
+  pivot_longer(c(x_y,y_x),
+               names_to = "direc", values_to = "skill")%>%
+  mutate(causality.direc = ifelse(grepl("^x_y",direc),"FD map State","State map FD"))
+
+pdf(file="Results/ccm/ccm_lag_changes.pdf",
+    width=12, height = 10,onefile = F)
+ggpubr::ggarrange(
+  ggplot(filter(ccm.lag.plot.df,troph %in% "Phytoplankton"),aes(x=tp,y=skill, col =causality.direc)) +
+    geom_path() + 
+    ylab("Cross map skill") + xlab("Lag (months)")+
+    ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
+    scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
+    #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
+    scale_x_continuous(breaks = c(-30,0,30))+
+    scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
+    guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
+    geom_vline(xintercept = 0,colour="black")+
+    theme_bw() + ggtitle("Phytoplankton"),
+  ggplot(filter(ccm.lag.plot.df,troph %in% "Zooplankton"),aes(x=tp,y=skill, col =causality.direc)) +
+    geom_path() + 
+    ylab("Cross map skill") + xlab("Lag (months)")+
+    ggh4x::facet_nested(system ~ FD.metric + state.metric ) + 
+    scale_x_continuous(breaks = c(-30,0,30))+
+    scale_y_continuous(breaks = c(0,0.5,1.0),limits = c(0,1.0))+
+    scale_colour_manual(values = c("#A1B4FE","#DEC98C"),name = "Causality\ndirection")+
+    #scale_colour_manual(values = c("#FFE7A1","#A1B4FE","#74A180","#FF94AB","#BE86FF"),name= "Lake")+
+    guides(color = guide_legend(override.aes = list(alpha = 1,size=1.5) ))+
+    geom_vline(xintercept = 0,colour="black")+
+    theme_bw() + ggtitle("Zooplankton"),
+  nrow=2,common.legend=T)
+dev.off()
+
+
+FDIS.p <-  ggpubr::ggpaired(ccm.plot.df %>% filter(FD.metric %in% "FDis") %>%
+                              mutate(pairing = interaction(state.metric,system,FD.metric,troph)) ,
+                            x = "causality.direc", y = "lag", fill = rep(c("#A1B4FE","#FFE7A1"),10), 
+                            id = "pairing",alpha = 0.1,point.size =0,  line.size = 0.5,
+                            ggtheme = theme_bw(),linetype = "dashed", 
+                            facet.by = c("troph","state.metric")) +
+  scale_x_discrete(labels =c("reverse","forward"))+
+  geom_hline(yintercept = 0,alpha = 0.3)+
+  geom_point(aes(group=causality.direc,shape = system, alpha = as.factor(sig)), 
+             position = position_dodge(width=0.75),fill = "black",size = 2)+
+  geom_point(aes(group=causality.direc,shape = system,fill=NULL),col="black",
+             position = position_dodge(width=0.75),size = 2) +
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  geom_text(data = count.ccmdf %>% filter(FD.metric %in% "FDis"),
+            aes(y = (max(ccm.plot.df$lag)+10),x=causality.direc, label = N,group =causality.direc),
+            col="black", position = position_dodge(width = 0.8))+
+  xlab("Causality direction") + ylab("Optimal lag (months)") + 
+  ggtitle('FDis') +
+  scale_y_continuous(breaks = seq(-40,40,by=40),limits = c(-60,75))+
+  theme(plot.margin = unit(c(1,1,0,1), "pt"))
+
+
+FEVE.p <-  ggpubr::ggpaired(ccm.plot.df %>% filter(FD.metric %in% "FEve") %>%
+                              mutate(pairing = interaction(state.metric,system,FD.metric,troph)) ,
+                            x = "causality.direc", y = "lag", fill = rep(c("#A1B4FE","#FFE7A1"),10), 
+                            id = "pairing",alpha = 0.1,point.size =0,  line.size = 0.5,
+                            ggtheme = theme_bw(),linetype = "dashed", 
+                            facet.by = c("troph","state.metric")) +
+  scale_x_discrete(labels =c("reverse","forward"))+
+  geom_hline(yintercept = 0,alpha = 0.3)+
+  geom_point(aes(group=causality.direc,shape = system, alpha = as.factor(sig)), 
+             position = position_dodge(width=0.75),fill = "black",size = 2)+
+  geom_point(aes(group=causality.direc,shape = system,fill=NULL),col="black",
+             position = position_dodge(width=0.75),size = 2) +
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake")+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  geom_text(data = count.ccmdf %>% filter(FD.metric %in% "FEve"),
+            aes(y = (max(ccm.plot.df$lag)+10),x=causality.direc, label = N,group =causality.direc),
+            col="black", position = position_dodge(width = 0.8))+
+  xlab("Causality direction") + ylab("Optimal lag (months)") + 
+  ggtitle('FEve') +
+  scale_y_continuous(breaks = seq(-40,40,by=40),limits = c(-60,75))+
+  theme(plot.margin = unit(c(1,1,0,1), "pt"))
+
+
+FRIC.p <- ggpubr::ggpaired(ccm.plot.df %>% filter(FD.metric %in% "FRic") %>%
+                             mutate(pairing = interaction(state.metric,system,FD.metric,troph)) ,
+                           x = "causality.direc", y = "lag", fill = rep(c("#A1B4FE","#FFE7A1"),10), 
+                           id = "pairing",alpha = 0.1,point.size =0,  line.size = 0.5,
+                           ggtheme = theme_bw(),linetype = "dashed", 
+                           facet.by = c("troph","state.metric")) +
+  scale_x_discrete(labels =c("reverse","forward"))+
+  geom_hline(yintercept = 0,alpha = 0.3)+
+  geom_point(aes(group=causality.direc,shape = system, alpha = as.factor(sig)), 
+             position = position_dodge(width=0.75),fill = "black",size = 2)+
+  geom_point(aes(group=causality.direc,shape = system,fill=NULL),col="black",
+             position = position_dodge(width=0.75),size = 2) +
+  scale_shape_manual(values = c(21,22,24,25,23),name = "Lake",
+                     guide_legend(override.aes = list(fill = "white",col="white")))+
+  scale_alpha_manual(values=c(0.01,1),name = "Significance", labels = c("Not significant","Significant"),
+                     guide = guide_legend(override.aes = list(fill = c("white","black"),alpha = c(1,1),linetype = c("solid","solid"),shape=c(22,22))))+
+  geom_text(data = count.ccmdf %>% filter(FD.metric %in% "FRic"),
+            aes(y = (max(ccm.plot.df$lag)+10),x=causality.direc, label = N,group =causality.direc),
+            col="black", position = position_dodge(width = 0.8))+
+  xlab("Causality direction") + ylab("Optimal lag (months)") + 
+  ggtitle('FRic') +
+  scale_y_continuous(breaks = seq(-40,40,by=40),limits = c(-60,75))+
+  theme(plot.margin = unit(c(1,1,0,1), "pt"))
+
+pdf(file="Results/ccm/ccm_causality_spread.pdf",
+width=10, height = 10)
+FDIS.p + FEVE.p + FRIC.p + plot_layout(nrow = 3,guides = "collect")+
+  plot_annotation(tag_levels = c('a')) & 
+  theme(plot.tag = element_text(face = "bold"))
+dev.off()
