@@ -606,14 +606,12 @@ ccm.lag0.comp <- summary.ccm %>%
   mutate(forward = ifelse(y_x.sig == "*" & x_y.sig != "*",TRUE,FALSE),
          reverse = ifelse(x_y.sig == "*" & y_x.sig != "*",TRUE,FALSE),
          bidirec =  ifelse(x_y.sig == "*" & y_x.sig == "*",TRUE,FALSE),
-         none =  ifelse(x_y.sig != "*" & y_x.sig != "*",TRUE,FALSE),
-         diff.lag = filter(summary.ccm,measure == "t.max.skill")$x_y.obs_value - filter(summary.ccm,measure == "t.max.skill")$y_x.obs_value)%>%
+         none =  ifelse(x_y.sig != "*" & y_x.sig != "*",TRUE,FALSE))%>%
   group_by(troph,FD.metric,state.metric) %>%
   summarise(prop.forward=sum(forward == TRUE)/length(forward),
             prop.reverse=sum(reverse == TRUE)/length(reverse),
             prop.bidirec=sum(bidirec == TRUE)/length(bidirec),
-            prop.none=sum(none == TRUE)/length(none),
-            mean.lag = mean(diff.lag))
+            prop.none=sum(none == TRUE)/length(none))
 # mutate(ref.y = ifelse(FD.metric %in% "FDis",1.3, 
 #                       ifelse(FD.metric %in% "FEve",1.2,1.1))) %>%
 # mutate(ref.col = ifelse(FD.metric %in% "red",1.3, 
