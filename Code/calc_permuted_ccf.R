@@ -59,7 +59,7 @@ kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.state
 ## Estimate cross correlation and permute (lm, Monthly) ##
 ###########################################################################
 # repeated 'diff.perm.ccf' function specified as @iter = 10000, @perm.method = "red.noise",
-# @detrend.method = "diff", @span =12*5, @identical.t = F, and @lag=1.
+# @detrend.method = "lm", @span =12*5, @identical.t = F, and @lag=1.
 # Results in two dataframes:
 # $summary = observed absolute max correlation coef and the corresponding lag, observed correlation at lag0 and summary statistics
 # $perm.dens = all permutations absolute max correlation coef and the corresponding lag plus the correlation at lag0
@@ -69,23 +69,23 @@ kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.state
 kin.phytomth.diff<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
   pc <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"community")],
                                         iter = 10000,span =12*5,lag=1,
-                                        perm.method = "replacement",identical.t = F,
+                                        perm.method = "red.noise",identical.t = F,
                                         detrend.method = "lm"))
   bio <- suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"density")],
                                         iter = 10000,span =12*5,lag=1,
-                                        perm.method = "replacement",identical.t = F,
+                                        perm.method = "red.noise",identical.t = F,
                                         detrend.method = "lm"))
   fi <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"FI")],
                                         iter = 10000,span =12*5,lag=1,
-                                        perm.method = "replacement",identical.t = F,
+                                        perm.method = "red.noise",identical.t = F,
                                         detrend.method = "lm"))
   mvi <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"mvi")],
                                          iter = 10000,span =12*5,lag=1,
-                                         perm.method = "replacement",identical.t = F,
+                                         perm.method = "red.noise",identical.t = F,
                                          detrend.method = "lm"))
   zp.ratio <-  suppressWarnings(diff.perm.ccf(dat = kin.tot[,c("date",paste(x),"zp.ratio")],
                                               iter = 10000,span =12*5,lag=1,
-                                              perm.method = "replacement",identical.t = F,
+                                              perm.method = "red.noise",identical.t = F,
                                               detrend.method = "lm"))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
