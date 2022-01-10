@@ -36,11 +36,11 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F,
   doParallel::registerDoParallel(cl)
   
   if(any(is.na(dat[,2]))){
-    dat[,2] <- zoo::na.approx(dat[,2],maxgap =3,na.rm=F)
+    dat[,2] <- zoo::na.approx(dat[,2],maxgap =5,na.rm=F)
   } # certain FD metrics may have NAs for single data points
   
   if(any(is.na(dat[,3]))){
-    dat[,3] <- zoo::na.approx(dat[,3],maxgap =3,na.rm=F)
+    dat[,3] <- zoo::na.approx(dat[,3],maxgap =5,na.rm=F)
   } # certain state metrics may have NAs for single data points
   
   if(detrend.method == "diff"){

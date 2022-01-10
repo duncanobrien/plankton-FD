@@ -64,7 +64,7 @@ kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.state
 kin.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"density")],
                                        iter = 500,span =12*5,return.raw = T,
-                                       detrend.method = "none"))
+                                       detrend.method = "lm"))
   pc <-  suppressWarnings(ccm.perm(dat = kin.tot[,c("date",paste(x),"community")],
                                     iter = 500,span =12*5,return.raw = T,
                                     detrend.method = "lm"))
@@ -96,9 +96,9 @@ kin.phytomth.ccm.summary <- lapply(kin.phytomth.ccm, `[[`, 'summary')%>% # extra
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Phytoplankton") %>% # specify metadata for future plotting
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95 ,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+                          ifelse(y_x.quantile >= 0.95 ,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 kin.phytomth.ccm.raw <- lapply(kin.phytomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Phytoplankton")# specify metadata for future plotting
@@ -137,9 +137,9 @@ kin.zoomth.ccm.summary <- lapply(kin.zoomth.ccm, `[[`, 'summary')%>% # extract s
   data.table::rbindlist(idcol = "FD.metric") %>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Zooplankton") %>% # specify metadata for future plotting
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95 ,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
+                          ifelse(y_x.quantile >= 0.95 ,"*","")))# assess significance of observed cross correlation by comparing to 2.5 and 97.5 quartiles (two tailed)
 kin.zoomth.ccm.raw <- lapply(kin.zoomth.ccm, `[[`, 'perm.dens')%>% # extract second level list elements (i.e. 'perm.dens')
   data.table::rbindlist(idcol = "FD.metric")%>% # rbind the list with FD.metric id column
   mutate(system = "Kinneret", res = "Month",troph = "Zooplankton") # specify metadata for future plotting
@@ -190,9 +190,9 @@ mad.phytomth.ccm.summary <- lapply(mad.phytomth.ccm, `[[`, 'summary')%>%
   data.table::rbindlist(idcol = "FD.metric") %>% 
   mutate(system = "Mendota", res = "Month",troph = "Phytoplankton") %>% 
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))
+                          ifelse(y_x.quantile >= 0.95 | y_x.quantile <= 0.025,"*","")))
 mad.phytomth.ccm.raw <- lapply(mad.phytomth.ccm, `[[`, 'perm.dens')%>% 
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Mendota", res = "Month",troph = "Phytoplankton")
@@ -230,9 +230,9 @@ mad.zoomth.ccm.summary <- lapply(mad.zoomth.ccm, `[[`, 'summary')%>%
   data.table::rbindlist(idcol = "FD.metric") %>% 
   mutate(system = "Mendota", res = "Month",troph = "Zooplankton") %>% 
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95 ,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))
+                          ifelse(y_x.quantile >= 0.95,"*","")))
 mad.zoomth.ccm.raw <- lapply(mad.zoomth.ccm, `[[`, 'perm.dens')%>% 
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Mendota", res = "Month",troph = "Zooplankton") 
@@ -283,9 +283,9 @@ LZ.phytomth.ccm.summary <- lapply(LZ.phytomth.ccm, `[[`, 'summary')%>%
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Lower Zurich", res = "Month",troph = "Phytoplankton") %>% 
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95 ,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))
+                          ifelse(y_x.quantile >= 0.95 ,"*","")))
 LZ.phytomth.ccm.raw <- lapply(LZ.phytomth.ccm, `[[`, 'perm.dens')%>% 
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Lower Zurich", res = "Month",troph = "Phytoplankton")
@@ -323,9 +323,9 @@ LZ.zoomth.ccm.summary <- lapply(LZ.zoomth.ccm, `[[`, 'summary')%>%
   data.table::rbindlist(idcol = "FD.metric") %>% 
   mutate(system = "Lower Zurich", res = "Month",troph = "Zooplankton") %>% 
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95 ,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))
+                          ifelse(y_x.quantile >= 0.95 ,"*","")))
 LZ.zoomth.ccm.raw <- lapply(LZ.zoomth.ccm, `[[`, 'perm.dens')%>% 
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Lower Zurich", res = "Month",troph = "Zooplankton") 
@@ -376,9 +376,9 @@ wind.phytomth.ccm.summary <- lapply(wind.phytomth.ccm, `[[`, 'summary')%>%
   data.table::rbindlist(idcol = "FD.metric") %>% 
   mutate(system = "Windermere", res = "Month",troph = "Phytoplankton") %>% 
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95 ,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))
+                          ifelse(y_x.quantile >= 0.95 ,"*","")))
 wind.phytomth.ccm.raw <- lapply(wind.phytomth.ccm, `[[`, 'perm.dens')%>% 
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Windermere", res = "Month",troph = "Phytoplankton")
@@ -416,9 +416,9 @@ wind.zoomth.ccm.summary <- lapply(wind.zoomth.ccm, `[[`, 'summary')%>%
   data.table::rbindlist(idcol = "FD.metric") %>% 
   mutate(system = "Windermere", res = "Month",troph = "Zooplankton") %>% 
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95 ,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))
+                          ifelse(y_x.quantile >= 0.95 ,"*","")))
 wind.zoomth.ccm.raw <- lapply(wind.zoomth.ccm, `[[`, 'perm.dens')%>% 
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Windermere", res = "Month",troph = "Zooplankton") 
@@ -469,9 +469,9 @@ kas.phytomth.ccm.summary <- lapply(kas.phytomth.ccm, `[[`, 'summary')%>%
   data.table::rbindlist(idcol = "FD.metric") %>% 
   mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton") %>% 
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))
+                          ifelse(y_x.quantile >= 0.95 ,"*","")))
 kas.phytomth.ccm.raw <- lapply(kas.phytomth.ccm, `[[`, 'perm.dens')%>% 
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Kasumigaura", res = "Month",troph = "Phytoplankton")
@@ -509,9 +509,9 @@ kas.zoomth.ccm.summary <- lapply(kas.zoomth.ccm, `[[`, 'summary')%>%
   data.table::rbindlist(idcol = "FD.metric") %>% 
   mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton") %>% 
   mutate(x_y.sig = ifelse(is.na(x_y.obs_value) | x_y.obs_value == "NaN","",
-                          ifelse(x_y.quantile >= 0.975 | x_y.quantile <= 0.025,"*","")))%>%
+                          ifelse(x_y.quantile >= 0.95 ,"*","")))%>%
   mutate(y_x.sig = ifelse(is.na(y_x.obs_value) | y_x.obs_value == "NaN","",
-                          ifelse(y_x.quantile >= 0.975 | y_x.quantile <= 0.025,"*","")))
+                          ifelse(y_x.quantile >= 0.95 ,"*","")))
 kas.zoomth.ccm.raw <- lapply(kas.zoomth.ccm, `[[`, 'perm.dens')%>% 
   data.table::rbindlist(idcol = "FD.metric")%>% 
   mutate(system = "Kasumigaura", res = "Month",troph = "Zooplankton") 
@@ -536,7 +536,7 @@ kas.lag.ccm <- read.csv(file ="Results/ccm/raw_data/kas_ccm_lag.csv")
 summary.ccm <- rbind(kin.summary.ccm,mad.summary.ccm,
                      LZ.summary.ccm,kas.summary.ccm,
                      wind.summary.ccm)
-
+  
 raw.ccm <- rbind(kin.raw.ccm,mad.raw.ccm,
                      LZ.raw.ccm,kas.raw.ccm,
                      wind.raw.ccm)
@@ -584,7 +584,7 @@ ggplot(raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.me
   geom_point(data = summary.ccm[summary.ccm$measure %in% "max.skill",],
              aes(x = state.metric, y = x_y.obs_value),position = position_dodge(width = 0.9),size=2) +
   geom_text(data = summary.ccm[summary.ccm$measure %in% "max.skill",], 
-            aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
+            aes(x = state.metric, y = 0.98,label = x_y.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
   geom_text(data = summary.ccm[summary.ccm$measure %in% "t.max.skill",], 
             aes(x = state.metric, y = 0.9,label = x_y.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
   scale_y_continuous(breaks = c(0,0.5,1.0))+
