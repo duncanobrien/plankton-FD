@@ -240,7 +240,7 @@ write.csv(zoo.wind.fuzFDs.yr,file = "Data/raw_FD/FD_wind_zoo_yr_raw.csv",row.nam
 
 # Kasumigaura #
 zoo.kas.fuzFDs.mth <-tidyFD(plank_env.kasmthdata[,122:156], zoo.kas.traits.dat, trophic.lvl = "zoo",
-                            approach = "mFD",ndim=8,
+                            approach = "mFD",ndim=4,
                             traittype = "fuzzy", method = FD_metrics, correction="cailliez")
 zoo.kas.fuzFDs.mth <- cbind(date = as.numeric(plank_env.kasmthdata$date),zoo.kas.fuzFDs.mth)
 write.csv(zoo.kas.fuzFDs.mth,file = "Data/raw_FD/FD_kas_zoo_mth_raw.csv",row.names = F)
