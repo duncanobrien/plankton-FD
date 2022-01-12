@@ -60,15 +60,28 @@ ccm.perm <- function(dat,iter =999, span = 12,return.raw = F,
     mutate(across(everything(),~scale(.)))
   
   ### Observed CCM ###
+  # simplex_FD <- rEDM::simplex(sub.dat[, c(1,2)], # identify optimal embedding dimension for FD i.e. when maximum info (rho) contained
+  #                             E = 2:10, # range of possible embdedding dimensions
+  #                             lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)%>%
+  #   filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
+  # 
+  # simplex_state <- rEDM::simplex(sub.dat[,c(1,3)] , # identify optimal embedding dimension for system state
+  #                                E = 2:10, 
+  #                                lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)%>%
+  #   filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
+  
   simplex_FD <- rEDM::simplex(sub.dat[, c(1,2)], # identify optimal embedding dimension for FD i.e. when maximum info (rho) contained
                               E = 2:10, # range of possible embdedding dimensions
-                              lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)%>%
-    filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
-  
+                              lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)
+  d1 <- diff(as.numeric(simplex_FD$rho)) # using the difference between rho's,
+  simplex_FD <- simplex_FD[which.max((d1 / d1[1]) < 0.1),] # identify the row that has the first change plateauing relative to maximum change
+
   simplex_state <- rEDM::simplex(sub.dat[,c(1,3)] , # identify optimal embedding dimension for system state
                                  E = 2:10, 
-                                 lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)%>%
-    filter(as.numeric(rho) %in% max(as.numeric(rho))) %>% slice(1) %>% dplyr::select(E)
+                                 lib = c(1, nrow(sub.dat)), pred = c(1, nrow(sub.dat)),stats_only = T)
+  
+  d2 <- diff(as.numeric(simplex_state$rho))
+  simplex_state <- simplex_state[which.max((d2 / d2[1]) < 0.1),]
   
   if(simplex_FD$E != simplex_state$E){ #select shared/maximum embedding dimension 
     simplex_use <- max(c(simplex_FD$E,simplex_state$E))

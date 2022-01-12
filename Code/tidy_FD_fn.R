@@ -11,6 +11,7 @@
 
 tidyFD <- function(speciesdat, traitdat, trophic.lvl = c("phyto","zoo","fish"), traittype = c("fuzzy","ordinal"),
                    method = c("MNND","Rao","FDis","FRic","FEve","FDiv","SRic","SDiv","RARDis","RARScr"),
+                   approach = c("FD","mFD"),
                    correction = c("sqrt", "cailliez", "lingoes", "none"), ndim = 10){
   require(tibble)
   require(dplyr)
@@ -20,9 +21,10 @@ tidyFD <- function(speciesdat, traitdat, trophic.lvl = c("phyto","zoo","fish"), 
   require(vegan)
   require(gawdis)
   require(funrar)
+  require(mFD)
   set.seed(1234)
   
-source("Code/melodic_fn.R")
+  source("Code/melodic_fn.R")
   
   #select trait data type. Fuzzy used in this work
   if(traittype == "ordinal"){
@@ -108,7 +110,7 @@ source("Code/melodic_fn.R")
       #ktab <- ktab.list.df(list(fuz.lgth,fuz.sa,fuz.vol,fuz.c.ratio,fuz.col,fuz.mob,fuz.troph,fuz.n2,fuz.sil))
       #ktab<- ktab.list.df(list(fuz.trait))
       #traits.data.in <- dist.ktab(ktab,type = c(rep("F",times=9)),scann = F)
-    
+      
       #each group represents similar traits e.g. size is represented by length/SA/vol
       #Can also be used for fuzzy data where a group are the categories for a single trait
       traits.data.in<-gawdis::gawdis(traits.data[,4:20], w.type="equal", 
@@ -126,6 +128,7 @@ source("Code/melodic_fn.R")
   cor<-match.arg(correction, choices=c("sqrt", "cailliez", "lingoes", "none"), several.ok=F)
   func.tmp <- match.fun(cor) #convert string to function from FD package
   meth <- match.arg(method , choices= c("MNND","Rao","FDis","FDiv","FRic","FEve","SRic","SDiv","RARDis","RARScr"), several.ok=T)
+  appr <-  match.arg(approach , choices= c("FD","mFD"), several.ok=F)
   
   if(length(which(meth == "MNND"))==1){
     MNNDout <- picante::mntd(samp = as.matrix(species.data), dis = as.matrix(func.tmp(traits.data.in)), abundance.weighted = T)
@@ -152,23 +155,58 @@ source("Code/melodic_fn.R")
   }
   
   if(length(which(grepl("^[F]", meth)==1))){ #if meth starts with the letter 'F'
-    tmp.FD <- FD::dbFD(x = traits.data.in,a = as.matrix(species.data), corr = paste(cor), 
-                       calc.CWM = F, calc.FRic = T,calc.FDiv = T,m=ndim) #for speed, create single dbFD object
-    
-    if(length(which(meth == "FDis"))==1){
-      FDISout <- tmp.FD$FDis
-    }
-    if(length(which(meth == "FRic"))==1){
-      FRICout <- tmp.FD$FRic
-    }
-    if(length(which(meth == "FEve"))==1){
-      FEVEout <-tmp.FD$FEve
-    }
-    if(length(which(meth == "FDiv"))==1){
-      FDIVout <-tmp.FD$FDiv
+    if(length(which(appr == "FD"))==1 ){
+      
+      tmp.FD <- FD::dbFD(x = traits.data.in,a = as.matrix(species.data), corr = paste(cor), 
+                         calc.CWM = F, calc.FRic = T,calc.FDiv = T,m=ndim) #for speed, create single dbFD object
+      
+      if(length(which(meth == "FDis"))==1){
+        FDISout <- tmp.FD$FDis
+      }
+      if(length(which(meth == "FRic"))==1){
+        FRICout <- tmp.FD$FRic
+      }
+      if(length(which(meth == "FEve"))==1){
+        FEVEout <-tmp.FD$FEve
+      }
+      if(length(which(meth == "FDiv"))==1){
+        FDIVout <-tmp.FD$FDiv
+      }
+    }else{
+      fspaces.quality <- mFD::quality.fspaces(
+        sp_dist             = func.tmp(traits.data.in),
+        maxdim_pcoa         = ndim,
+        deviation_weighting = "absolute",
+        fdist_scaling       = FALSE,
+        fdendro             = NULL) #estimate quality of trait space up to ndim dimensions
+      
+      species.coord <- fspaces.quality$details_fspaces$sp_pc_coord[ ,  paste("PC",seq(1:which(fspaces.quality$quality_fspaces == min(fspaces.quality$quality_fspaces))),sep = "")] #extract trait space qualities
+      
+      species.data <- as.matrix(species.data)
+      rownames(species.data) <- paste("assemblage",seq(1:nrow(species.data)),sep = "_") #for quirk of mFD functions, convert species abundances to matrix and provide rownames
+      
+      tmp.FD <- mFD::alpha.fd.multidim(
+        sp_faxes_coord   = species.coord,
+        asb_sp_w         = species.data,
+        ind_vect         = c("fdis", "feve","fric", "fdiv"),
+        scaling          = TRUE,
+        check_input      = FALSE,
+        details_returned = TRUE)
+      
+      if(length(which(meth == "FDis"))==1){
+        FDISout <- tmp.FD$functional_diversity_indices$fdis
+      }
+      if(length(which(meth == "FRic"))==1){
+        FRICout <- tmp.FD$functional_diversity_indices$fric
+      }
+      if(length(which(meth == "FEve"))==1){
+        FEVEout <- tmp.FD$functional_diversity_indices$feve
+      }
+      if(length(which(meth == "FDiv"))==1){
+        FDIVout <- tmp.FD$functional_diversity_indices$fdiv
+      }
     }
   }
-  
   if(length(which(meth == "SRic"))==1){
     SRICout <- vegan::specnumber(x = as.matrix(species.data),MARGIN = 1)
   }
