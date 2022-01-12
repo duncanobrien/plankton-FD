@@ -163,19 +163,19 @@ kin.lag.ccm <- read.csv(file ="Results/ccm/raw_data/kin_ccm_lag.csv")
 mad.phytomth.ccm<- pbmcapply::pbmclapply(c("FDis","FEve","FRic"),function(x){
   bio <- suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"density")],
                                    detrend.method = "lm",
-                                  iter = 6,span =12*5,return.raw = T))
+                                  iter = 500,span =12*5,return.raw = T))
   pc <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"community")],
                                    detrend.method = "lm",
-                                    iter = 6,span =12*5,return.raw = T))
+                                    iter = 500,span =12*5,return.raw = T))
   fi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"FI")],
                                    detrend.method = "lm",
-                                   iter = 6,span =12*5,return.raw = T))
+                                   iter = 500,span =12*5,return.raw = T))
   mvi <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"mvi")],
                                     detrend.method = "lm",
-                                    iter = 6,span =12*5,return.raw = T))
+                                    iter = 500,span =12*5,return.raw = T))
   zp.ratio <-  suppressWarnings(ccm.perm(dat = mad.tot[,c("date",paste(x),"zp.ratio")],
                                          detrend.method = "lm",
-                                         iter = 6,span =12*5,return.raw = T))
+                                         iter = 500,span =12*5,return.raw = T))
   out.val <- data.frame(rbind(pc$summary,bio$summary,fi$summary,mvi$summary,zp.ratio$summary),
                         "state.metric" = c(rep("Community",nrow(pc$summary)),rep("Density",nrow(bio$summary)),rep("FI",nrow(fi$summary)),rep("MVI",nrow(mvi$summary)),rep("Z_P.ratio",nrow(zp.ratio$summary))))
   out.dens <- data.frame(rbind(pc$perm.dens,bio$perm.dens,fi$perm.dens,mvi$perm.dens,zp.ratio$perm.dens),
