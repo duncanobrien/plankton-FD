@@ -6,7 +6,7 @@ require(pbmcapply) # paralled lapply
 require(data.table) # rbindlist function
 require(patchwork) # plot alignment
 require(ggpubr) # plot alignment
-
+require(lubridate) # yearmon date format
 source("Code/ccm_perm_fn.R") # custom function
 
 ###########################################################################
@@ -833,7 +833,7 @@ pccm.lagx.3 <- ggplot(filter(summary.ccm,measure %in% "t.max.skill") %>%
   geom_tile(data = expand_grid(c(seq(60,24,-12),12,seq(-12,-60,-12)),unique(summary.ccm$FD.metric),unique(summary.ccm$state.metric),unique(summary.ccm$troph)) %>%
               magrittr::set_colnames(c("y_x.obs_value","FD.metric","state.metric","troph")),
             aes(group = FD.metric),fill = "white",stat="identity",position = position_dodge(width = 0.75), col = "black", size = 0.3,width = 0.8, height = 0.9)+
-  geom_tile(data = expand_grid(c(12),unique(summary.ccf.mth1$FD.metric),unique(summary.ccf.mth1$state.metric),unique(summary.ccf.mth1$troph)) %>%
+  geom_tile(data = expand_grid(c(12),unique(summary.ccm$FD.metric),unique(summary.ccm$state.metric),unique(summary.ccm$troph)) %>%
               magrittr::set_colnames(c("y_x.obs_value","FD.metric","state.metric","troph")),
             aes(group = FD.metric),fill = "#E5E0FF",stat="identity",position = position_dodge(width = 0.75), col = "black", size = 0.3,width = 0.8, height = 0.9)+
   geom_point(position=position_jitterdodge(dodge.width=0.75,jitter.height = 0.2,jitter.width = 0,seed = 5),
@@ -987,10 +987,6 @@ count.ccmdf <- ccm.plot.df %>%
   filter(sig == "*")%>% #only keep significant relationships
   group_by(state.metric,causality.direc,FD.metric,troph)%>%
   summarise(N = n()) #significant count per group
-
-pdf(file="Results/ccm/ccm_causality_spread.pdf",
-    width=10, height = 7)
-
 
 pdf(file="Results/ccm/ccm_causality_spread_alt.pdf",
     width=10, height = 7)
