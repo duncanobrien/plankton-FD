@@ -843,6 +843,27 @@ lag0.lagx.comp <- left_join(obs.cor.lag0.state.tab,obs.cor.lagx.state.tab,
                    prop.sig_lagx =prop.sig_lagx,
                    diff.prop.sig = (prop.sig_lagx-prop.sig_lag0))
 
+lag.density.df <- summary.ccf.mth1 %>%
+  dplyr::select(!c(quantile,median.perm.value,obs.difference,res))%>%
+  filter(measure %in% c("absmax.ccf","t.absmax.ccf"))%>%
+  pivot_wider(names_from = measure,values_from = obs.value)%>%
+  ungroup()%>%
+  mutate(t.absmax.ccf=ifelse(is.numeric(absmax.ccf) & !is.na(t.absmax.ccf),t.absmax.ccf,
+                             dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
+  na.omit()
+
+pdf(file="Results/ccf/ccf_lag_density.pdf",
+    width=6, height = 5)
+ggplot(lag.density.df,aes(x=t.absmax.ccf)) + 
+  xlab("Lag") + ylab("Density")+
+  geom_density(aes(linetype = "All"),col = "#90ADC6",fill="#90ADC6",alpha = 0.4,bw = 4)+
+  geom_density(data = filter(lag.density.df,sig == "*"),aes(linetype = "Significant"),col = "#FAD02C",fill="#FAD02C",alpha = 0.4,bw = 4) + 
+  geom_vline(xintercept =quantile(lag.density.df$t.absmax.ccf,probs = c(0.1,0.80)), linetype = "longdash",col="#90ADC6")+
+  geom_vline(xintercept =quantile(filter(lag.density.df,sig == "*")$t.absmax.ccf,probs = c(0.1,0.80)), linetype = "longdash",col="#FAD02C")+
+  theme_bw() +  scale_linetype_manual(values = c(1,1),
+                                      guide = guide_legend(title = "Cross-correlation\ngroup",override.aes = list(size = 1,col=c("#90ADC6","#FAD02C"),fill = c("grey","#FAD02C"))))
+dev.off()
+
 ###########################################################################
 ## Estimate cross correlation and permute (Lag12, Monthly) ##
 ###########################################################################

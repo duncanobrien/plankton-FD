@@ -983,6 +983,22 @@ ccm.plot.df <- summary.ccm %>%
   #mutate(FD.metric = ifelse(troph == "Zooplankton", paste("zoo",FD.metric,sep = ""),FD.metric))%>%
   ungroup()
 
+pdf(file="Results/ccm/ccm_lag_density.pdf",
+    width=7, height = 5)
+ggplot(ccm.plot.df,aes(x=lag)) + 
+  xlab("Lag") + ylab("Density")+
+  geom_density(aes(linetype = "All associations"),col = "#90ADC6",fill="#90ADC6",alpha = 0.4,bw = 4,size=0.8)+
+  geom_density(data = filter(ccm.plot.df,sig == "*"),aes(linetype = "Significant\nassociations"),col = "#FAD02C",fill="#FAD02C",alpha = 0.4,bw = 4,size=0.8) + 
+  geom_vline(xintercept =quantile(ccm.plot.df$lag,probs = c(0.1,0.80)), linetype = "longdash",col="#90ADC6")+
+  geom_vline(xintercept =quantile(filter(ccm.plot.df,sig == "*")$lag,probs = c(0.1,0.80)), linetype = "longdash",col="#FAD02C")+
+  theme_bw() +  
+  geom_vline(xintercept =0, linetype = "solid",col="black",alpha = 0.8)+
+  facet_free(~causality.direc)+
+  scale_linetype_manual(values = c(1,1),
+                        guide = guide_legend(title = "Causality group",override.aes = list(size = 1,col=c("#90ADC6","#FAD02C"),fill = c("#90ADC6","#FAD02C"), alpha = 0.2)))
+
+dev.off()
+
 count.ccmdf <- ccm.plot.df %>%
   filter(sig == "*")%>% #only keep significant relationships
   group_by(state.metric,causality.direc,FD.metric,troph)%>%
