@@ -3,7 +3,7 @@
 ## Preamble ##
 require(tidyverse) # dplyr, ggplot etc.
 require(patchwork) # plot alignment
-require(ggpubr) # plot alignment
+require(ggpubr) # plot alignment 
 
 ## Prepare data ##
 summary.ccf.mth1 <- read.csv("Results/ccf/raw_data/summary.ccf.mth.lag1.csv")
