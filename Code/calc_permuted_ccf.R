@@ -680,10 +680,13 @@ summary.ccf.mth1 <- read.csv("Results/ccf/raw_data/summary.ccf.mth.lag1.csv")
 obs.cor.lag0.state.tab <- summary.ccf.mth1 %>%
   filter(measure %in% "r0.ccf")%>%
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(obs.value),median.cor = median(obs.value),
+  summarise(median.cor = median(obs.value),
             cor.se = sd(obs.value)/n(),
             nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+  mutate(across(median.cor:cor.se,~round(.x,digits=3)))%>%
+  rowwise()%>%
+  mutate(median.cor = paste(c(median.cor,cor.se),collapse = " ± ")) %>%
+  select(-c(cor.se))
 write.csv(obs.cor.lag0.state.tab,file ="Results/ccf/ccf_tables/cor.lag0.state.tab.csv",row.names = F)
 obs.cor.lag0.state.tab <- read.csv("Results/ccf/ccf_tables/cor.lag0.state.tab.csv")
 
@@ -772,11 +775,17 @@ obs.cor.lagx.state.tab <- summary.ccf.mth1 %>%
                               dplyr::lead(t.absmax.ccf)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
   na.omit() %>%#drop duplicate rows
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(absmax.ccf),median.cor = median(absmax.ccf),
+  summarise(median.cor = median(absmax.ccf),
             cor.se = sd(absmax.ccf)/n(), 
-            median.lag = median(t.absmax.ccf),lag.se = sd(t.absmax.ccf)/n(), 
-            nsig=sum(sig %in% "*"),prop.sig = sum(sig %in% "*")/length(sig)) %>%
-  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
+            median.lag = median(t.absmax.ccf),
+            lag.se = sd(t.absmax.ccf)/n(), 
+            nsig=sum(sig %in% "*"),
+            prop.sig = sum(sig %in% "*")/length(sig)) %>%
+  mutate(across(median.cor:lag.se,~round(.x,digits=3)))%>%
+  rowwise()%>%
+  mutate(median.cor = paste(c(median.cor,cor.se),collapse = " ± "),
+         median.lag = paste(c(median.lag,lag.se),collapse = " ± ")) %>%
+  select(-c(cor.se,lag.se))
 write.csv(obs.cor.lagx.state.tab,file ="Results/ccf/ccf_tables/cor.lagx.state.tab.csv",row.names = F)
 
 pdf(file="Results/ccf/summary_FD_perm_lm_mth_absrmax_alt.pdf",

@@ -194,13 +194,9 @@ pdf(file="Results/raw_visualisations/raw_smooth_vis.pdf",
 ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_point(aes(col=metric),alpha = 0.3,pch =21)+
   geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "tp",k=15),method.args = list(method = "REML"),alpha=1,fill="grey") +
-  #geom_path(aes(col=metric))+
-  # ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
-  #                     labeller = label_value,strip = ggh4x::strip_nested(size="constant",bleed=T),
-  #                     space="free_x" ) +
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
                       labeller = label_value,
-                      strip = ggh4x::strip_nested(size="constant",bleed=T, 
+                      strip = ggh4x::strip_nested(size="constant",bleed=T,
                             background_y =elem_list_rect(fill = c("#919191","#B5B5B5","#B5B5B5","white", rep("#DEDEDE",12))),
                             by_layer_y = F),
                       space="free_x" ) +
@@ -212,6 +208,36 @@ ggplot(all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve
   geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
              aes(xintercept=1993.0), colour="black",linetype="dashed")+
   geom_vline(data=all.lakes.gam %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Mendota"), 
+             aes(xintercept=2009.0), colour="black",linetype="dashed")+
+  #scale_y_continuous(breaks= scales::pretty_breaks(n = 3))+
+  coord_cartesian(ylim = c(-2.5,2.5))+ 
+  scale_y_continuous(breaks= seq(-2,2,2))+
+  #scale_x_continuous(breaks= scales::pretty_breaks(n = 3))+
+  scale_x_continuous(breaks = seq(1970,2015,10))+
+  theme(panel.spacing=unit(0.2,"lines"))
+dev.off()
+
+no_env_dat <- filter(all.lakes.gam,metric != "env" )
+pdf(file="Results/raw_visualisations/raw_smooth_vis_no_env.pdf",
+    width=9, height = 9)
+ggplot(no_env_dat %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
+  geom_point(aes(col=metric),alpha = 0.3,pch =21)+
+  geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "tp",k=15),method.args = list(method = "REML"),alpha=1,fill="grey") +
+  ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
+                      labeller = label_value,
+                      strip = ggh4x::strip_nested(size="constant",bleed=T, 
+                                                  background_y =elem_list_rect(fill = c("#D6D6D6","#EBEBEB","#EBEBEB",rep("white",12))),
+                                                  background_x =elem_list_rect(fill = c(rep("white",5))),
+                                                  by_layer_y = F),
+                      space="free_x" ) +
+  scale_colour_manual(values = c("#7b3294","#c2a5cf","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
+  scale_fill_manual(values = c("#7b3294","#c2a5cf","#969014","#22B4F5","#a6dba0","#F07589","#008837","#E8E1A2"), guide = 'none')+
+  theme_bw() + xlab("Date")+ ylab("Scaled metric value")+
+  geom_vline(data=no_env_dat %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kasumigaura"), 
+             aes(xintercept=1997.0), colour="black",linetype="dashed")+
+  geom_vline(data=no_env_dat %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Kinneret"), 
+             aes(xintercept=1993.0), colour="black",linetype="dashed")+
+  geom_vline(data=no_env_dat %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)) %>% filter(data.source == "Mendota"), 
              aes(xintercept=2009.0), colour="black",linetype="dashed")+
   #scale_y_continuous(breaks= scales::pretty_breaks(n = 3))+
   coord_cartesian(ylim = c(-2.5,2.5))+ 

@@ -4,7 +4,7 @@
 require(tidyverse) # dplyr, ggplot etc.
 
 source("Code/mvi_fn.R")
-fisher.scripts <- list.files(path ="Code/fisher_information", pattern="*.R",full.names = T) 
+fisher.scripts <- list.files(path ="/Users/duncanobrien/Desktop/Academia/PhD/Data/Functional Diversity/plankton-FD/Code/fisher_information", pattern="*.R",full.names = T) 
           # identify Fisher information scripts to be sourced
 purrr::walk(fisher.scripts, source) # source silently
 

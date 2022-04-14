@@ -570,8 +570,8 @@ ggplot(raw.ccm,aes(x = state.metric, y =  y_x.skill, col = FD.metric,fill= FD.me
             aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
   geom_text(data = summary.ccm[summary.ccm$measure %in% "t.max.skill",], 
             aes(x = state.metric, y = 0.9,label = y_x.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
-  scale_y_continuous(breaks = c(0,0.5,1.0))+
-  facet_grid(system~troph,scales = "free")+
+  scale_y_continuous(breaks = c(0.0,0.5,1.0))+
+  facet_grid(system~troph)+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of system state mapping FD (forward)")
@@ -589,7 +589,40 @@ ggplot(raw.ccm,aes(x = state.metric, y =  x_y.skill, col = FD.metric,fill= FD.me
   geom_text(data = summary.ccm[summary.ccm$measure %in% "t.max.skill",], 
             aes(x = state.metric, y = 0.9,label = x_y.obs_value),col= "black",size = 3,position = position_dodge(width = 0.9))+
   scale_y_continuous(breaks = c(0,0.5,1.0))+
-  facet_grid(system~troph,scales = "free")+
+  facet_grid(system~troph)+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state (reverse)")
+dev.off()
+
+pdf(file="Results/ccm/FD_perm_y_x_R0.pdf",
+    width=10, height = 8)
+ggplot(raw.ccm,aes(x = state.metric, y =  y_x.r0, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = summary.ccm[summary.ccm$measure %in% "r0.skill",],
+             aes(x = state.metric, y = y_x.obs_value),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = summary.ccm[summary.ccm$measure %in% "r0.skill",], 
+            aes(x = state.metric, y = 0.98,label = y_x.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  scale_y_continuous(breaks = c(0.0,0.5,1.0))+
+  facet_grid(system~troph)+
+  scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
+  ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of system state mapping FD (forward)")
+dev.off()
+
+
+pdf(file="Results/ccm/FD_perm_x_y_R0.pdf",
+    width=10, height = 8)
+ggplot(raw.ccm,aes(x = state.metric, y =  x_y.r0, col = FD.metric,fill= FD.metric)) + 
+  geom_violin(aes(fill = FD.metric),draw_quantiles =  c(0.05, 0.5, 0.95),scale = "width",alpha = 0.3) +
+  theme_bw() + 
+  geom_point(data = summary.ccm[summary.ccm$measure %in% "r0.skill",],
+             aes(x = state.metric, y = x_y.obs_value),position = position_dodge(width = 0.9),size=2) +
+  geom_text(data = summary.ccm[summary.ccm$measure %in% "r0.skill",], 
+            aes(x = state.metric, y = 0.98,label = x_y.sig),col= "black",size = 4,position = position_dodge(width = 0.9))+
+  scale_y_continuous(breaks = c(0,0.5,1.0))+
+  facet_grid(system~troph)+
   scale_colour_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   scale_fill_manual(values=c("#969014","#22B4F5","#F07589"),name = "FD Metric") + 
   ylab("Cross map skill") + xlab("System state proxy")+   ggtitle("Permuted cross skill of FD mapping system state (reverse)")
@@ -692,10 +725,13 @@ obs.ccm.y_x.lag0.state.tab <- summary.ccm %>%
   dplyr::select(!starts_with("x_y"))%>%
   filter(measure == "r0.skill")%>%
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(y_x.obs_value),median.cor = median(y_x.obs_value),
+  summarise(median.cor = median(y_x.obs_value),
             cor.se = sd(y_x.obs_value)/n(),
             nsig=sum(y_x.sig %in% "*"),prop.sig = sum(y_x.sig %in% "*")/length(y_x.sig)) %>%
-  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+  mutate(across(median.cor:cor.se,~round(.x,digits=3)))%>%
+  rowwise()%>%
+  mutate(median.cor = paste(c(median.cor,cor.se),collapse = " ± ")) %>%
+  select(-c(cor.se))
 write.csv(obs.ccm.y_x.lag0.state.tab,file ="Results/ccm/ccm_tables/skill.y_x.lag0.state.tab.csv",row.names = F)
 obs.ccm.y_x.lag0.state.tab <- read.csv("Results/ccm/ccm_tables/skill.y_x.lag0.state.tab.csv")
 
@@ -703,10 +739,13 @@ obs.ccm.x_y.lag0.state.tab <- summary.ccm %>%
   dplyr::select(!starts_with("y_x"))%>%
   filter(measure == "r0.skill")%>%
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(x_y.obs_value),median.cor = median(x_y.obs_value),
+  summarise(median.cor = median(x_y.obs_value),
             cor.se = sd(x_y.obs_value)/n(),
             nsig=sum(x_y.sig %in% "*"),prop.sig = sum(x_y.sig %in% "*")/length(x_y.sig)) %>%
-  mutate(across(mean.cor:cor.se,~round(.x,digits=4)))
+  mutate(across(median.cor:cor.se,~round(.x,digits=3)))%>%
+  rowwise()%>%
+  mutate(median.cor = paste(c(median.cor,cor.se),collapse = " ± ")) %>%
+  select(-c(cor.se))
 write.csv(obs.ccm.x_y.lag0.state.tab,file ="Results/ccm/ccm_tables/skill.x_y.lag0.state.tab.csv",row.names = F)
 obs.ccm.x_y.lag0.state.tab <- read.csv("Results/ccm/ccm_tables/skill.x_y.lag0.state.tab.csv")
 
@@ -755,11 +794,15 @@ obs.ccm.y_x.lagx.state.tab <- summary.ccm %>%
                             dplyr::lead(t.max.skill)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
   na.omit() %>%#drop duplicate rows
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(max.skill),median.cor = median(max.skill),
+  summarise(median.cor = median(max.skill),
             cor.se = sd(max.skill)/n(),
             median.lag = median(t.max.skill),lag.se = sd(t.max.skill)/n(), 
             nsig=sum(y_x.sig %in% "*"),prop.sig = sum(y_x.sig %in% "*")/length(y_x.sig))%>%
-  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
+  mutate(across(median.cor:lag.se,~round(.x,digits=3)))%>%
+  rowwise()%>%
+  mutate(median.cor = paste(c(median.cor,cor.se),collapse = " ± "),
+         median.lag = paste(c(median.lag,lag.se),collapse = " ± ")) %>%
+  select(-c(cor.se,lag.se))
 write.csv(obs.ccm.y_x.lagx.state.tab,file ="Results/ccm/ccm_tables/skill.y_x.lagx.state.tab.csv",row.names = F)
 obs.ccm.y_x.lagx.state.tab <- read.csv("Results/ccm/ccm_tables/skill.y_x.lagx.state.tab.csv")
 
@@ -772,11 +815,15 @@ obs.ccm.x_y.lagx.state.tab <- summary.ccm %>%
                             dplyr::lead(t.max.skill)))%>% # fill NA t.absmax with next t.absmax to associate cor with lag
   na.omit() %>%#drop duplicate rows
   group_by(troph,FD.metric,state.metric) %>%
-  summarise(mean.cor = mean(max.skill),median.cor = median(max.skill),
+  summarise(median.cor = median(max.skill),
             cor.se = sd(max.skill)/n(),
             median.lag = median(t.max.skill),lag.se = sd(t.max.skill)/n(), 
             nsig=sum(x_y.sig %in% "*"),prop.sig = sum(x_y.sig %in% "*")/length(x_y.sig))%>%
-  mutate(across(mean.cor:lag.se,~round(.x,digits=4)))
+  mutate(across(median.cor:lag.se,~round(.x,digits=3)))%>%
+  rowwise()%>%
+  mutate(median.cor = paste(c(median.cor,cor.se),collapse = " ± "),
+         median.lag = paste(c(median.lag,lag.se),collapse = " ± ")) %>%
+  select(-c(cor.se,lag.se))
 write.csv(obs.ccm.x_y.lagx.state.tab,file ="Results/ccm/ccm_tables/skill.x_y.lagx.state.tab.csv",row.names = F)
 obs.ccm.x_y.lagx.state.tab <- read.csv("Results/ccm/ccm_tables/skill.x_y.lagx.state.tab.csv")
 

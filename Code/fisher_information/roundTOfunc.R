@@ -1,7 +1,13 @@
-## Round 2 Function (renamed 'roundTO' to prevent homonyms) ##
+#' Round 2 Function 
+#' 
+#' Rounding function renamed 'roundTO' to prevent homonyms
+#' 
+#' @param x Numeric value to be rounded.
+#' @param y Numeric value to round \code{x} to nearest multiple of.
+#' 
+#' @returns Numeric value.
 
 roundTO <- function(x,y){
 #roundTO rounds number to nearest multiple of arbitrary precision.
-#Z <- roundTO(X,Y) rounds X to nearest multiple of Y.
 round(x/y)*y
 }

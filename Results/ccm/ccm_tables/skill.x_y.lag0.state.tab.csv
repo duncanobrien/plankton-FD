@@ -1,31 +1,31 @@
-"troph","FD.metric","state.metric","mean.cor","median.cor","cor.se","nsig","prop.sig"
-"Phytoplankton","FDis","Community",0.0765,0.0745,0.011,2,0.4
-"Phytoplankton","FDis","Density",0.2782,0.3665,0.0718,3,0.6
-"Phytoplankton","FDis","FI",0.0496,0.0567,0.037,2,0.4
-"Phytoplankton","FDis","MVI",0.05,-0.0445,0.0486,1,0.2
-"Phytoplankton","FDis","Z_P.ratio",0.1964,0.1942,0.0559,3,0.6
-"Phytoplankton","FEve","Community",0.0472,0.0714,0.0172,1,0.2
-"Phytoplankton","FEve","Density",0.1229,0.1021,0.0241,2,0.4
-"Phytoplankton","FEve","FI",0.1197,0.1341,0.0294,3,0.6
-"Phytoplankton","FEve","MVI",-0.0568,-0.065,0.0107,0,0
-"Phytoplankton","FEve","Z_P.ratio",0.0467,0.0723,0.0175,0,0
-"Phytoplankton","FRic","Community",0.1231,0.0724,0.0341,1,0.2
-"Phytoplankton","FRic","Density",0.1807,0.2764,0.032,2,0.4
-"Phytoplankton","FRic","FI",0.2501,0.1312,0.0539,3,0.6
-"Phytoplankton","FRic","MVI",0.1755,0.1936,0.043,1,0.2
-"Phytoplankton","FRic","Z_P.ratio",0.1528,0.1518,0.0339,2,0.4
-"Zooplankton","FDis","Community",0.1045,0.1595,0.0222,3,0.6
-"Zooplankton","FDis","Density",0.0156,-0.0074,0.0119,0,0
-"Zooplankton","FDis","FI",0.0663,-0.0077,0.0277,1,0.2
-"Zooplankton","FDis","MVI",0.0403,0.0532,0.0155,0,0
-"Zooplankton","FDis","Z_P.ratio",0.0969,0.0495,0.03,2,0.4
-"Zooplankton","FEve","Community",0.0281,0.0074,0.0176,0,0
-"Zooplankton","FEve","Density",-0.0227,-0.0258,0.02,0,0
-"Zooplankton","FEve","FI",0.0837,0.0657,0.0196,1,0.2
-"Zooplankton","FEve","MVI",-0.031,-0.0732,0.0191,0,0
-"Zooplankton","FEve","Z_P.ratio",0.0776,-0.0222,0.0341,2,0.4
-"Zooplankton","FRic","Community",0.137,0.0993,0.0158,2,0.4
-"Zooplankton","FRic","Density",0.1096,0.1401,0.021,2,0.4
-"Zooplankton","FRic","FI",0.2126,0.177,0.0436,3,0.6
-"Zooplankton","FRic","MVI",0.0417,-0.0261,0.0444,1,0.2
-"Zooplankton","FRic","Z_P.ratio",0.1554,0.1495,0.0168,3,0.6
+"troph","FD.metric","state.metric","median.cor","nsig","prop.sig"
+"Phytoplankton","FDis","Community","0.074 ± 0.011",2,0.4
+"Phytoplankton","FDis","Density","0.366 ± 0.072",3,0.6
+"Phytoplankton","FDis","FI","0.057 ± 0.037",2,0.4
+"Phytoplankton","FDis","MVI","-0.045 ± 0.049",1,0.2
+"Phytoplankton","FDis","Z_P.ratio","0.194 ± 0.056",3,0.6
+"Phytoplankton","FEve","Community","0.071 ± 0.017",1,0.2
+"Phytoplankton","FEve","Density","0.102 ± 0.024",2,0.4
+"Phytoplankton","FEve","FI","0.134 ± 0.029",3,0.6
+"Phytoplankton","FEve","MVI","-0.065 ± 0.011",0,0
+"Phytoplankton","FEve","Z_P.ratio","0.072 ± 0.017",1,0.2
+"Phytoplankton","FRic","Community","0.072 ± 0.034",1,0.2
+"Phytoplankton","FRic","Density","0.276 ± 0.032",2,0.4
+"Phytoplankton","FRic","FI","0.131 ± 0.054",3,0.6
+"Phytoplankton","FRic","MVI","0.194 ± 0.043",1,0.2
+"Phytoplankton","FRic","Z_P.ratio","0.152 ± 0.034",2,0.4
+"Zooplankton","FDis","Community","0.16 ± 0.022",3,0.6
+"Zooplankton","FDis","Density","-0.007 ± 0.012",0,0
+"Zooplankton","FDis","FI","-0.008 ± 0.028",1,0.2
+"Zooplankton","FDis","MVI","0.053 ± 0.015",0,0
+"Zooplankton","FDis","Z_P.ratio","0.05 ± 0.03",2,0.4
+"Zooplankton","FEve","Community","0.007 ± 0.018",0,0
+"Zooplankton","FEve","Density","-0.026 ± 0.02",1,0.2
+"Zooplankton","FEve","FI","0.066 ± 0.02",1,0.2
+"Zooplankton","FEve","MVI","-0.073 ± 0.019",0,0
+"Zooplankton","FEve","Z_P.ratio","-0.022 ± 0.034",2,0.4
+"Zooplankton","FRic","Community","0.099 ± 0.016",2,0.4
+"Zooplankton","FRic","Density","0.14 ± 0.021",2,0.4
+"Zooplankton","FRic","FI","0.177 ± 0.044",3,0.6
+"Zooplankton","FRic","MVI","-0.026 ± 0.044",1,0.2
+"Zooplankton","FRic","Z_P.ratio","0.15 ± 0.017",3,0.6

@@ -8,7 +8,7 @@
 "Phytoplankton","FEve","Density",0.2,0,0.4,0.4
 "Phytoplankton","FEve","FI",0,0.2,0.4,0.4
 "Phytoplankton","FEve","MVI",0.2,0,0,0.8
-"Phytoplankton","FEve","Z_P.ratio",0.4,0,0,0.6
+"Phytoplankton","FEve","Z_P.ratio",0.2,0,0.2,0.6
 "Phytoplankton","FRic","Community",0.2,0,0.2,0.6
 "Phytoplankton","FRic","Density",0,0.2,0.2,0.6
 "Phytoplankton","FRic","FI",0,0.6,0,0.4
@@ -19,12 +19,12 @@
 "Zooplankton","FDis","FI",0,0.2,0,0.8
 "Zooplankton","FDis","MVI",0,0,0,1
 "Zooplankton","FDis","Z_P.ratio",0.4,0.2,0.2,0.2
-"Zooplankton","FEve","Community",0.2,0,0,0.8
-"Zooplankton","FEve","Density",0.2,0,0,0.8
+"Zooplankton","FEve","Community",0,0,0,1
+"Zooplankton","FEve","Density",0,0,0.2,0.8
 "Zooplankton","FEve","FI",0.2,0.2,0,0.6
 "Zooplankton","FEve","MVI",0,0,0,1
 "Zooplankton","FEve","Z_P.ratio",0,0.2,0.2,0.6
-"Zooplankton","FRic","Community",0.2,0.4,0,0.4
+"Zooplankton","FRic","Community",0,0.4,0,0.6
 "Zooplankton","FRic","Density",0,0.4,0,0.6
 "Zooplankton","FRic","FI",0,0.4,0.2,0.4
 "Zooplankton","FRic","MVI",0.2,0.2,0,0.6

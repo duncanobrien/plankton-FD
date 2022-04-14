@@ -53,11 +53,3 @@ mY <- t(fishertemp$midt_win)
 list.out <- list("AvgFish" = AvgFish,"mY" = mY,"Min_TL" = 100-TL)
 return(list.out)
 }
-
-
-#Simple Plots #
-  #subplot(2,1,1), plot(timedat,data) %plots data
-#%subplot(2,1,1), plot(data(:,1),data(:,2)) %plots data for ode title(‘Time series data’);
-#subplot(2,1,2), plot(mY,AvgFish)
-#axis([mY(1) mY(end) 0 9])
-#title(‘Fisher information over time’); xlabel(‘Time’); ylabel(‘Fisher information’);
