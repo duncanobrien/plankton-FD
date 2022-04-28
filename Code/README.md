@@ -1,4 +1,4 @@
-# plank-FD Code
+# plankton-FD Code
 
 ## Recommended code workflow
 
