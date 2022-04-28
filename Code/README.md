@@ -21,6 +21,6 @@
 
 [*melodic_fn.R*](melodic_fn.R) - melodic function published in de Bello, F., Carmona, C.P., Lepš, J. et al. 2016. Functional diversity through the mean trait dissimilarity: resolving shortcomings with existing paradigms and algorithms. *Oecologia* 180, 933–940. https://doi.org/10.1007/s00442-016-3546-0 for abundance-weighted MPD and Rao's Q.
 
-[*diff_perm_ccf_fn.R*](diff_perm_ccf_fn.R) - permutation cross correlation function allowing various detrending methods and lag ranges to be specified.
+[*diff_perm_ccf_fn.R*](diff_perm_ccf_fn.R) - permutation cross correlation function allowing various detrending methods, permutation methods, and lag ranges to be specified.
 
-[*ccm_perm_fn.R*](ccm_perm_fn.R) - permutation convergent cross mapping function using the rEDM package (https://CRAN.R-project.org/package=rEDM) allowing various detrending methods and lag ranges to be specified.
+[*ccm_perm_fn.R*](ccm_perm_fn.R) - permutation convergent cross mapping function using the rEDM package (https://CRAN.R-project.org/package=rEDM) allowing various detrending methods,permutation methods, and lag ranges to be specified.
