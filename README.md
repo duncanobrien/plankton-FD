@@ -7,7 +7,9 @@ Lake Kinneret and Lake Kasumigaura plankton case data are available on request f
 
 Lake Mendota, Windermere and Zurich data can be sourced from:
 
-*Lake Mendota*: Carpenter S., Kitchell J., Cole  J. & Pace M. 2017. Cascade project at North Temperate Lakes LTER core data phytoplankton 1984 - 2015 ver 3. *Environmental Data Initiative*. https://doi.org/10.6073/pasta/520692e02d776bfc7fd5e7f48ea5e5cc.
+*Lake Mendota*: Carpenter S., Kitchell J., Cole  J. & Pace M. 2017. Cascade project at North Temperate Lakes LTER core data phytoplankton 1984 - 2015 ver 4. *Environmental Data Initiative*. https://doi.org/10.6073/pasta/364622a6632f857289f9abc6a99d3ae7.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Carpenter S., Kitchell J., Cole  J. & Pace M. 2017. Cascade project at North Temperate Lakes LTER core data zooplankton 1984 -    2016 ver 4. *Environmental Data Initiative*. https://doi.org/10.6073/pasta/6fc6015c620056034512fde089d50c27.
 
 *Windermere*: Thackeray S.J., de Ville M.M., Fletcher J.M., James J.B., Maberly S.C., Mackay E.B., et al. 2015. Cumbrian Lakes plankton and fish data (1940 to 2013). *NERC Environmental Information Data Centre*. (Dataset). https://doi.org/10.5285/1de49dab-c36e-4700-8b15-93a639ae4d55.
 
