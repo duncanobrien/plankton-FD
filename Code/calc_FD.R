@@ -7,23 +7,23 @@ require(janitor) # row_to_names function
 source("Code/tidy_FD_fn.R")
 
 ##########################################################################################
-## Read in Plankton Abundance Data ##
+## Read in Plankton Abundance Data (not provided due to copyright) ##
 ##########################################################################################
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kinneret/Data/kinneret_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kinneret/Data/kinneret_environmental_data.R")
+source("Data/kinneret_plankton_data.R")
+source("Data/kinneret_environmental_data.R")
 #phyo, zoo + combined raw concentrations at week, month and year groupings
 
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Zurich/Data/zurich_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Zurich/Data/LZ_environmental_data.R")
+source("Data/zurich_plankton_data.R")
+source("Data/LZ_environmental_data.R")
 
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Madison/Data/madison_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Madison/Data/madison_environmental_data.R")
+source("Data/madison_plankton_data.R")
+source("Data/madison_environmental_data.R")
 
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Windermere/Data/windermere_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Windermere/Data/windermere_environmental_data.R")
+source("Data/windermere_plankton_data.R")
+source("Data/windermere_environmental_data.R")
 
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kasumigaura/Data/kasumigaura_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kasumigaura/Data/Kasumigaura_environmental_data.R")
+source("Data/kasumigaura_plankton_data.R")
+source("Data/Kasumigaura_environmental_data.R")
 
 ##########################################################################################
 ## Read in Plankton Trait Data ##

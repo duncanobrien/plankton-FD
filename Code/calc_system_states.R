@@ -4,28 +4,28 @@
 require(tidyverse) # dplyr, ggplot etc.
 
 source("Code/mvi_fn.R")
-fisher.scripts <- list.files(path ="/Users/duncanobrien/Desktop/Academia/PhD/Data/Functional Diversity/plankton-FD/Code/fisher_information", pattern="*.R",full.names = T) 
+fisher.scripts <- list.files(path ="Code/fisher_information", pattern="*.R",full.names = T) 
           # identify Fisher information scripts to be sourced
 purrr::walk(fisher.scripts, source) # source silently
 
 ##########################################################################################
-## Read in Plankton Abundance Data ##
+## Read in Plankton Abundance Data (not provided due to copyright) ##
 ##########################################################################################
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kinneret/Data/kinneret_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kinneret/Data/kinneret_environmental_data.R")
+source("Data/kinneret_plankton_data.R")
+source("Data/kinneret_environmental_data.R")
 #phyo, zoo + combined raw concentrations at week, month and year groupings
 
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Zurich/Data/zurich_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Zurich/Data/LZ_environmental_data.R")
+source("Data/zurich_plankton_data.R")
+source("Data/LZ_environmental_data.R")
 
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Madison/Data/madison_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Madison/Data/madison_environmental_data.R")
+source("Data/madison_plankton_data.R")
+source("Data/madison_environmental_data.R")
 
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Windermere/Data/windermere_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Windermere/Data/windermere_environmental_data.R")
+source("Data/windermere_plankton_data.R")
+source("Data/windermere_environmental_data.R")
 
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kasumigaura/Data/kasumigaura_plankton_data.R")
-source("/Users/duncanobrien/Desktop/Academia/PhD/Data/Kasumigaura/Data/kasumigaura_environmental_data.R")
+source("Data/kasumigaura_plankton_data.R")
+source("Data/kasumigaura_environmental_data.R")
 
 ##########################################################################################
 ## Kinneret 'Fisher Information' and 'Multivariate Index of Variance' ##
@@ -52,22 +52,6 @@ kinFIyr.dat <- data.frame(FI = kinFIyr$FI,
 kinyr.mvi <- data.frame(multi.var.index(df=plank_env.data.yr[,2:77],window = 5))%>%
   mutate(date = plank_env.data.yr$Date[maxt])
 
-kingrazers <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(herb,omniherb))) == 1)
-
-kinpredators <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 1) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(omni:omniherb,~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(carn,omnicarn))) == 1)
-
 ##########################################################################################
 ## Lower Zurich 'Fisher Information' and 'Multivariate Index of Variance' ##
 ##########################################################################################
@@ -90,22 +74,6 @@ LZFIyr.dat <- data.frame(FI = LZFIyr$FI,
                          maxt =apply(LZFIyr$t_win, MARGIN = 2, FUN = max))
 LZyr.mvi <- data.frame(multi.var.index(df=plank_env.LZyrdata[,5:206],window = 5))%>%
   mutate(date = plank_env.LZyrdata$date[maxt])
-
-LZgrazers <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(herb,omniherb))) == 1)
-
-LZpredators <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 4) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(omni:omniherb,~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(omni,carn,omnicarn))) == 1)
 
 ##########################################################################################
 ## Mendota 'Fisher Information' and 'Multivariate Index of Variance' ##
@@ -131,22 +99,6 @@ madFIyr.dat <- data.frame(FI = madFIyr$FI,
 madyr.mvi <- data.frame(multi.var.index(df=plank_env.madyrdata[,2:222],window = 5))%>%
   mutate(date = plank_env.madyrdata$date[maxt])
 
-madgrazers <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(herb,omniherb))) == 1)
-
-madpredators <- readxl::read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 3) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(omni:omniherb,~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(omni,carn,omnicarn))) == 1)
-
 ##########################################################################################
 ## Windermere 'Fisher Information' and 'Multivariate Index of Variance' ##
 ##########################################################################################
@@ -169,16 +121,6 @@ windFIyr.dat <- data.frame(FI = windFIyr$FI,
                            maxt =apply(windFIyr$t_win, MARGIN = 2, FUN = max))
 windyr.mvi <- data.frame(multi.var.index(df=phyto_env.windyrdata[,c(2:18,20:23)],window = 5))%>%
   mutate(date = phyto_env.windyrdata$Date[maxt])
-
-windgrazers <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 2) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(herb,omniherb))) == 1)
-
-windpredators <- "TotCyclopoids"
 
 ##########################################################################################
 ## Kasumigaura 'Fisher Information' and 'Multivariate Index of Variance' ##
@@ -204,22 +146,6 @@ kasFIyr.dat <- data.frame(FI = kasFIyr$FI,
 
 kasyr.mvi <- data.frame(multi.var.index(df=plank_env.kasyrdata[,2:154],window = 5))%>%
   mutate(date = plank_env.kasyrdata$date[maxt])
-
-kasgrazers <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 5) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(c(herb,omniherb),~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(herb,omniherb))) == 1)
-
-kaspredators <- read_xlsx("Data/fuzzy_zooplankton_traits.xlsx",sheet = 5) %>%
-  slice(-c(1)) %>%
-  janitor::row_to_names(row_number = 1) %>%
-  dplyr::select(-c(Notes))%>%
-  mutate(across(omni:omniherb,~as.numeric(.x)))%>%
-  rowwise()%>%
-  filter(round(sum(c(omni,carn,omnicarn))) == 1)
 
 ##########################################################################################
 ## Combine and save out all system states ##
