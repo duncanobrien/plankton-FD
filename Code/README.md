@@ -23,4 +23,4 @@
 
 [*diff_perm_ccf_fn.R*](diff_perm_ccf_fn.R) - permutation cross correlation function allowing various detrending methods, permutation methods, and lag ranges to be specified.
 
-[*ccm_perm_fn.R*](ccm_perm_fn.R) - permutation convergent cross mapping function using the rEDM package (https://CRAN.R-project.org/package=rEDM) allowing various detrending methods,permutation methods, and lag ranges to be specified.
+[*ccm_perm_fn.R*](ccm_perm_fn.R) - permutation convergent cross mapping function using the rEDM package (https://CRAN.R-project.org/package=rEDM) allowing various detrending methods and lag ranges to be specified.
