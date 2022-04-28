@@ -15,7 +15,7 @@
 ## Supporting functions
 [*fisher_information*](fisher_information) - collection of functions to estimate Fisher Information. See subfolder for details.
 
-*mvi_fn.R* - estimates the multivariate variance index following Brock, W. A., and S. R. Carpenter. 2006. Variance as a leading indicator of regime shift in ecosystem services. *Ecology and Society* 11(2): 9. http://www.ecologyandsociety.org/vol11/iss2/art9/.
+[*mvi_fn.R*](mvi_fn.R) - estimates the multivariate variance index following Brock, W. A., and S. R. Carpenter. 2006. Variance as a leading indicator of regime shift in ecosystem services. *Ecology and Society* 11(2): 9. http://www.ecologyandsociety.org/vol11/iss2/art9/.
 
 [*tidy_FD_fn.R*](tidy_FD_fn.R) - estimates functional diversity using the excellent mFD package (https://doi.org/10.1111/ecog.05904) and [*melodic_fn.R*](melodic_fn.R).
 
