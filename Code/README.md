@@ -4,7 +4,7 @@
 
 [*calc_system_states.R*](calc_system_states.R) - from the raw plankton abundances/densities, estimate ecosystem state using five separate measures: total abundance, community principal component, Fisher information, multivariate variance index and trophic ratio.
 
-[*calc_FD.R*](calc_FD.R)- from the raw plankton abundances/densities and trait information, estimate functional diversity (FD).
+[*calc_FD.R*](calc_FD.R) - from the raw plankton abundances/densities and trait information, estimate functional diversity (FD).
 
 [*calc_permuted_ccf.R*](calc_permuted_ccf.R) - estimate permuted cross correlations between the detrended FD and system state measures.
 
