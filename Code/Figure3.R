@@ -63,7 +63,7 @@ ccm.lagpanel <- ggplot(ccm.lag.scatter.dat,
 
 pdf(file="Results/ccm/Figure3.pdf",
     width=13, height = 10)
-ccm.boxplots + ccf.lagpanel +  plot_layout(nrow = 2,guides = "collect",heights = c(2,0.8))+
+ccm.boxplots + ccm.lagpanel +  plot_layout(nrow = 2,guides = "collect",heights = c(2,0.8))+
   plot_annotation(tag_levels = c('a')) & 
   theme(plot.tag = element_text(face = "bold"))&
   theme(legend.position='right',
