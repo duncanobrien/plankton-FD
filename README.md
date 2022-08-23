@@ -1,6 +1,6 @@
 # plankton-FD
 
-Processed data, code and results from O'Brien D.A., Gal G., Thackeray S.J., Matsuzaki S.S, Blanchard J.L. & Clements C.F. 2022. Planktonic functional diversity changes in synchrony with lake ecosystem state.
+Processed data, code and results from O'Brien D.A., Gal G., Thackeray S.J., Matsuzaki S.S. & Clements C.F. 2022. Planktonic functional diversity changes in synchrony with lake ecosystem state.
 
 ## Graphical Abstract
 ![Image](https://github.com/duncanobrien/plankton-FD/files/8851740/plankFD_graphical_abstract.pdf)
