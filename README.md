@@ -1,4 +1,6 @@
 # plankton-FD
+[![DOI](https://zenodo.org/badge/415840115.svg)](https://zenodo.org/badge/latestdoi/415840115)
+
 
 Processed data, code and results from O'Brien D.A., Gal G., Thackeray S.J., Matsuzaki S.S. & Clements C.F. 2022. Planktonic functional diversity changes in synchrony with lake ecosystem state.
 
