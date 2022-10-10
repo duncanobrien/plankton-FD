@@ -53,6 +53,7 @@ kas.tot <- cbind(phyto.kas.fuzFDs.mth[,c("FDis","FEve","FRic")],all.system.state
 # Merge lakes #
 
 all.lakes.gam <- rbind(kin.tot,LZ.tot,mad.tot,wind.tot,kas.tot)%>%
+  `colnames<-`(c("FDis","FEve","FRic","data.source","res","date","Density","Community","Z_P.ratio","env","FI","MVI","zooFDis","zooFEve","zooFRic")) %>%
   pivot_longer(-c(date,data.source,res),names_to = "metric",values_to = "value")%>%
   mutate(metric.type = ifelse(metric %in% c("FDis","FEve","FRic"),"Phytoplankton FD",
                               ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),"Zooplankton FD",
@@ -63,9 +64,11 @@ all.lakes.gam <- rbind(kin.tot,LZ.tot,mad.tot,wind.tot,kas.tot)%>%
 ## Plot FD and State Trends ##
 ###########################################################################
 no_env_dat <- filter(all.lakes.gam,metric != "env" )
+
 pdf(file="Results/raw_visualisations/Figure1.pdf",
     width=9, height = 9)
-ggplot(no_env_dat %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),aes(x=as.numeric(date),y=value, col = metric)) + 
+ggplot(no_env_dat %>% mutate(metric = ifelse(metric %in% c("zooFDis","zooFEve","zooFRic"),substr(metric,4,7),metric)),
+       aes(x=as.numeric(date),y=value, col = metric)) + 
   geom_point(aes(col=metric),alpha = 0.3,pch =21)+
   geom_smooth(aes(col = metric),method = "gam",formula =y ~ s(x, bs = "tp",k=15),method.args = list(method = "REML"),alpha=1,fill="grey") +
   ggh4x::facet_nested(metric.type + metric~data.source,scales = "free",
